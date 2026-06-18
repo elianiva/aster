@@ -6,13 +6,14 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "vite dev",
     "generate-routes": "tsr generate",
     "build": "vite build",
-    "preview": "wrangler dev",
+    "preview": "vite preview",
     "test": "vitest run",
-    "deploy": "wrangler deploy",
-    "cf-typegen": "wrangler types"
+    "deploy": "pnpm run build && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "postinstall": "pnpm run cf-typegen"
   },
   "dependencies": {
     "@faker-js/faker": "^10.3.0",

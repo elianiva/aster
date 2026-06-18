@@ -9,6 +9,7 @@ import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
+  server: { port: 3000 },
   resolve: { tsconfigPaths: true },
   plugins: [
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
