@@ -9,50 +9,236 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as SidebarRouteImport } from './routes/_sidebar'
+import { Route as SidebarIndexRouteImport } from './routes/_sidebar/index'
+import { Route as SidebarSettingsRouteImport } from './routes/_sidebar/settings'
+import { Route as SidebarWorkspacesIndexRouteImport } from './routes/_sidebar/workspaces/index'
+import { Route as SidebarWorkspacesWorkspaceIdIndexRouteImport } from './routes/_sidebar/workspaces/$workspaceId/index'
+import { Route as SidebarWorkspacesWorkspaceIdSessionsRouteImport } from './routes/_sidebar/workspaces/$workspaceId/sessions'
+import { Route as SidebarWorkspacesWorkspaceIdRecordsRouteImport } from './routes/_sidebar/workspaces/$workspaceId/records'
+import { Route as SidebarWorkspacesWorkspaceIdMissionsRouteImport } from './routes/_sidebar/workspaces/$workspaceId/missions'
+import { Route as SidebarWorkspacesWorkspaceIdLessonsRouteImport } from './routes/_sidebar/workspaces/$workspaceId/lessons'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const SidebarRoute = SidebarRouteImport.update({
+  id: '/_sidebar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SidebarIndexRoute = SidebarIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SidebarRoute,
+} as any)
+const SidebarSettingsRoute = SidebarSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => SidebarRoute,
+} as any)
+const SidebarWorkspacesIndexRoute = SidebarWorkspacesIndexRouteImport.update({
+  id: '/workspaces/',
+  path: '/workspaces/',
+  getParentRoute: () => SidebarRoute,
+} as any)
+const SidebarWorkspacesWorkspaceIdIndexRoute =
+  SidebarWorkspacesWorkspaceIdIndexRouteImport.update({
+    id: '/workspaces/$workspaceId/',
+    path: '/workspaces/$workspaceId/',
+    getParentRoute: () => SidebarRoute,
+  } as any)
+const SidebarWorkspacesWorkspaceIdSessionsRoute =
+  SidebarWorkspacesWorkspaceIdSessionsRouteImport.update({
+    id: '/workspaces/$workspaceId/sessions',
+    path: '/workspaces/$workspaceId/sessions',
+    getParentRoute: () => SidebarRoute,
+  } as any)
+const SidebarWorkspacesWorkspaceIdRecordsRoute =
+  SidebarWorkspacesWorkspaceIdRecordsRouteImport.update({
+    id: '/workspaces/$workspaceId/records',
+    path: '/workspaces/$workspaceId/records',
+    getParentRoute: () => SidebarRoute,
+  } as any)
+const SidebarWorkspacesWorkspaceIdMissionsRoute =
+  SidebarWorkspacesWorkspaceIdMissionsRouteImport.update({
+    id: '/workspaces/$workspaceId/missions',
+    path: '/workspaces/$workspaceId/missions',
+    getParentRoute: () => SidebarRoute,
+  } as any)
+const SidebarWorkspacesWorkspaceIdLessonsRoute =
+  SidebarWorkspacesWorkspaceIdLessonsRouteImport.update({
+    id: '/workspaces/$workspaceId/lessons',
+    path: '/workspaces/$workspaceId/lessons',
+    getParentRoute: () => SidebarRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof SidebarIndexRoute
+  '/settings': typeof SidebarSettingsRoute
+  '/workspaces/': typeof SidebarWorkspacesIndexRoute
+  '/workspaces/$workspaceId/lessons': typeof SidebarWorkspacesWorkspaceIdLessonsRoute
+  '/workspaces/$workspaceId/missions': typeof SidebarWorkspacesWorkspaceIdMissionsRoute
+  '/workspaces/$workspaceId/records': typeof SidebarWorkspacesWorkspaceIdRecordsRoute
+  '/workspaces/$workspaceId/sessions': typeof SidebarWorkspacesWorkspaceIdSessionsRoute
+  '/workspaces/$workspaceId/': typeof SidebarWorkspacesWorkspaceIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/settings': typeof SidebarSettingsRoute
+  '/': typeof SidebarIndexRoute
+  '/workspaces': typeof SidebarWorkspacesIndexRoute
+  '/workspaces/$workspaceId/lessons': typeof SidebarWorkspacesWorkspaceIdLessonsRoute
+  '/workspaces/$workspaceId/missions': typeof SidebarWorkspacesWorkspaceIdMissionsRoute
+  '/workspaces/$workspaceId/records': typeof SidebarWorkspacesWorkspaceIdRecordsRoute
+  '/workspaces/$workspaceId/sessions': typeof SidebarWorkspacesWorkspaceIdSessionsRoute
+  '/workspaces/$workspaceId': typeof SidebarWorkspacesWorkspaceIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_sidebar': typeof SidebarRouteWithChildren
+  '/_sidebar/settings': typeof SidebarSettingsRoute
+  '/_sidebar/': typeof SidebarIndexRoute
+  '/_sidebar/workspaces/': typeof SidebarWorkspacesIndexRoute
+  '/_sidebar/workspaces/$workspaceId/lessons': typeof SidebarWorkspacesWorkspaceIdLessonsRoute
+  '/_sidebar/workspaces/$workspaceId/missions': typeof SidebarWorkspacesWorkspaceIdMissionsRoute
+  '/_sidebar/workspaces/$workspaceId/records': typeof SidebarWorkspacesWorkspaceIdRecordsRoute
+  '/_sidebar/workspaces/$workspaceId/sessions': typeof SidebarWorkspacesWorkspaceIdSessionsRoute
+  '/_sidebar/workspaces/$workspaceId/': typeof SidebarWorkspacesWorkspaceIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/workspaces/'
+    | '/workspaces/$workspaceId/lessons'
+    | '/workspaces/$workspaceId/missions'
+    | '/workspaces/$workspaceId/records'
+    | '/workspaces/$workspaceId/sessions'
+    | '/workspaces/$workspaceId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/settings'
+    | '/'
+    | '/workspaces'
+    | '/workspaces/$workspaceId/lessons'
+    | '/workspaces/$workspaceId/missions'
+    | '/workspaces/$workspaceId/records'
+    | '/workspaces/$workspaceId/sessions'
+    | '/workspaces/$workspaceId'
+  id:
+    | '__root__'
+    | '/_sidebar'
+    | '/_sidebar/settings'
+    | '/_sidebar/'
+    | '/_sidebar/workspaces/'
+    | '/_sidebar/workspaces/$workspaceId/lessons'
+    | '/_sidebar/workspaces/$workspaceId/missions'
+    | '/_sidebar/workspaces/$workspaceId/records'
+    | '/_sidebar/workspaces/$workspaceId/sessions'
+    | '/_sidebar/workspaces/$workspaceId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  SidebarRoute: typeof SidebarRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_sidebar': {
+      id: '/_sidebar'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof SidebarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_sidebar/': {
+      id: '/_sidebar/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof SidebarIndexRouteImport
+      parentRoute: typeof SidebarRoute
+    }
+    '/_sidebar/settings': {
+      id: '/_sidebar/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SidebarSettingsRouteImport
+      parentRoute: typeof SidebarRoute
+    }
+    '/_sidebar/workspaces/': {
+      id: '/_sidebar/workspaces/'
+      path: '/workspaces'
+      fullPath: '/workspaces/'
+      preLoaderRoute: typeof SidebarWorkspacesIndexRouteImport
+      parentRoute: typeof SidebarRoute
+    }
+    '/_sidebar/workspaces/$workspaceId/': {
+      id: '/_sidebar/workspaces/$workspaceId/'
+      path: '/workspaces/$workspaceId'
+      fullPath: '/workspaces/$workspaceId/'
+      preLoaderRoute: typeof SidebarWorkspacesWorkspaceIdIndexRouteImport
+      parentRoute: typeof SidebarRoute
+    }
+    '/_sidebar/workspaces/$workspaceId/sessions': {
+      id: '/_sidebar/workspaces/$workspaceId/sessions'
+      path: '/workspaces/$workspaceId/sessions'
+      fullPath: '/workspaces/$workspaceId/sessions'
+      preLoaderRoute: typeof SidebarWorkspacesWorkspaceIdSessionsRouteImport
+      parentRoute: typeof SidebarRoute
+    }
+    '/_sidebar/workspaces/$workspaceId/records': {
+      id: '/_sidebar/workspaces/$workspaceId/records'
+      path: '/workspaces/$workspaceId/records'
+      fullPath: '/workspaces/$workspaceId/records'
+      preLoaderRoute: typeof SidebarWorkspacesWorkspaceIdRecordsRouteImport
+      parentRoute: typeof SidebarRoute
+    }
+    '/_sidebar/workspaces/$workspaceId/missions': {
+      id: '/_sidebar/workspaces/$workspaceId/missions'
+      path: '/workspaces/$workspaceId/missions'
+      fullPath: '/workspaces/$workspaceId/missions'
+      preLoaderRoute: typeof SidebarWorkspacesWorkspaceIdMissionsRouteImport
+      parentRoute: typeof SidebarRoute
+    }
+    '/_sidebar/workspaces/$workspaceId/lessons': {
+      id: '/_sidebar/workspaces/$workspaceId/lessons'
+      path: '/workspaces/$workspaceId/lessons'
+      fullPath: '/workspaces/$workspaceId/lessons'
+      preLoaderRoute: typeof SidebarWorkspacesWorkspaceIdLessonsRouteImport
+      parentRoute: typeof SidebarRoute
     }
   }
 }
 
+interface SidebarRouteChildren {
+  SidebarSettingsRoute: typeof SidebarSettingsRoute
+  SidebarIndexRoute: typeof SidebarIndexRoute
+  SidebarWorkspacesIndexRoute: typeof SidebarWorkspacesIndexRoute
+  SidebarWorkspacesWorkspaceIdLessonsRoute: typeof SidebarWorkspacesWorkspaceIdLessonsRoute
+  SidebarWorkspacesWorkspaceIdMissionsRoute: typeof SidebarWorkspacesWorkspaceIdMissionsRoute
+  SidebarWorkspacesWorkspaceIdRecordsRoute: typeof SidebarWorkspacesWorkspaceIdRecordsRoute
+  SidebarWorkspacesWorkspaceIdSessionsRoute: typeof SidebarWorkspacesWorkspaceIdSessionsRoute
+  SidebarWorkspacesWorkspaceIdIndexRoute: typeof SidebarWorkspacesWorkspaceIdIndexRoute
+}
+
+const SidebarRouteChildren: SidebarRouteChildren = {
+  SidebarSettingsRoute: SidebarSettingsRoute,
+  SidebarIndexRoute: SidebarIndexRoute,
+  SidebarWorkspacesIndexRoute: SidebarWorkspacesIndexRoute,
+  SidebarWorkspacesWorkspaceIdLessonsRoute:
+    SidebarWorkspacesWorkspaceIdLessonsRoute,
+  SidebarWorkspacesWorkspaceIdMissionsRoute:
+    SidebarWorkspacesWorkspaceIdMissionsRoute,
+  SidebarWorkspacesWorkspaceIdRecordsRoute:
+    SidebarWorkspacesWorkspaceIdRecordsRoute,
+  SidebarWorkspacesWorkspaceIdSessionsRoute:
+    SidebarWorkspacesWorkspaceIdSessionsRoute,
+  SidebarWorkspacesWorkspaceIdIndexRoute:
+    SidebarWorkspacesWorkspaceIdIndexRoute,
+}
+
+const SidebarRouteWithChildren =
+  SidebarRoute._addFileChildren(SidebarRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  SidebarRoute: SidebarRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
