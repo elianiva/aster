@@ -1,0 +1,10 @@
+allowBuilds:
+  '@google/genai': true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - '@cloudflare/vite-plugin@1.42.0'
+  - miniflare@4.20260617.0
+  - wrangler@4.102.0
