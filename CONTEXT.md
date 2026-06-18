@@ -1,6 +1,8 @@
 # Aster
 
-A learning workspace app where a teacher agent generates interactive lessons from structured components. Users set goals, annotate lesson plans, and ask follow-ups. Multi-user with sharing.
+A self-hostable, single-user learning workspace where a teacher agent generates interactive lessons from structured components. Auth is handled by Cloudflare Access (Zero Trust). Generated artifacts (lessons, components) can be shared via public URLs.
+
+_Avoid_: Multi-user, accounts, login flows
 
 ## Language
 
