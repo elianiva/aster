@@ -15,13 +15,33 @@ const UpdateWorkspaceInput = Schema.Struct({
   currentKnowledge: Schema.optional(Schema.String),
 });
 
+function errorHandler(error: unknown): never {
+  if (error && typeof error === "object" && "_tag" in error) {
+    switch (error._tag) {
+      case "WorkspaceNotFound":
+        throw new Error("Workspace not found. It may have been deleted.");
+      case "WorkspaceQueryFailed":
+        throw new Error("Failed to load workspaces. Please try again.");
+      case "WorkspaceInsertFailed":
+        throw new Error("Failed to create workspace. Please try again.");
+      case "WorkspaceUpdateFailed":
+        throw new Error("Failed to update workspace. Please try again.");
+      case "WorkspaceDeleteFailed":
+        throw new Error("Failed to delete workspace. Please try again.");
+      default:
+        throw new Error("Something went wrong. Please try again.");
+    }
+  }
+  throw new Error("Something went wrong. Please try again.");
+}
+
 export const listWorkspaces = createServerFn({ method: "GET" }).handler(() =>
   AppRuntime.runPromise(
     Effect.gen(function* () {
       const service = yield* WorkspaceService;
       return yield* service.list();
     }),
-  ),
+  ).catch(errorHandler),
 );
 
 export const getWorkspace = createServerFn({ method: "GET" })
@@ -32,7 +52,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
         const service = yield* WorkspaceService;
         return yield* service.get(data.id);
       }),
-    ),
+    ).catch(errorHandler),
   );
 
 export const createWorkspace = createServerFn({ method: "POST" })
@@ -43,7 +63,7 @@ export const createWorkspace = createServerFn({ method: "POST" })
         const service = yield* WorkspaceService;
         return yield* service.create(data);
       }),
-    ),
+    ).catch(errorHandler),
   );
 
 export const updateWorkspace = createServerFn({ method: "POST" })
@@ -59,7 +79,7 @@ export const updateWorkspace = createServerFn({ method: "POST" })
         const { id, ...input } = data;
         return yield* service.update(id, input);
       }),
-    ),
+    ).catch(errorHandler),
   );
 
 export const deleteWorkspace = createServerFn({ method: "POST" })
@@ -70,5 +90,5 @@ export const deleteWorkspace = createServerFn({ method: "POST" })
         const service = yield* WorkspaceService;
         yield* service.delete(data.id);
       }),
-    ),
+    ).catch(errorHandler),
   );

@@ -40,11 +40,8 @@ export function CreateWorkspaceForm({ open, onOpenChange }: CreateWorkspaceFormP
       setCurrentKnowledge("");
       navigate({ to: "/workspaces/$workspaceId", params: { workspaceId: workspace.id } });
     } catch (error) {
-      if (error && typeof error === "object" && "_tag" in error) {
-        console.error(`[${error._tag}]`, error.message);
-      } else {
-        console.error("Failed to create workspace:", error);
-      }
+      const message = error instanceof Error ? error.message : "Something went wrong.";
+      console.error(message);
     } finally {
       setIsSubmitting(false);
     }
