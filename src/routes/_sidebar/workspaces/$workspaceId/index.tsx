@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { WorkspaceDetail } from '~/features/workspace/detail'
+import { WorkspaceDetail } from '~/features/workspace/components/detail'
 
 export const Route = createFileRoute('/_sidebar/workspaces/$workspaceId/')({
   component: RouteWorkspaceDetail,

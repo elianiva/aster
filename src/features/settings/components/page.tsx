@@ -16,8 +16,8 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AiBrainIcon, RotateLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { updateSettings } from "./server-fns";
-import { providersQueryOptions } from "./query-options";
+import { updateSettings } from "~/server/rpc/settings";
+import { providersQueryOptions } from "~/features/settings/hooks/use-providers";
 
 interface SettingsPageProps {
   settings: {

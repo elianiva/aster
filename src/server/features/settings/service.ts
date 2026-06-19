@@ -1,8 +1,8 @@
-import { Context, Effect, Layer, Schema } from "effect";
-import * as FetchHttpClient from "effect/unstable/http/FetchHttpClient";
+import { Effect, Layer, Schema } from "effect";
 import * as HttpClient from "effect/unstable/http/HttpClient";
 import * as HttpClientResponse from "effect/unstable/http/HttpClientResponse";
-import { Settings, ProviderWithModels, DEFAULT_SETTINGS } from "./schema";
+import { Settings, ProviderWithModels, DEFAULT_SETTINGS } from "~/features/settings/lib/schema";
+import { KVService } from "~/server/app-layer";
 
 const ModelEntryRaw = Schema.Struct({
   id: Schema.String,
@@ -19,24 +19,17 @@ const ProviderModels = Schema.Struct({
 
 const ModelsDevResponse = Schema.Record(Schema.String, ProviderModels);
 
-export interface KVService {
-  readonly get: <A>(key: string, schema: Schema.Schema<A>) => Effect.Effect<A, unknown, unknown>;
-  readonly put: (key: string, value: unknown) => Effect.Effect<void, unknown, unknown>;
-}
-
-export const KVService = Context.Service<KVService>("KVService");
-
 export interface SettingsService {
   readonly get: () => Effect.Effect<Settings, unknown, unknown>;
   readonly update: (settings: Settings) => Effect.Effect<void, unknown, unknown>;
   readonly fetchProviders: () => Effect.Effect<ProviderWithModels[], unknown, unknown>;
 }
 
-export const SettingsService = Context.Service<SettingsService>("SettingsService");
+export const SettingsService = Effect.Service<SettingsService>("SettingsService");
 
 export const SettingsServiceLive = Layer.effect(
   SettingsService,
-  Effect.gen(function*() {
+  Effect.gen(function* () {
     const kv = yield* KVService;
     const httpClient = yield* HttpClient.HttpClient;
 
@@ -46,7 +39,7 @@ export const SettingsServiceLive = Layer.effect(
     const update = (settings: Settings) => kv.put("app:settings", settings);
 
     const fetchProviders = () =>
-      Effect.gen(function*() {
+      Effect.gen(function* () {
         const response = yield* httpClient.get("https://models.dev/api.json");
         const json = yield* HttpClientResponse.schemaBodyJson(ModelsDevResponse)(response as any);
 
@@ -60,8 +53,8 @@ export const SettingsServiceLive = Layer.effect(
               id: providerId,
               name: providerData.name ?? providerId,
               env: providerData.env ?? [],
-              api: providerData.api ?? '',
-              npm: providerData.npm ?? '',
+              api: providerData.api ?? "",
+              npm: providerData.npm ?? "",
             },
             models: Object.entries(providerData.models).map(([modelId, modelData]) => ({
               id: modelId,
@@ -78,5 +71,3 @@ export const SettingsServiceLive = Layer.effect(
     return { get, update, fetchProviders } satisfies SettingsService;
   }),
 );
-
-export const SettingsLayer = Layer.merge(FetchHttpClient.layer, SettingsServiceLive);

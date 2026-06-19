@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { SettingsPage } from '~/features/settings/page'
-import { getSettings } from '~/features/settings/server-fns'
+import { SettingsPage } from '~/features/settings/components/page'
+import { getSettings } from '~/server/rpc/settings'
 
 export const Route = createFileRoute('/_sidebar/settings')({
   loader: async () => {
