@@ -46,16 +46,29 @@ export class SettingsService extends Context.Service<SettingsService>()("Setting
     const store = KeyValueStore.toSchemaStore(kv, Settings);
 
     const get = () =>
-      store.get("app:settings").pipe(Effect.map(Option.getOrNull));
+      store.get("app:settings").pipe(
+        Effect.tap(() => Effect.log("Settings retrieved")),
+        Effect.tapError((e) => Effect.logError(`Settings get failed: ${e}`)),
+        Effect.map(Option.getOrNull),
+      );
 
-    const update = (settings: Settings) => store.set("app:settings", settings);
+    const update = (settings: Settings) =>
+      store.set("app:settings", settings).pipe(
+        Effect.tap(() => Effect.log("Settings updated")),
+        Effect.tapError((e) => Effect.logError(`Settings update failed: ${e}`)),
+      );
 
     const fetchProviders = () =>
       Effect.gen(function*() {
+        yield* Effect.log("Fetching providers from models.dev");
         const response = yield* httpClient.get("https://models.dev/api.json");
         const json = yield* HttpClientResponse.schemaBodyJson(ModelsDevResponse)(response);
+        yield* Effect.log(`Fetched ${Object.keys(json).length} providers`);
         return toProviders(json);
-      }).pipe(Effect.mapError((cause) => new ProvidersFetchError({ cause })));
+      }).pipe(
+        Effect.tapError((e) => Effect.logError(`Provider fetch failed: ${e}`)),
+        Effect.mapError((cause) => new ProvidersFetchError({ cause })),
+      );
 
     return { get, update, fetchProviders } as const;
   }),

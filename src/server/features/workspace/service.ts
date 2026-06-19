@@ -57,21 +57,35 @@ function toWorkspace(row: typeof workspaces.$inferSelect): Workspace {
 }
 
 function list(client: DrizzleClient) {
-  return Effect.tryPromise({
-    try: () => client.select().from(workspaces).orderBy(workspaces.createdAt),
-    catch: (cause) => new WorkspaceQueryFailed(`Failed to list workspaces: ${cause}`),
-  }).pipe(Effect.map((rows) => rows.map(toWorkspace)));
+  return Effect.gen(function* () {
+    yield* Effect.log("Listing workspaces");
+    const rows = yield* Effect.tryPromise({
+      try: () => client.select().from(workspaces).orderBy(workspaces.createdAt),
+      catch: (cause) => new WorkspaceQueryFailed(`Failed to list workspaces: ${cause}`),
+    });
+    yield* Effect.log(`Listed ${rows.length} workspaces`);
+    return rows.map(toWorkspace);
+  }).pipe(Effect.tapError((e) => Effect.logError(`List workspaces failed: ${e}`)));
 }
 
 function get(client: DrizzleClient, id: string) {
-  return Effect.tryPromise({
-    try: () => client.select().from(workspaces).where(eq(workspaces.id, id)).limit(1),
-    catch: (cause) => new WorkspaceQueryFailed(`Failed to get workspace: ${cause}`),
-  }).pipe(Effect.map((rows) => rows[0] ? toWorkspace(rows[0]) : null));
+  return Effect.gen(function* () {
+    yield* Effect.log(`Getting workspace: ${id}`);
+    const rows = yield* Effect.tryPromise({
+      try: () => client.select().from(workspaces).where(eq(workspaces.id, id)).limit(1),
+      catch: (cause) => new WorkspaceQueryFailed(`Failed to get workspace: ${cause}`),
+    });
+    const workspace = rows[0] ? toWorkspace(rows[0]) : null;
+    yield* workspace
+      ? Effect.log(`Found workspace: ${id}`)
+      : Effect.log(`Workspace not found: ${id}`);
+    return workspace;
+  }).pipe(Effect.tapError((e) => Effect.logError(`Get workspace failed: ${e}`)));
 }
 
 function create(client: DrizzleClient, input: CreateWorkspaceInput) {
   return Effect.gen(function* () {
+    yield* Effect.log(`Creating workspace: ${input.topic}`);
     const now = new Date();
     const id = crypto.randomUUID();
     const workspace: Workspace = {
@@ -92,12 +106,14 @@ function create(client: DrizzleClient, input: CreateWorkspaceInput) {
         }),
       catch: (cause) => new WorkspaceInsertFailed(`Failed to create workspace: ${cause}`),
     });
+    yield* Effect.log(`Created workspace: ${id}`);
     return workspace;
-  });
+  }).pipe(Effect.tapError((e) => Effect.logError(`Create workspace failed: ${e}`)));
 }
 
 function update(client: DrizzleClient, id: string, input: UpdateWorkspaceInput) {
   return Effect.gen(function* () {
+    yield* Effect.log(`Updating workspace: ${id}`);
     const existing = yield* get(client, id);
     if (!existing) {
       return yield* Effect.fail(new WorkspaceNotFound(`Workspace ${id} not found`));
@@ -121,15 +137,20 @@ function update(client: DrizzleClient, id: string, input: UpdateWorkspaceInput) 
           .where(eq(workspaces.id, id)),
       catch: (cause) => new WorkspaceUpdateFailed(`Failed to update workspace: ${cause}`),
     });
+    yield* Effect.log(`Updated workspace: ${id}`);
     return updated;
-  });
+  }).pipe(Effect.tapError((e) => Effect.logError(`Update workspace failed: ${e}`)));
 }
 
 function delete_(client: DrizzleClient, id: string) {
-  return Effect.tryPromise({
-    try: () => client.delete(workspaces).where(eq(workspaces.id, id)),
-    catch: (cause) => new WorkspaceDeleteFailed(`Failed to delete workspace: ${cause}`),
-  });
+  return Effect.gen(function* () {
+    yield* Effect.log(`Deleting workspace: ${id}`);
+    yield* Effect.tryPromise({
+      try: () => client.delete(workspaces).where(eq(workspaces.id, id)),
+      catch: (cause) => new WorkspaceDeleteFailed(`Failed to delete workspace: ${cause}`),
+    });
+    yield* Effect.log(`Deleted workspace: ${id}`);
+  }).pipe(Effect.tapError((e) => Effect.logError(`Delete workspace failed: ${e}`)));
 }
 
 export class WorkspaceService extends Context.Service<WorkspaceService, {

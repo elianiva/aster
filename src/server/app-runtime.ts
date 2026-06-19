@@ -4,8 +4,10 @@ import { SettingsService } from "./features/settings/service";
 import { WorkspaceService } from "./features/workspace/service";
 import { KvLayer } from "./kv-service";
 import { Database } from "./db/client";
+import { LoggerLayer } from "./logger";
 
 const BaseLayer = Layer.mergeAll(
+  LoggerLayer,
   FetchHttpClient.layer,
   KvLayer,
   Database.layer,

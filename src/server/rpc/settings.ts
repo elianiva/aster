@@ -19,6 +19,7 @@ function errorHandler(error: unknown): never {
 export const getSettings = createServerFn({ method: "GET" }).handler(() =>
   AppRuntime.runPromise(
     Effect.gen(function* () {
+      yield* Effect.log("RPC: getSettings");
       const service = yield* SettingsService;
       const settings = yield* service.get();
       if (!settings) return DEFAULT_SETTINGS;
@@ -32,6 +33,7 @@ export const updateSettings = createServerFn({ method: "POST" })
   .handler(({ data }) =>
     AppRuntime.runPromise(
       Effect.gen(function* () {
+        yield* Effect.log("RPC: updateSettings");
         const service = yield* SettingsService;
         yield* service.update(data);
       }),
@@ -41,6 +43,7 @@ export const updateSettings = createServerFn({ method: "POST" })
 export const fetchProviders = createServerFn({ method: "GET" }).handler(() =>
   AppRuntime.runPromise(
     Effect.gen(function* () {
+      yield* Effect.log("RPC: fetchProviders");
       const service = yield* SettingsService;
       return yield* service.fetchProviders();
     }),

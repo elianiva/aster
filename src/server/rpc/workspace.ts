@@ -38,6 +38,7 @@ function errorHandler(error: unknown): never {
 export const listWorkspaces = createServerFn({ method: "GET" }).handler(() =>
   AppRuntime.runPromise(
     Effect.gen(function* () {
+      yield* Effect.log("RPC: listWorkspaces");
       const service = yield* WorkspaceService;
       return yield* service.list();
     }),
@@ -49,6 +50,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
   .handler(({ data }) =>
     AppRuntime.runPromise(
       Effect.gen(function* () {
+        yield* Effect.log(`RPC: getWorkspace(${data.id})`);
         const service = yield* WorkspaceService;
         return yield* service.get(data.id);
       }),
@@ -60,6 +62,7 @@ export const createWorkspace = createServerFn({ method: "POST" })
   .handler(({ data }) =>
     AppRuntime.runPromise(
       Effect.gen(function* () {
+        yield* Effect.log(`RPC: createWorkspace(${data.topic})`);
         const service = yield* WorkspaceService;
         return yield* service.create(data);
       }),
@@ -75,6 +78,7 @@ export const updateWorkspace = createServerFn({ method: "POST" })
   .handler(({ data }) =>
     AppRuntime.runPromise(
       Effect.gen(function* () {
+        yield* Effect.log(`RPC: updateWorkspace(${data.id})`);
         const service = yield* WorkspaceService;
         const { id, ...input } = data;
         return yield* service.update(id, input);
@@ -87,6 +91,7 @@ export const deleteWorkspace = createServerFn({ method: "POST" })
   .handler(({ data }) =>
     AppRuntime.runPromise(
       Effect.gen(function* () {
+        yield* Effect.log(`RPC: deleteWorkspace(${data.id})`);
         const service = yield* WorkspaceService;
         yield* service.delete(data.id);
       }),
