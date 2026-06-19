@@ -1,15 +1,12 @@
 import { Context, Effect, Layer } from "effect";
 
-export interface Database {
-  readonly client: unknown;
+export class Database extends Context.Service<Database>()("Database", {
+  make: Effect.gen(function*() {
+    // TODO: Initialize with Drizzle + LibSQL
+    const client = null;
+
+    return { client } as const;
+  }),
+}) {
+  static readonly layer = Layer.effect(this, this.make);
 }
-
-export const Database = Context.Service<Database>("Database");
-
-export const DatabaseLive = Layer.succeed(Database, {
-  client: null, // TODO: Initialize with Drizzle + LibSQL
-});
-
-export const DatabaseTest = Layer.succeed(Database, {
-  client: null,
-});

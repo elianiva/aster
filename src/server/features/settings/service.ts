@@ -1,8 +1,8 @@
-import { Effect, Layer, Schema } from "effect";
-import * as HttpClient from "effect/unstable/http/HttpClient";
-import * as HttpClientResponse from "effect/unstable/http/HttpClientResponse";
-import { Settings, ProviderWithModels, DEFAULT_SETTINGS } from "~/features/settings/lib/schema";
-import { KVService } from "~/server/app-layer";
+import { Context, Effect, Layer, Option, Schema } from "effect";
+import { Settings, ProviderWithModels } from "~/features/settings/lib/schema";
+import { ProvidersFetchError } from "~/server/errors";
+import { HttpClient, HttpClientResponse } from "effect/unstable/http";
+import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 
 const ModelEntryRaw = Schema.Struct({
   id: Schema.String,
@@ -19,55 +19,50 @@ const ProviderModels = Schema.Struct({
 
 const ModelsDevResponse = Schema.Record(Schema.String, ProviderModels);
 
-export interface SettingsService {
-  readonly get: () => Effect.Effect<Settings, unknown, unknown>;
-  readonly update: (settings: Settings) => Effect.Effect<void, unknown, unknown>;
-  readonly fetchProviders: () => Effect.Effect<ProviderWithModels[], unknown, unknown>;
-}
+const toProviders = (json: typeof ModelsDevResponse.Type): ProviderWithModels[] => {
+  const providers: ProviderWithModels[] = [];
+  for (const [providerId, providerData] of Object.entries(json)) {
+    if (Object.keys(providerData.models).length === 0) continue;
+    providers.push({
+      provider: {
+        id: providerId,
+        name: providerData.name ?? providerId,
+        env: providerData.env ?? [],
+        api: providerData.api ?? "",
+        npm: providerData.npm ?? "",
+      },
+      models: Object.entries(providerData.models).map(([modelId, modelData]) => ({
+        id: modelId,
+        name: modelData.name,
+      })),
+    });
+  }
 
-export const SettingsService = Effect.Service<SettingsService>("SettingsService");
+  providers.sort((a, b) => a.provider.name.localeCompare(b.provider.name));
 
-export const SettingsServiceLive = Layer.effect(
-  SettingsService,
-  Effect.gen(function* () {
-    const kv = yield* KVService;
+  return providers;
+};
+
+export class SettingsService extends Context.Service<SettingsService>()("SettingsService", {
+  make: Effect.gen(function*() {
+    const kv = yield* KeyValueStore.KeyValueStore;
     const httpClient = yield* HttpClient.HttpClient;
+    const store = KeyValueStore.toSchemaStore(kv, Settings);
 
     const get = () =>
-      kv.get("app:settings", Settings).pipe(Effect.catch(() => Effect.succeed(DEFAULT_SETTINGS)));
+      store.get("app:settings").pipe(Effect.map(Option.getOrNull));
 
-    const update = (settings: Settings) => kv.put("app:settings", settings);
+    const update = (settings: Settings) => store.set("app:settings", settings);
 
     const fetchProviders = () =>
-      Effect.gen(function* () {
+      Effect.gen(function*() {
         const response = yield* httpClient.get("https://models.dev/api.json");
-        const json = yield* HttpClientResponse.schemaBodyJson(ModelsDevResponse)(response as any);
+        const json = yield* HttpClientResponse.schemaBodyJson(ModelsDevResponse)(response);
+        return toProviders(json);
+      }).pipe(Effect.mapError((cause) => new ProvidersFetchError({ cause })));
 
-        const providers: ProviderWithModels[] = [];
-
-        for (const [providerId, providerData] of Object.entries(json)) {
-          if (Object.keys(providerData.models).length === 0) continue;
-
-          providers.push({
-            provider: {
-              id: providerId,
-              name: providerData.name ?? providerId,
-              env: providerData.env ?? [],
-              api: providerData.api ?? "",
-              npm: providerData.npm ?? "",
-            },
-            models: Object.entries(providerData.models).map(([modelId, modelData]) => ({
-              id: modelId,
-              name: modelData.name,
-            })),
-          });
-        }
-
-        providers.sort((a, b) => a.provider.name.localeCompare(b.provider.name));
-
-        return providers;
-      });
-
-    return { get, update, fetchProviders } satisfies SettingsService;
+    return { get, update, fetchProviders } as const;
   }),
-);
+}) {
+  static readonly layer = Layer.effect(this, this.make);
+}
