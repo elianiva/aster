@@ -20,5 +20,18 @@
 			"id": "71ebbdf2bd984b4ab923291c8f718c18",
 			"remote": true
 		}
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "aster-db",
+			"database_id": "placeholder"
+		},
+		{
+			"binding": "aster_db",
+			"database_name": "aster-db",
+			"database_id": "e46fcc25-c8e4-4768-b74c-20d6a52d212f",
+			"remote": true
+		}
 	]
 }
