@@ -2,7 +2,6 @@ import { Context, Effect, Layer } from "effect";
 
 export class Database extends Context.Service<Database>()("Database", {
   make: Effect.gen(function*() {
-    // TODO: Initialize with Drizzle + LibSQL
     const client = null;
 
     return { client } as const;

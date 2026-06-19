@@ -5,7 +5,7 @@ import { AppSidebar } from '~/components/app-sidebar'
 export function SidebarLayout() {
   const matches = useMatches()
   const lastMatch = matches.at(-1)
-  const params = (lastMatch?.params ?? {}) as Record<string, string>
+  const params = lastMatch?.params ?? {}
 
   return (
     <SidebarProvider>

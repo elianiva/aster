@@ -37,3 +37,19 @@ _Avoid_: Source, link
 **Teacher Agent**:
 The AI agent that teaches. Extends Think, lives in a Durable Object. Generates lessons, components, and learning records.
 _Avoid_: Bot, assistant
+
+**Artifact**:
+A generated output stored in R2 — lessons, reference docs, learning records. Stored as OpenUI Lang, rendered interactively on the frontend.
+_Avoid_: File, document, output
+
+**OpenUI Lang**:
+The structured format the agent outputs for both chat responses and artifacts. Enables interactive components (quizzes, code playgrounds, diagrams) everywhere, not just in chat.
+_Avoid_: MDX, HTML, raw markdown
+
+**Context Block**:
+A persistent key-value section in the SessionManager's system prompt. Stores mission, topic, current knowledge, and other workspace state the agent needs. AI-writable, survives hibernation.
+_Avoid_: Memory, state, config
+
+**Guided Onboarding**:
+The workspace creation form that collects topic, mission, and current knowledge. Replaces the teach skill's nondeterministic LLM questioning with deterministic UI.
+_Avoid_: Setup wizard, intake form
