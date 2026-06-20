@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -29,18 +29,11 @@ interface ProviderGroup {
   items: ModelItem[];
 }
 
-interface SettingsPageProps {
-  settings: {
-    selectedProvider: string;
-    selectedModel: string;
-    apiKeys: Record<string, string>;
-  };
-}
-
-export function SettingsPage({ settings }: SettingsPageProps) {
+export function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
-  const { data: providers = [], isPending: loading } = useQuery(SettingsRpc.providers());
+  const { data: settings } = useSuspenseQuery(SettingsRpc.getSettings());
+  const { data: providers = [] } = useSuspenseQuery(SettingsRpc.providers());
   const queryClient = useQueryClient();
 
   const groups: ProviderGroup[] = useMemo(() => {
@@ -175,9 +168,6 @@ export function SettingsPage({ settings }: SettingsPageProps) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Loading providers...</p>
-          ) : (
             <div className="space-y-2">
               <Label>Model</Label>
               <Combobox
@@ -212,7 +202,6 @@ export function SettingsPage({ settings }: SettingsPageProps) {
                 </ComboboxContent>
               </Combobox>
             </div>
-          )}
         </CardContent>
       </Card>
 

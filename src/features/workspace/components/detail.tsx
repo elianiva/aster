@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -11,11 +11,7 @@ interface WorkspaceDetailProps {
 }
 
 export function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
-  const { data: workspace, isLoading } = useQuery(WorkspaceRpc.getWorkspace(workspaceId));
-
-  if (isLoading) {
-    return <div className="text-muted-foreground">Loading workspace...</div>;
-  }
+  const { data: workspace } = useSuspenseQuery(WorkspaceRpc.getWorkspace(workspaceId));
 
   if (!workspace) {
     return <div className="text-muted-foreground">Workspace not found</div>;

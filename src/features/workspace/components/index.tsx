@@ -10,14 +10,14 @@ import {
 } from "~/components/ui/empty";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BookOpen01Icon } from "@hugeicons/core-free-icons";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { Link } from "@tanstack/react-router";
 import { CreateWorkspaceForm } from "./create-form";
 
 export function WorkspacesPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const { data: workspaces = [], isLoading } = useQuery(WorkspaceRpc.listWorkspaces());
+  const { data: workspaces } = useSuspenseQuery(WorkspaceRpc.listWorkspaces());
 
   return (
     <div className="space-y-6">
@@ -29,9 +29,7 @@ export function WorkspacesPage() {
         <Button onClick={() => setShowCreateForm(true)}>New Workspace</Button>
       </div>
 
-      {isLoading ? (
-        <div className="text-muted-foreground">Loading workspaces...</div>
-      ) : workspaces.length === 0 ? (
+      {workspaces.length === 0 ? (
         <Empty>
           <EmptyHeader>
             <EmptyMedia variant="icon">
