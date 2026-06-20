@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Option, Schema } from "effect";
+import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { Settings, DEFAULT_SETTINGS } from "~/features/settings/lib/schema";
 import { SettingsService } from "../features/settings/service";
 import { AppRuntime } from "../app-runtime";
@@ -38,3 +39,22 @@ export const fetchProviders = createServerFn({ method: "GET" }).handler(() =>
     }),
   ).catch(errorHandler),
 );
+
+export const SettingsRpc = {
+  settings: () => ["settings"],
+  getSettings: () =>
+    queryOptions({
+      queryKey: [...SettingsRpc.settings()],
+      queryFn: () => getSettings(),
+    }),
+  updateSettings: () =>
+    mutationOptions({
+      mutationKey: [...SettingsRpc.settings()],
+      mutationFn: (input: Settings) => updateSettings({ data: input }),
+    }),
+  providers: () =>
+    queryOptions({
+      queryKey: [...SettingsRpc.settings(), "providers"],
+      queryFn: () => fetchProviders(),
+    }),
+};

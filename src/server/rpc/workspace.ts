@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Option, Schema } from "effect";
+import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { WorkspaceService, CreateWorkspaceInput, UpdateWorkspaceInput } from "../features/workspace/service";
 import { AppRuntime } from "../app-runtime";
 import { createErrorHandler } from "./errors";
@@ -70,3 +71,32 @@ export const deleteWorkspace = createServerFn({ method: "POST" })
       }),
     ).catch(errorHandler),
   );
+
+export const WorkspaceRpc = {
+  workspace: () => ["workspace"],
+  listWorkspaces: () =>
+    queryOptions({
+      queryKey: [...WorkspaceRpc.workspace(), "list"],
+      queryFn: () => listWorkspaces(),
+    }),
+  getWorkspace: (id: string) =>
+    queryOptions({
+      queryKey: [...WorkspaceRpc.workspace(), id],
+      queryFn: () => getWorkspace({ data: { id } }),
+    }),
+  createWorkspace: () =>
+    mutationOptions({
+      mutationKey: [...WorkspaceRpc.workspace()],
+      mutationFn: (input: CreateWorkspaceInput) => createWorkspace({ data: input }),
+    }),
+  updateWorkspace: () =>
+    mutationOptions({
+      mutationKey: [...WorkspaceRpc.workspace()],
+      mutationFn: (input: UpdateWorkspaceInput & { id: string }) => updateWorkspace({ data: input }),
+    }),
+  deleteWorkspace: () =>
+    mutationOptions({
+      mutationKey: [...WorkspaceRpc.workspace()],
+      mutationFn: (input: { id: string }) => deleteWorkspace({ data: input }),
+    }),
+};

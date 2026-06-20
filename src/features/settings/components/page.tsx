@@ -16,8 +16,7 @@ import {
 } from "~/components/ui/combobox";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AiBrainIcon, RotateLeft01Icon } from "@hugeicons/core-free-icons";
-import { updateSettings } from "~/server/rpc/settings";
-import { providersQueryOptions } from "~/features/settings/hooks/use-providers";
+import { SettingsRpc } from "~/server/rpc/settings";
 
 interface ModelItem {
   id: string;
@@ -41,7 +40,7 @@ interface SettingsPageProps {
 export function SettingsPage({ settings }: SettingsPageProps) {
   const [saved, setSaved] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
-  const { data: providers = [], isPending: loading } = useQuery(providersQueryOptions);
+  const { data: providers = [], isPending: loading } = useQuery(SettingsRpc.providers());
   const queryClient = useQueryClient();
 
   const groups: ProviderGroup[] = useMemo(() => {
@@ -60,23 +59,23 @@ export function SettingsPage({ settings }: SettingsPageProps) {
   }, [groups]);
 
   const mutation = useMutation({
-    mutationFn: updateSettings,
+    ...SettingsRpc.updateSettings(),
     onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: ["settings"] });
-      const previous = queryClient.getQueryData(["settings"]);
-      queryClient.setQueryData(["settings"], (old: typeof settings) => ({
+      await queryClient.cancelQueries({ queryKey: SettingsRpc.settings() });
+      const previous = queryClient.getQueryData(SettingsRpc.settings());
+      queryClient.setQueryData(SettingsRpc.settings(), (old: typeof settings) => ({
         ...old,
-        ...variables.data,
+        ...variables,
       }));
       return { previous };
     },
     onError: (_err, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(["settings"], context.previous);
+        queryClient.setQueryData(SettingsRpc.settings(), context.previous);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      queryClient.invalidateQueries({ queryKey: SettingsRpc.settings() });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     },
@@ -133,11 +132,9 @@ export function SettingsPage({ settings }: SettingsPageProps) {
     form.setFieldValue("selectedModel", item.id);
     setInputValue(item.name ?? item.id);
     mutation.mutate({
-      data: {
-        selectedProvider: item.provider,
-        selectedModel: item.id,
-        apiKeys: form.state.values.apiKeys,
-      },
+      selectedProvider: item.provider,
+      selectedModel: item.id,
+      apiKeys: form.state.values.apiKeys,
     });
   };
 
@@ -145,11 +142,9 @@ export function SettingsPage({ settings }: SettingsPageProps) {
     const newApiKeys = { ...form.state.values.apiKeys, [providerId]: value };
     form.setFieldValue("apiKeys", newApiKeys);
     mutation.mutate({
-      data: {
-        selectedProvider: providerId,
-        selectedModel: form.state.values.selectedModel,
-        apiKeys: newApiKeys,
-      },
+      selectedProvider: providerId,
+      selectedModel: form.state.values.selectedModel,
+      apiKeys: newApiKeys,
     });
   };
 
@@ -158,11 +153,9 @@ export function SettingsPage({ settings }: SettingsPageProps) {
     form.setFieldValue("selectedModel", "kimi-k2.7-code");
     form.setFieldValue("apiKeys", {});
     mutation.mutate({
-      data: {
-        selectedProvider: "opencode-go",
-        selectedModel: "kimi-k2.7-code",
-        apiKeys: {},
-      },
+      selectedProvider: "opencode-go",
+      selectedModel: "kimi-k2.7-code",
+      apiKeys: {},
     });
   };
 

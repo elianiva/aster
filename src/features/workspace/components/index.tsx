@@ -11,17 +11,13 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BookOpen01Icon } from "@hugeicons/core-free-icons";
 import { useQuery } from "@tanstack/react-query";
-import { listWorkspaces } from "~/server/rpc/workspace";
+import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { Link } from "@tanstack/react-router";
 import { CreateWorkspaceForm } from "./create-form";
-import type { Workspace } from "~/server/features/workspace/service";
 
 export function WorkspacesPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const { data: workspaces = [], isLoading } = useQuery<Workspace[]>({
-    queryKey: ["workspaces"],
-    queryFn: () => listWorkspaces({ data: undefined }),
-  });
+  const { data: workspaces = [], isLoading } = useQuery(WorkspaceRpc.listWorkspaces());
 
   return (
     <div className="space-y-6">

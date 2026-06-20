@@ -1,21 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { getWorkspace } from "~/server/rpc/workspace";
+import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Message02Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { Workspace } from "~/server/features/workspace/service";
 
 interface WorkspaceDetailProps {
   workspaceId: string;
 }
 
 export function WorkspaceDetail({ workspaceId }: WorkspaceDetailProps) {
-  const { data: workspace, isLoading } = useQuery<Workspace | null>({
-    queryKey: ["workspace", workspaceId],
-    queryFn: () => getWorkspace({ data: { id: workspaceId } }),
-  });
+  const { data: workspace, isLoading } = useQuery(WorkspaceRpc.getWorkspace(workspaceId));
 
   if (isLoading) {
     return <div className="text-muted-foreground">Loading workspace...</div>;

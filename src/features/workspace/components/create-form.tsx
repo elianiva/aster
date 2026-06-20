@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
@@ -10,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { createWorkspace } from "~/server/rpc/workspace";
+import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { useNavigate } from "@tanstack/react-router";
 
 interface CreateWorkspaceFormProps {
@@ -20,31 +21,32 @@ interface CreateWorkspaceFormProps {
 
 export function CreateWorkspaceForm({ open, onOpenChange }: CreateWorkspaceFormProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [topic, setTopic] = useState("");
   const [mission, setMission] = useState("");
   const [currentKnowledge, setCurrentKnowledge] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!topic.trim() || !mission.trim()) return;
-
-    setIsSubmitting(true);
-    try {
-      const workspace = await createWorkspace({
-        data: { topic: topic.trim(), mission: mission.trim(), currentKnowledge: currentKnowledge.trim() },
-      });
+  const createMutation = useMutation({
+    ...WorkspaceRpc.createWorkspace(),
+    onSuccess: (workspace) => {
+      queryClient.invalidateQueries({ queryKey: WorkspaceRpc.workspace() });
       onOpenChange(false);
       setTopic("");
       setMission("");
       setCurrentKnowledge("");
       navigate({ to: "/workspaces/$workspaceId", params: { workspaceId: workspace.id } });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Something went wrong.";
-      console.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!topic.trim() || !mission.trim()) return;
+
+    createMutation.mutate({
+      topic: topic.trim(),
+      mission: mission.trim(),
+      currentKnowledge: currentKnowledge.trim(),
+    });
   };
 
   return (
@@ -107,8 +109,8 @@ export function CreateWorkspaceForm({ open, onOpenChange }: CreateWorkspaceFormP
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!topic.trim() || !mission.trim() || isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Workspace"}
+            <Button type="submit" disabled={!topic.trim() || !mission.trim() || createMutation.isPending}>
+              {createMutation.isPending ? "Creating..." : "Create Workspace"}
             </Button>
           </DialogFooter>
         </form>
