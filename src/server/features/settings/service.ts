@@ -1,4 +1,4 @@
-import { Context, Effect, Layer, Option } from "effect";
+import { Context, Effect, Layer } from "effect";
 import { Settings, ProviderWithModels } from "~/features/settings/lib/schema";
 import { ModelsDevResponse } from "~/features/settings/lib/models-dev-schema";
 import { ProvidersFetchError } from "~/server/errors";
@@ -39,39 +39,36 @@ const toProviders = (json: ModelsDevResponse): ProviderWithModels[] => {
   return providers;
 };
 
-export class SettingsService extends Context.Service<SettingsService>()("SettingsService", {
-  make: Effect.gen(function*() {
-    const kv = yield* KeyValueStore.KeyValueStore;
-    const httpClient = yield* HttpClient.HttpClient;
-    const store = KeyValueStore.toSchemaStore(kv, Settings);
+export class SettingsService extends Context.Service<SettingsService>()(
+  "@aster/features/settings/SettingsService",
+  {
+    make: Effect.gen(function* () {
+      const kv = yield* KeyValueStore.KeyValueStore;
+      const httpClient = yield* HttpClient.HttpClient;
+      const store = KeyValueStore.toSchemaStore(kv, Settings);
 
-    const get = () =>
-      store.get("app:settings").pipe(
-        Effect.tap(() => Effect.log("Settings retrieved")),
-        Effect.tapError((e) => Effect.logError(`Settings get failed: ${e}`)),
-        Effect.map(Option.getOrNull),
-      );
+      const get = Effect.fn("SettingsService.get")(function* () {
+        return yield* store.get("app:settings");
+      });
 
-    const update = (settings: Settings) =>
-      store.set("app:settings", settings).pipe(
-        Effect.tap(() => Effect.log("Settings updated")),
-        Effect.tapError((e) => Effect.logError(`Settings update failed: ${e}`)),
-      );
+      const update = Effect.fn("SettingsService.update")(function* (settings: Settings) {
+        yield* store.set("app:settings", settings);
+      });
 
-    const fetchProviders = () =>
-      Effect.gen(function*() {
-        yield* Effect.log("Fetching providers from models.dev");
+      const fetchProviders = Effect.fn("SettingsService.fetchProviders")(function* () {
         const response = yield* httpClient.get("https://models.dev/api.json");
         const json = yield* HttpClientResponse.schemaBodyJson(ModelsDevResponse)(response);
-        yield* Effect.log(`Fetched ${Object.keys(json).length} providers`);
         return toProviders(json);
-      }).pipe(
-        Effect.tapError((e) => Effect.logError(`Provider fetch failed: ${e}`)),
-        Effect.mapError((cause) => new ProvidersFetchError({ cause })),
-      );
+      });
 
-    return { get, update, fetchProviders } as const;
-  }),
-}) {
+      const fetchProvidersSafe = (...args: Parameters<typeof fetchProviders>) =>
+        fetchProviders(...args).pipe(
+          Effect.mapError((cause) => new ProvidersFetchError({ cause })),
+        );
+
+      return { get, update, fetchProviders: fetchProvidersSafe } as const;
+    }),
+  },
+) {
   static readonly layer = Layer.effect(this, this.make);
 }

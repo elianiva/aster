@@ -1,5 +1,5 @@
-import { Data } from "effect";
+import { Schema } from "effect";
 
-export class ProvidersFetchError extends Data.TaggedError("ProvidersFetchError")<{
-  readonly cause?: unknown;
-}> { }
+export class ProvidersFetchError extends Schema.TaggedErrorClass<ProvidersFetchError>()("ProvidersFetchError", {
+  cause: Schema.Defect(),
+}) {}

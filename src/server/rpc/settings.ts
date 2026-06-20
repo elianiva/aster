@@ -1,29 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Schema } from "effect";
+import { Effect, Option, Schema } from "effect";
 import { Settings, DEFAULT_SETTINGS } from "~/features/settings/lib/schema";
 import { SettingsService } from "../features/settings/service";
 import { AppRuntime } from "../app-runtime";
+import { createErrorHandler } from "./errors";
 
-function errorHandler(error: unknown): never {
-  if (error && typeof error === "object" && "_tag" in error) {
-    switch (error._tag) {
-      case "ProvidersFetchError":
-        throw new Error("Failed to load AI providers. Please check your connection.");
-      default:
-        throw new Error("Something went wrong. Please try again.");
-    }
-  }
-  throw new Error("Something went wrong. Please try again.");
-}
+const errorHandler = createErrorHandler({
+  ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
+});
 
 export const getSettings = createServerFn({ method: "GET" }).handler(() =>
   AppRuntime.runPromise(
     Effect.gen(function* () {
-      yield* Effect.log("RPC: getSettings");
       const service = yield* SettingsService;
       const settings = yield* service.get();
-      if (!settings) return DEFAULT_SETTINGS;
-      return settings;
+      return Option.getOrElse(settings, () => DEFAULT_SETTINGS);
     }),
   ).catch(errorHandler),
 );
@@ -33,7 +24,6 @@ export const updateSettings = createServerFn({ method: "POST" })
   .handler(({ data }) =>
     AppRuntime.runPromise(
       Effect.gen(function* () {
-        yield* Effect.log("RPC: updateSettings");
         const service = yield* SettingsService;
         yield* service.update(data);
       }),
@@ -43,7 +33,6 @@ export const updateSettings = createServerFn({ method: "POST" })
 export const fetchProviders = createServerFn({ method: "GET" }).handler(() =>
   AppRuntime.runPromise(
     Effect.gen(function* () {
-      yield* Effect.log("RPC: fetchProviders");
       const service = yield* SettingsService;
       return yield* service.fetchProviders();
     }),
