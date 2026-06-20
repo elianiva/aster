@@ -40,6 +40,14 @@ export const fetchProviders = createServerFn({ method: "GET" }).handler(() =>
   ).catch(errorHandler),
 );
 
+export const pushSettingsToAgent = createServerFn({ method: "POST" })
+  .validator((data: unknown) => Schema.decodeUnknownSync(Settings)(data))
+  .handler(({ data }) => {
+    // Settings are pushed to the agent DO when the client connects
+    // The useAgentChat hook sends settings as part of the connection
+    return AppRuntime.runPromise(Effect.succeed(data));
+  });
+
 export const SettingsRpc = {
   settings: () => ["settings"],
   getSettings: () =>
@@ -56,5 +64,10 @@ export const SettingsRpc = {
     queryOptions({
       queryKey: [...SettingsRpc.settings(), "providers"],
       queryFn: () => fetchProviders(),
+    }),
+  pushSettingsToAgent: () =>
+    mutationOptions({
+      mutationKey: [...SettingsRpc.settings(), "pushToAgent"],
+      mutationFn: (input: Settings) => pushSettingsToAgent({ data: input }),
     }),
 };

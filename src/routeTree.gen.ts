@@ -18,6 +18,7 @@ import { Route as SidebarWorkspacesWorkspaceIdSessionsRouteImport } from './rout
 import { Route as SidebarWorkspacesWorkspaceIdRecordsRouteImport } from './routes/_sidebar/workspaces/$workspaceId/records'
 import { Route as SidebarWorkspacesWorkspaceIdMissionsRouteImport } from './routes/_sidebar/workspaces/$workspaceId/missions'
 import { Route as SidebarWorkspacesWorkspaceIdLessonsRouteImport } from './routes/_sidebar/workspaces/$workspaceId/lessons'
+import { Route as SidebarWorkspacesWorkspaceIdSessionsSessionIdRouteImport } from './routes/_sidebar/workspaces/$workspaceId/sessions/$sessionId'
 
 const SidebarRoute = SidebarRouteImport.update({
   id: '/_sidebar',
@@ -68,6 +69,12 @@ const SidebarWorkspacesWorkspaceIdLessonsRoute =
     path: '/workspaces/$workspaceId/lessons',
     getParentRoute: () => SidebarRoute,
   } as any)
+const SidebarWorkspacesWorkspaceIdSessionsSessionIdRoute =
+  SidebarWorkspacesWorkspaceIdSessionsSessionIdRouteImport.update({
+    id: '/$sessionId',
+    path: '/$sessionId',
+    getParentRoute: () => SidebarWorkspacesWorkspaceIdSessionsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof SidebarIndexRoute
@@ -76,8 +83,9 @@ export interface FileRoutesByFullPath {
   '/workspaces/$workspaceId/lessons': typeof SidebarWorkspacesWorkspaceIdLessonsRoute
   '/workspaces/$workspaceId/missions': typeof SidebarWorkspacesWorkspaceIdMissionsRoute
   '/workspaces/$workspaceId/records': typeof SidebarWorkspacesWorkspaceIdRecordsRoute
-  '/workspaces/$workspaceId/sessions': typeof SidebarWorkspacesWorkspaceIdSessionsRoute
+  '/workspaces/$workspaceId/sessions': typeof SidebarWorkspacesWorkspaceIdSessionsRouteWithChildren
   '/workspaces/$workspaceId/': typeof SidebarWorkspacesWorkspaceIdIndexRoute
+  '/workspaces/$workspaceId/sessions/$sessionId': typeof SidebarWorkspacesWorkspaceIdSessionsSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/settings': typeof SidebarSettingsRoute
@@ -86,8 +94,9 @@ export interface FileRoutesByTo {
   '/workspaces/$workspaceId/lessons': typeof SidebarWorkspacesWorkspaceIdLessonsRoute
   '/workspaces/$workspaceId/missions': typeof SidebarWorkspacesWorkspaceIdMissionsRoute
   '/workspaces/$workspaceId/records': typeof SidebarWorkspacesWorkspaceIdRecordsRoute
-  '/workspaces/$workspaceId/sessions': typeof SidebarWorkspacesWorkspaceIdSessionsRoute
+  '/workspaces/$workspaceId/sessions': typeof SidebarWorkspacesWorkspaceIdSessionsRouteWithChildren
   '/workspaces/$workspaceId': typeof SidebarWorkspacesWorkspaceIdIndexRoute
+  '/workspaces/$workspaceId/sessions/$sessionId': typeof SidebarWorkspacesWorkspaceIdSessionsSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,8 +107,9 @@ export interface FileRoutesById {
   '/_sidebar/workspaces/$workspaceId/lessons': typeof SidebarWorkspacesWorkspaceIdLessonsRoute
   '/_sidebar/workspaces/$workspaceId/missions': typeof SidebarWorkspacesWorkspaceIdMissionsRoute
   '/_sidebar/workspaces/$workspaceId/records': typeof SidebarWorkspacesWorkspaceIdRecordsRoute
-  '/_sidebar/workspaces/$workspaceId/sessions': typeof SidebarWorkspacesWorkspaceIdSessionsRoute
+  '/_sidebar/workspaces/$workspaceId/sessions': typeof SidebarWorkspacesWorkspaceIdSessionsRouteWithChildren
   '/_sidebar/workspaces/$workspaceId/': typeof SidebarWorkspacesWorkspaceIdIndexRoute
+  '/_sidebar/workspaces/$workspaceId/sessions/$sessionId': typeof SidebarWorkspacesWorkspaceIdSessionsSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
     | '/workspaces/$workspaceId/records'
     | '/workspaces/$workspaceId/sessions'
     | '/workspaces/$workspaceId/'
+    | '/workspaces/$workspaceId/sessions/$sessionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/settings'
@@ -122,6 +133,7 @@ export interface FileRouteTypes {
     | '/workspaces/$workspaceId/records'
     | '/workspaces/$workspaceId/sessions'
     | '/workspaces/$workspaceId'
+    | '/workspaces/$workspaceId/sessions/$sessionId'
   id:
     | '__root__'
     | '/_sidebar'
@@ -133,6 +145,7 @@ export interface FileRouteTypes {
     | '/_sidebar/workspaces/$workspaceId/records'
     | '/_sidebar/workspaces/$workspaceId/sessions'
     | '/_sidebar/workspaces/$workspaceId/'
+    | '/_sidebar/workspaces/$workspaceId/sessions/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -204,8 +217,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SidebarWorkspacesWorkspaceIdLessonsRouteImport
       parentRoute: typeof SidebarRoute
     }
+    '/_sidebar/workspaces/$workspaceId/sessions/$sessionId': {
+      id: '/_sidebar/workspaces/$workspaceId/sessions/$sessionId'
+      path: '/$sessionId'
+      fullPath: '/workspaces/$workspaceId/sessions/$sessionId'
+      preLoaderRoute: typeof SidebarWorkspacesWorkspaceIdSessionsSessionIdRouteImport
+      parentRoute: typeof SidebarWorkspacesWorkspaceIdSessionsRoute
+    }
   }
 }
+
+interface SidebarWorkspacesWorkspaceIdSessionsRouteChildren {
+  SidebarWorkspacesWorkspaceIdSessionsSessionIdRoute: typeof SidebarWorkspacesWorkspaceIdSessionsSessionIdRoute
+}
+
+const SidebarWorkspacesWorkspaceIdSessionsRouteChildren: SidebarWorkspacesWorkspaceIdSessionsRouteChildren =
+  {
+    SidebarWorkspacesWorkspaceIdSessionsSessionIdRoute:
+      SidebarWorkspacesWorkspaceIdSessionsSessionIdRoute,
+  }
+
+const SidebarWorkspacesWorkspaceIdSessionsRouteWithChildren =
+  SidebarWorkspacesWorkspaceIdSessionsRoute._addFileChildren(
+    SidebarWorkspacesWorkspaceIdSessionsRouteChildren,
+  )
 
 interface SidebarRouteChildren {
   SidebarSettingsRoute: typeof SidebarSettingsRoute
@@ -214,7 +249,7 @@ interface SidebarRouteChildren {
   SidebarWorkspacesWorkspaceIdLessonsRoute: typeof SidebarWorkspacesWorkspaceIdLessonsRoute
   SidebarWorkspacesWorkspaceIdMissionsRoute: typeof SidebarWorkspacesWorkspaceIdMissionsRoute
   SidebarWorkspacesWorkspaceIdRecordsRoute: typeof SidebarWorkspacesWorkspaceIdRecordsRoute
-  SidebarWorkspacesWorkspaceIdSessionsRoute: typeof SidebarWorkspacesWorkspaceIdSessionsRoute
+  SidebarWorkspacesWorkspaceIdSessionsRoute: typeof SidebarWorkspacesWorkspaceIdSessionsRouteWithChildren
   SidebarWorkspacesWorkspaceIdIndexRoute: typeof SidebarWorkspacesWorkspaceIdIndexRoute
 }
 
@@ -229,7 +264,7 @@ const SidebarRouteChildren: SidebarRouteChildren = {
   SidebarWorkspacesWorkspaceIdRecordsRoute:
     SidebarWorkspacesWorkspaceIdRecordsRoute,
   SidebarWorkspacesWorkspaceIdSessionsRoute:
-    SidebarWorkspacesWorkspaceIdSessionsRoute,
+    SidebarWorkspacesWorkspaceIdSessionsRouteWithChildren,
   SidebarWorkspacesWorkspaceIdIndexRoute:
     SidebarWorkspacesWorkspaceIdIndexRoute,
 }

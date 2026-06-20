@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useAgent } from "agents/react";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import {
@@ -20,22 +19,13 @@ import {
   PromptInputFooter,
 } from "~/components/ai-elements/prompt-input";
 import { SendIcon } from "lucide-react";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "~/components/ui/empty";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Message02Icon } from "@hugeicons/core-free-icons";
 
-interface SessionsPageProps {
+interface SessionChatProps {
   workspaceId: string;
+  sessionId: string;
 }
 
-export function SessionsPage({ workspaceId }: SessionsPageProps) {
-  const [sessionId] = useState(() => crypto.randomUUID());
+export function SessionChat({ workspaceId, sessionId }: SessionChatProps) {
   const agent = useAgent({ agent: "teacher", name: workspaceId });
 
   const { messages, sendMessage, status } = useAgentChat({
@@ -61,46 +51,6 @@ export function SessionsPage({ workspaceId }: SessionsPageProps) {
       .join("");
   };
 
-  if (messages.length === 0) {
-    return (
-      <div className="flex h-full flex-col">
-        <div className="flex-1 flex items-center justify-center">
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <HugeiconsIcon icon={Message02Icon} />
-              </EmptyMedia>
-              <EmptyTitle>Start a session</EmptyTitle>
-              <EmptyDescription>
-                Send a message to begin learning with your teacher agent.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        </div>
-
-        <div className="border-t p-4">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <PromptInput className="flex-1" onSubmit={() => {}}>
-              <PromptInputTextarea
-                name="message"
-                placeholder="What would you like to learn?"
-                rows={1}
-              />
-              <PromptInputFooter>
-                <PromptInputButton
-                  type="submit"
-                  disabled={status === "streaming" || status === "submitted"}
-                >
-                  <SendIcon className="h-4 w-4" />
-                </PromptInputButton>
-              </PromptInputFooter>
-            </PromptInput>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-full flex-col">
       <Conversation>
@@ -121,7 +71,7 @@ export function SessionsPage({ workspaceId }: SessionsPageProps) {
           <PromptInput className="flex-1" onSubmit={() => {}}>
             <PromptInputTextarea
               name="message"
-              placeholder="Continue the conversation..."
+              placeholder="Ask your teacher..."
               rows={1}
             />
             <PromptInputFooter>

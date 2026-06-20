@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite'
 import { devtools } from '@tanstack/devtools-vite'
 import { cloudflare } from '@cloudflare/vite-plugin'
+import { think } from '@cloudflare/think/vite'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 
-import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react'
-import babel from '@rolldown/plugin-babel'
+import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
@@ -13,11 +13,11 @@ const config = defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
-    devtools(),
-    tailwindcss(),
     tanstackStart(),
     viteReact(),
-    babel({ presets: [reactCompilerPreset()] }),
+    devtools(),
+    tailwindcss(),
+    think({ routePrefix: '/api/agents', allowNonVirtualMain: true }),
   ],
 })
 
