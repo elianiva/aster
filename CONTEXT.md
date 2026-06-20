@@ -7,7 +7,7 @@ _Avoid_: Multi-user, accounts, login flows
 ## Language
 
 **Workspace**:
-A learning topic container. Has a mission, lessons, and invited users.
+A learning topic container. Has a mission, threads, lessons, and records.
 _Avoid_: Course, project
 
 **Mission**:
@@ -22,9 +22,13 @@ _Avoid_: Module, chapter, session
 A reusable UI building block the agent uses to compose lessons (quiz, flashcard, code playground, diagram, etc.). Part of a global library. Agent can generate new ones.
 _Avoid_: Block, widget, element
 
-**Session**:
-A conversation between a user and the teacher agent. Stateful, backed by Think Durable Object SQLite.
-_Avoid_: Chat, thread
+**Thread**:
+A named conversation within a workspace. The agent can create threads contextually via tools; the user can also create, rename, or delete them. Every workspace has a General thread that always exists and cannot be deleted.
+_Avoid_: Session, chat
+
+**General**:
+The default thread in every workspace. Always exists, cannot be deleted or renamed.
+_Avoid_: Default thread, main thread
 
 **Learning Record**:
 A capture of what the user has learned. Tracks progress and key insights. Used to determine zone of proximal development.
