@@ -5,8 +5,18 @@ import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { Button } from "~/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeftIcon, Settings02Icon } from "@hugeicons/core-free-icons";
-import { cn } from "~/lib/utils";
 import { WorkspaceSettingsModal } from "./workspace-settings-modal";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from "~/components/ui/sidebar";
 
 const TABS = [
   { label: "Threads", to: "/workspaces/$workspaceId/threads" },
@@ -28,63 +38,55 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
   }
 
   return (
-    <div className="flex h-screen flex-col">
-      {/* Header */}
-      <header className="flex h-12 shrink-0 items-center border-b px-4 gap-4">
-        <Link
-          to="/"
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <HugeiconsIcon icon={ArrowLeftIcon} className="h-4 w-4" />
-        </Link>
-        <h1 className="font-semibold truncate">{workspace.topic}</h1>
-        <div className="ml-auto">
+    <SidebarProvider>
+      <Sidebar side="left" className="border-none">
+        <SidebarHeader className="p-4">
+          <h1 className="mt-3 px-1 text-lg font-medium leading-tight truncate">
+            Learning Workspace
+          </h1>
+        </SidebarHeader>
+
+        <SidebarContent className="p-2">
+          <SidebarMenu>
+            {TABS.map((tab) => {
+              const isActive = matchRoute({ to: tab.to, params: { workspaceId } });
+              return (
+                <SidebarMenuItem key={tab.to}>
+                  <SidebarMenuButton
+                    isActive={!!isActive}
+                    render={<Link to={tab.to} params={{ workspaceId }} />}
+                  >
+                    {tab.label}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarContent>
+
+        <SidebarFooter>
           <Button
             variant="ghost"
-            size="icon"
-            className="h-8 w-8"
+            className="w-full justify-start gap-2 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground"
             onClick={() => setSettingsOpen(true)}
           >
             <HugeiconsIcon icon={Settings02Icon} className="h-4 w-4" />
+            Settings
           </Button>
-        </div>
-      </header>
+        </SidebarFooter>
+      </Sidebar>
 
-      {/* Tab bar */}
-      <nav className="flex h-10 shrink-0 border-b px-4 gap-1">
-        {TABS.map((tab) => {
-          const isActive = matchRoute({ to: tab.to, params: { workspaceId } });
-          return (
-            <Link
-              key={tab.to}
-              to={tab.to}
-              params={{ workspaceId }}
-              className={cn(
-                "flex items-center px-3 text-sm font-medium transition-colors relative",
-                isActive
-                  ? "text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {tab.label}
-              {isActive && (
-                <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-foreground" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Content */}
-      <main className="flex-1 overflow-hidden">
-        <Outlet />
-      </main>
+      <SidebarInset className="p-3 bg-sidebar">
+        <main className="bg-white rounded-2xl overflow-hidden border border-border/50 flex-1">
+          <Outlet />
+        </main>
+      </SidebarInset>
 
       <WorkspaceSettingsModal
         workspace={workspace}
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
       />
-    </div>
+    </SidebarProvider>
   );
 }

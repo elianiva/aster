@@ -1,5 +1,6 @@
 import { Logger } from "effect";
 
-export const LoggerLayer = Logger.layer([
-  Logger.formatJson,
-], { mergeWithExisting: false });
+/** JSON to stdout — picked up by Workers Logs / Logpush / Pipelines. */
+export const LoggerLayer = Logger.layer([Logger.consoleJson], {
+  mergeWithExisting: false,
+});

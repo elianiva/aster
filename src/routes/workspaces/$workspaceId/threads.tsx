@@ -1,15 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { ThreadsTab } from '~/features/workspace/components/threads-tab'
-import { Skeleton } from '~/components/ui/skeleton'
+import { createFileRoute } from "@tanstack/react-router";
+import { ThreadsTab } from "~/features/workspace/components/threads-tab";
+import { Skeleton } from "~/components/ui/skeleton";
 
-export const Route = createFileRoute('/workspaces/$workspaceId/threads')({
+export const Route = createFileRoute("/workspaces/$workspaceId/threads")({
   component: RouteThreads,
   pendingComponent: ThreadsSkeleton,
-})
+});
 
 function RouteThreads() {
-  const { workspaceId } = Route.useParams()
-  return <ThreadsTab workspaceId={workspaceId} />
+  const { workspaceId } = Route.useParams();
+  return <ThreadsTab workspaceId={workspaceId} />;
 }
 
 function ThreadsSkeleton() {
@@ -31,5 +31,5 @@ function ThreadsSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }

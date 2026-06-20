@@ -9,28 +9,35 @@ import {
   EmptyTitle,
 } from "~/components/ui/empty";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { BookOpen01Icon, Add01Icon } from "@hugeicons/core-free-icons";
+import { BookOpen01Icon, Add01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/server/rpc/workspace";
-import { Link } from "@tanstack/react-router";
 import { CreateWorkspaceForm } from "./create-form";
+import { WorkspaceCard } from "./workspace-card";
+import { SettingsDialog } from "~/features/settings/components/dialog";
 
 export function HomePage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const { data: workspaces } = useSuspenseQuery(WorkspaceRpc.listWorkspaces());
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-5xl px-6 py-12">
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-background flex items-center">
+      <div className="mx-auto max-w-5xl p-8 bg-linear-to-t from-mauve-50 to-mauve-white rounded-2xl border border-mauve-100 inset-shadow-sm inset-shadow-mauve-100/50">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Aster</h1>
-            <p className="text-muted-foreground mt-1">Your learning workspaces</p>
+            <h1 className="text-3xl font-medium text-primary tracking-tight">Aster</h1>
+            <p className="text-muted-foreground">Your learning workspaces</p>
           </div>
-          <Button onClick={() => setShowCreateForm(true)}>
-            <HugeiconsIcon icon={Add01Icon} className="mr-2 h-4 w-4" />
-            New Workspace
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
+              <HugeiconsIcon icon={Settings02Icon} className="h-4 w-4" />
+            </Button>
+            <Button onClick={() => setShowCreateForm(true)}>
+              <HugeiconsIcon icon={Add01Icon} className="mr-2 h-4 w-4" />
+              New Workspace
+            </Button>
+          </div>
         </div>
 
         {workspaces.length === 0 ? (
@@ -51,25 +58,14 @@ export function HomePage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {workspaces.map((workspace) => (
-              <Link
-                key={workspace.id}
-                to="/workspaces/$workspaceId"
-                params={{ workspaceId: workspace.id }}
-                className="group block rounded-xl border bg-card p-5 transition-colors hover:bg-accent/50"
-              >
-                <h3 className="font-semibold group-hover:text-accent-foreground transition-colors">
-                  {workspace.topic}
-                </h3>
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
-                  {workspace.mission}
-                </p>
-              </Link>
+              <WorkspaceCard key={workspace.id} workspace={workspace} />
             ))}
           </div>
         )}
       </div>
 
       <CreateWorkspaceForm open={showCreateForm} onOpenChange={setShowCreateForm} />
+      <SettingsDialog open={showSettings} onOpenChange={setShowSettings} />
     </div>
   );
 }

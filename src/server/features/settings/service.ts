@@ -5,14 +5,7 @@ import { ProvidersFetchError } from "~/server/errors";
 import { HttpClient, HttpClientResponse } from "effect/unstable/http";
 import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 
-const PROVIDER_WHITELIST = [
-  "opencode-go",
-  "openai",
-  "kimi-for-coding",
-  "xiaomi",
-  "zhipuai",
-  "minimax",
-];
+const PROVIDER_WHITELIST = ["opencode-go"];
 
 const toProviders = (json: ModelsDevResponse): ProviderWithModels[] => {
   const providers: ProviderWithModels[] = [];
@@ -42,20 +35,23 @@ const toProviders = (json: ModelsDevResponse): ProviderWithModels[] => {
 export class SettingsService extends Context.Service<SettingsService>()(
   "@aster/features/settings/SettingsService",
   {
-    make: Effect.gen(function* () {
+    make: Effect.gen(function*() {
       const kv = yield* KeyValueStore.KeyValueStore;
       const httpClient = yield* HttpClient.HttpClient;
       const store = KeyValueStore.toSchemaStore(kv, Settings);
 
-      const get = Effect.fn("SettingsService.get")(function* () {
+      const get = Effect.fn("SettingsService.get")(function*() {
+        yield* Effect.log("kv get: app:settings");
         return yield* store.get("app:settings");
       });
 
-      const update = Effect.fn("SettingsService.update")(function* (settings: Settings) {
+      const update = Effect.fn("SettingsService.update")(function*(settings: Settings) {
+        yield* Effect.log("kv set: app:settings");
         yield* store.set("app:settings", settings);
       });
 
-      const fetchProviders = Effect.fn("SettingsService.fetchProviders")(function* () {
+      const fetchProviders = Effect.fn("SettingsService.fetchProviders")(function*() {
+        yield* Effect.log("http get: models.dev/api.json");
         const response = yield* httpClient.get("https://models.dev/api.json");
         const json = yield* HttpClientResponse.schemaBodyJson(ModelsDevResponse)(response);
         return toProviders(json);

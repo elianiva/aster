@@ -23,12 +23,8 @@ A reusable UI building block the agent uses to compose lessons (quiz, flashcard,
 _Avoid_: Block, widget, element
 
 **Thread**:
-A named conversation within a workspace. The agent can create threads contextually via tools; the user can also create, rename, or delete them. Every workspace has a General thread that always exists and cannot be deleted.
+A named conversation within a workspace. Created on first message from the empty state; the agent generates the name from that message. The agent can also create threads contextually via tools; the user can rename or delete them. A workspace starts with no threads.
 _Avoid_: Session, chat
-
-**General**:
-The default thread in every workspace. Always exists, cannot be deleted or renamed.
-_Avoid_: Default thread, main thread
 
 **Learning Record**:
 A capture of what the user has learned. Tracks progress and key insights. Used to determine zone of proximal development.

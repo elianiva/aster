@@ -74,20 +74,14 @@ export function WorkspaceSettingsModal({
           <form onSubmit={handleSubmit}>
             <DialogHeader>
               <DialogTitle>Workspace Settings</DialogTitle>
-              <DialogDescription>
-                Update your workspace details or delete it.
-              </DialogDescription>
+              <DialogDescription>Update your workspace details or delete it.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <label htmlFor="topic" className="text-sm font-medium">
                   Topic <span className="text-muted-foreground">*</span>
                 </label>
-                <Input
-                  id="topic"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                />
+                <Input id="topic" value={topic} onChange={(e) => setTopic(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <label htmlFor="mission" className="text-sm font-medium">
@@ -141,17 +135,15 @@ export function WorkspaceSettingsModal({
           <DialogHeader>
             <DialogTitle>Are you sure?</DialogTitle>
             <DialogDescription>
-              This will permanently delete this workspace and all its threads, lessons, and records. This action cannot be undone.
+              This will permanently delete this workspace and all its threads, lessons, and records.
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-            >
+            <Button variant="destructive" onClick={handleDelete}>
               {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>

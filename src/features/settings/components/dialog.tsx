@@ -1,0 +1,285 @@
+import { useState, useEffect, useMemo } from "react";
+import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "@tanstack/react-form";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxContent,
+  ComboboxList,
+  ComboboxItem,
+  ComboboxGroup,
+  ComboboxLabel,
+} from "~/components/ui/combobox";
+import { Separator } from "~/components/ui/separator";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  AiBrainIcon,
+  RotateLeft01Icon,
+  EyeIcon,
+  EyeOffIcon,
+  Key02Icon,
+} from "@hugeicons/core-free-icons";
+import { SettingsRpc } from "~/server/rpc/settings";
+
+interface ModelItem {
+  id: string;
+  name?: string;
+  provider: string;
+}
+
+interface ProviderGroup {
+  value: string;
+  items: ModelItem[];
+}
+
+interface SettingsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
+  const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle');
+  const [showApiKey, setShowApiKey] = useState(false);
+  const { data: settings } = useSuspenseQuery(SettingsRpc.getSettings());
+  const { data: providers = [] } = useSuspenseQuery(SettingsRpc.providers());
+  const queryClient = useQueryClient();
+
+  const groups: ProviderGroup[] = useMemo(() => {
+    return providers.map((p) => ({
+      value: p.provider.name,
+      items: p.models.map((m) => ({
+        id: m.id,
+        name: m.name,
+        provider: p.provider.id,
+      })),
+    }));
+  }, [providers]);
+
+  const allModels = useMemo(() => {
+    return groups.flatMap((g) => g.items);
+  }, [groups]);
+
+  const providerNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of providers) {
+      map.set(p.provider.id, p.provider.name);
+    }
+    return map;
+  }, [providers]);
+
+  const getModelLabel = (item: ModelItem) => {
+    const providerName = providerNameById.get(item.provider);
+    const modelName = item.name ?? item.id;
+    return providerName ? `${modelName} ⋅ ${providerName}` : modelName;
+  };
+
+  const mutation = useMutation({
+    ...SettingsRpc.updateSettings(),
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: SettingsRpc.settings() });
+      const previous = queryClient.getQueryData(SettingsRpc.settings());
+      queryClient.setQueryData(SettingsRpc.settings(), (old: typeof settings) => ({
+        ...old,
+        ...variables,
+      }));
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(SettingsRpc.settings(), context.previous);
+      }
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 3000);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: SettingsRpc.settings() });
+      if (!mutation.isError) {
+        setStatus('saved');
+        setTimeout(() => setStatus('idle'), 2000);
+      }
+    },
+  });
+
+  const form = useForm({
+    defaultValues: {
+      selectedProvider: settings.selectedProvider,
+      selectedModel: settings.selectedModel,
+      apiKeys: settings.apiKeys,
+    },
+  });
+
+  useEffect(() => {
+    if (allModels.length > 0) {
+      const currentModel = form.state.values.selectedModel;
+      const modelExists = allModels.some((m) => m.id === currentModel);
+      if (!modelExists) {
+        form.setFieldValue("selectedModel", allModels[0].id);
+      }
+    }
+  }, [allModels]);
+
+  const selectedModelId = form.state.values.selectedModel;
+  const selectedModel = allModels.find((m) => m.id === selectedModelId);
+  const selectedProviderId = selectedModel?.provider ?? form.state.values.selectedProvider;
+  const selectedProvider = providers.find((p) => p.provider.id === selectedProviderId);
+  const apiKeyEnv = selectedProvider?.provider.env[0] ?? "";
+
+  const selectedGroupItem = useMemo(() => {
+    if (!selectedModelId) return null;
+    for (const group of groups) {
+      const found = group.items.find((m) => m.id === selectedModelId);
+      if (found) return found;
+    }
+    return null;
+  }, [selectedModelId, groups]);
+
+  const [inputValue, setInputValue] = useState(() => {
+    if (selectedGroupItem) {
+      return getModelLabel(selectedGroupItem);
+    }
+    return "";
+  });
+
+  useEffect(() => {
+    if (selectedGroupItem) {
+      setInputValue(getModelLabel(selectedGroupItem));
+    }
+  }, [selectedGroupItem]);
+
+  const handleModelChange = (item: ModelItem | null) => {
+    if (!item) return;
+    form.setFieldValue("selectedModel", item.id);
+    setInputValue(getModelLabel(item));
+    mutation.mutate({
+      selectedProvider: item.provider,
+      selectedModel: item.id,
+      apiKeys: form.state.values.apiKeys,
+    });
+  };
+
+  const handleApiKeyBlur = (providerId: string, value: string) => {
+    const newApiKeys = { ...form.state.values.apiKeys, [providerId]: value };
+    form.setFieldValue("apiKeys", newApiKeys);
+    mutation.mutate({
+      selectedProvider: providerId,
+      selectedModel: form.state.values.selectedModel,
+      apiKeys: newApiKeys,
+    });
+  };
+
+  const handleResetDefaults = () => {
+    form.setFieldValue("selectedProvider", "opencode-go");
+    form.setFieldValue("selectedModel", "kimi-k2.7-code");
+    form.setFieldValue("apiKeys", {});
+    mutation.mutate({
+      selectedProvider: "opencode-go",
+      selectedModel: "kimi-k2.7-code",
+      apiKeys: {},
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Settings</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-0">
+          {/* Model */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-1 text-sm font-medium text-foreground">
+              <HugeiconsIcon icon={AiBrainIcon} className="size-4" />
+              <span>Model</span>
+            </div>
+            <Combobox
+              items={groups}
+              value={selectedGroupItem}
+              onValueChange={handleModelChange}
+              inputValue={inputValue}
+              onInputValueChange={setInputValue}
+              itemToStringLabel={(item) => getModelLabel(item)}
+              itemToStringValue={(item) => item.id}
+              isItemEqualToValue={(item, value) => item.id === value.id}
+            >
+              <ComboboxInput placeholder="Search models..." showTrigger={false} />
+              <ComboboxContent>
+                <ComboboxList>
+                  {(group) => (
+                    <ComboboxGroup key={group.value}>
+                      <ComboboxLabel>{group.value}</ComboboxLabel>
+                      {group.items.map((model: ModelItem) => (
+                        <ComboboxItem key={model.id} value={model}>
+                          <span>{model.name ?? model.id}</span>
+                        </ComboboxItem>
+                      ))}
+                    </ComboboxGroup>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+          </div>
+
+          {/* API Key */}
+          {apiKeyEnv && selectedProviderId && (
+            <>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 text-sm font-medium text-foreground">
+                    <HugeiconsIcon icon={Key02Icon} className="size-4" />
+                    <span>API Key</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  >
+                    <HugeiconsIcon icon={showApiKey ? EyeOffIcon : EyeIcon} className="size-3.5" />
+                    {showApiKey ? "Hide" : "Show"}
+                  </Button>
+                </div>
+                <Input
+                  type={showApiKey ? "text" : "password"}
+                  defaultValue={form.state.values.apiKeys[selectedProviderId] ?? ""}
+                  onBlur={(e) => handleApiKeyBlur(selectedProviderId, e.target.value)}
+                  placeholder={apiKeyEnv}
+                />
+              </div>
+            </>
+          )}
+
+          <Separator className="my-5" />
+
+          {/* Footer */}
+          <div className="flex items-center justify-between">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleResetDefaults}
+              disabled={mutation.isPending}
+            >
+              <HugeiconsIcon icon={RotateLeft01Icon} className="size-3.5" />
+              Reset to Defaults
+            </Button>
+
+            {status === 'saved' && (
+              <span className="text-xs text-muted-foreground animate-in fade-in duration-200">
+                Saved!
+              </span>
+            )}
+            {status === 'error' && (
+              <span className="text-xs text-destructive animate-in fade-in duration-200">
+                Failed to save
+              </span>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

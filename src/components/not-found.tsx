@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link } from "@tanstack/react-router";
 import {
   Empty,
   EmptyContent,
@@ -6,15 +6,15 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '~/components/ui/empty'
-import { buttonVariants } from '~/components/ui/button'
-import { cn } from '~/lib/utils'
-import { FileNotFoundIcon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
+} from "~/components/ui/empty";
+import { buttonVariants } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
+import { FileNotFoundIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 export function NotFound() {
   return (
-    <Empty>
+    <Empty className="h-dvh">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <HugeiconsIcon icon={FileNotFoundIcon} />
@@ -25,13 +25,10 @@ export function NotFound() {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <Link
-          to="/"
-          className={cn(buttonVariants({ variant: 'outline' }))}
-        >
+        <Link to="/" className={cn(buttonVariants({ variant: "outline" }))}>
           Back to Dashboard
         </Link>
       </EmptyContent>
     </Empty>
-  )
+  );
 }

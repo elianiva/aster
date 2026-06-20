@@ -8,6 +8,8 @@ export interface Workspace {
   topic: string;
   mission: string;
   currentKnowledge: string;
+  threadCount: number;
+  lessonCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -53,6 +55,8 @@ function toWorkspace(row: typeof workspaces.$inferSelect): Workspace {
     topic: row.topic,
     mission: row.mission,
     currentKnowledge: row.currentKnowledge,
+    threadCount: row.threadCount,
+    lessonCount: row.lessonCount,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -64,6 +68,8 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
   readonly create: (input: CreateWorkspaceInput) => Effect.Effect<Workspace, WorkspaceInsertFailed>;
   readonly update: (id: string, input: UpdateWorkspaceInput) => Effect.Effect<Workspace, WorkspaceNotFound | WorkspaceUpdateFailed | WorkspaceQueryFailed>;
   readonly delete: (id: string) => Effect.Effect<void, WorkspaceDeleteFailed>;
+  readonly incrementThreadCount: (id: string, delta: number) => Effect.Effect<void, WorkspaceNotFound | WorkspaceUpdateFailed | WorkspaceQueryFailed>;
+  readonly incrementLessonCount: (id: string, delta: number) => Effect.Effect<void, WorkspaceNotFound | WorkspaceUpdateFailed | WorkspaceQueryFailed>;
 }>()("@aster/features/workspace/WorkspaceService") {
   static readonly layer = Layer.effect(
     this,
@@ -74,16 +80,18 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
       const list = Effect.fn("WorkspaceService.list")(function* () {
         const rows = yield* Effect.tryPromise({
           try: () => client.select().from(workspaces).orderBy(workspaces.createdAt),
-          catch: (cause) => new WorkspaceQueryFailed({ message: `Failed to list workspaces: ${cause}` }),
-        });
+          catch: (cause) =>
+            new WorkspaceQueryFailed({ message: `Failed to list workspaces: ${cause}` }),
+        }).pipe(Effect.withSpan("db.listWorkspaces"));
         return rows.map(toWorkspace);
       });
 
       const get = Effect.fn("WorkspaceService.get")(function* (id: string) {
         const rows = yield* Effect.tryPromise({
           try: () => client.select().from(workspaces).where(eq(workspaces.id, id)).limit(1),
-          catch: (cause) => new WorkspaceQueryFailed({ message: `Failed to get workspace: ${cause}` }),
-        });
+          catch: (cause) =>
+            new WorkspaceQueryFailed({ message: `Failed to get workspace: ${cause}` }),
+        }).pipe(Effect.withSpan("db.getWorkspace"), Effect.annotateLogs({ id }));
         return rows[0] ? Option.some(toWorkspace(rows[0])) : Option.none();
       });
 
@@ -95,6 +103,8 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
           topic: input.topic,
           mission: input.mission,
           currentKnowledge: input.currentKnowledge,
+          threadCount: 0,
+          lessonCount: 0,
           createdAt: now.toISOString(),
           updatedAt: now.toISOString(),
         };
@@ -105,11 +115,14 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
               topic: input.topic,
               mission: input.mission,
               currentKnowledge: input.currentKnowledge,
+              threadCount: 0,
+              lessonCount: 0,
               createdAt: now,
               updatedAt: now,
             }),
-          catch: (cause) => new WorkspaceInsertFailed({ message: `Failed to create workspace: ${cause}` }),
-        });
+          catch: (cause) =>
+            new WorkspaceInsertFailed({ message: `Failed to create workspace: ${cause}` }),
+        }).pipe(Effect.withSpan("db.createWorkspace"), Effect.annotateLogs({ topic: input.topic }));
         return workspace;
       });
 
@@ -132,22 +145,66 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
                 topic: updated.topic,
                 mission: updated.mission,
                 currentKnowledge: updated.currentKnowledge,
+                threadCount: updated.threadCount,
+                lessonCount: updated.lessonCount,
                 updatedAt: now,
               })
               .where(eq(workspaces.id, id)),
-          catch: (cause) => new WorkspaceUpdateFailed({ message: `Failed to update workspace: ${cause}` }),
-        });
+          catch: (cause) =>
+            new WorkspaceUpdateFailed({ message: `Failed to update workspace: ${cause}` }),
+        }).pipe(Effect.withSpan("db.updateWorkspace"), Effect.annotateLogs({ id }));
         return updated;
       });
 
       const delete_ = Effect.fn("WorkspaceService.delete")(function* (id: string) {
         yield* Effect.tryPromise({
           try: () => client.delete(workspaces).where(eq(workspaces.id, id)),
-          catch: (cause) => new WorkspaceDeleteFailed({ message: `Failed to delete workspace: ${cause}` }),
-        });
+          catch: (cause) =>
+            new WorkspaceDeleteFailed({ message: `Failed to delete workspace: ${cause}` }),
+        }).pipe(Effect.withSpan("db.deleteWorkspace"), Effect.annotateLogs({ id }));
       });
 
-      return WorkspaceService.of({ list, get, create, update, delete: delete_ });
+      const incrementThreadCount = Effect.fn("WorkspaceService.incrementThreadCount")(function* (id: string, delta: number) {
+        const existing = yield* get(id);
+        if (Option.isNone(existing)) {
+          return yield* new WorkspaceNotFound({ message: `Workspace ${id} not found` });
+        }
+        const now = new Date();
+        yield* Effect.tryPromise({
+          try: () =>
+            client
+              .update(workspaces)
+              .set({
+                threadCount: existing.value.threadCount + delta,
+                updatedAt: now,
+              })
+              .where(eq(workspaces.id, id)),
+          catch: (cause) =>
+            new WorkspaceUpdateFailed({ message: `Failed to update workspace: ${cause}` }),
+        }).pipe(Effect.withSpan("db.incrementThreadCount"), Effect.annotateLogs({ id, delta }));
+      });
+
+      const incrementLessonCount = Effect.fn("WorkspaceService.incrementLessonCount")(function* (id: string, delta: number) {
+        const existing = yield* get(id);
+        if (Option.isNone(existing)) {
+          return yield* new WorkspaceNotFound({ message: `Workspace ${id} not found` });
+        }
+        const now = new Date();
+        yield* Effect.tryPromise({
+          try: () =>
+            client
+              .update(workspaces)
+              .set({
+                lessonCount: existing.value.lessonCount + delta,
+                updatedAt: now,
+              })
+              .where(eq(workspaces.id, id)),
+          catch: (cause) =>
+            new WorkspaceUpdateFailed({ message: `Failed to update workspace: ${cause}` }),
+        }).pipe(Effect.withSpan("db.incrementLessonCount"), Effect.annotateLogs({ id, delta }));
+      });
+
+      return WorkspaceService.of({ list, get, create, update, delete: delete_, incrementThreadCount, incrementLessonCount });
     }),
   );
 }
