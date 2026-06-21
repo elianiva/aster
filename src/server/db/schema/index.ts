@@ -18,3 +18,18 @@ export const threads = sqliteTable("threads", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
+
+export const lessons = sqliteTable("lessons", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id),
+  title: text("title").notNull(),
+  r2Key: text("r2_key").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});
+
+export const records = sqliteTable("records", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id),
+  r2Key: text("r2_key").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+});

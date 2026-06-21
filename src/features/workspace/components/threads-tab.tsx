@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
-import { isToolOrDynamicToolUIPart, type ChatStatus, type DynamicToolUIPart, type FileUIPart, type ToolUIPart, type UIMessage } from "ai";
+import {
+  isToolOrDynamicToolUIPart,
+  type ChatStatus,
+  type DynamicToolUIPart,
+  type FileUIPart,
+  type ToolUIPart,
+  type UIMessage,
+} from "ai";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Message02Icon } from "@hugeicons/core-free-icons";
 
@@ -9,16 +16,10 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "~/components/ai-elements/conversation";
-import {
-  Message,
-  MessageContent,
-  MessageResponse,
-} from "~/components/ai-elements/message";
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "~/components/ai-elements/reasoning";
+import { Message, MessageContent } from "~/components/ai-elements/message";
+import { Renderer } from "@openuidev/react-lang";
+import { asterLibrary } from "~/components/openui/library";
+import { Reasoning, ReasoningContent, ReasoningTrigger } from "~/components/ai-elements/reasoning";
 import { Source, Sources, SourcesContent, SourcesTrigger } from "~/components/ai-elements/sources";
 import { Suggestion, Suggestions } from "~/components/ai-elements/suggestion";
 import {
@@ -167,6 +168,10 @@ function ChatView({ workspaceId, threadId, initialMessage, onTurnSettled }: Chat
   useEffect(() => {
     if (prevStatus.current !== "ready" && status === "ready") {
       onTurnSettled();
+      // Title generation runs async in onChatResponse after the turn settles.
+      // Delayed refetch picks it up once it's written to D1.
+      const timer = setTimeout(() => onTurnSettled(), 2000);
+      return () => clearTimeout(timer);
     }
     prevStatus.current = status;
   }, [status, onTurnSettled]);
@@ -186,21 +191,16 @@ function ChatView({ workspaceId, threadId, initialMessage, onTurnSettled }: Chat
   return (
     <>
       <Conversation className="flex-1">
-        <ConversationContent className="mx-auto w-full max-w-3xl">
+        <ConversationContent className="mx-auto w-full max-w-5xl">
           {messages.map((message, index) => (
-            <Message
-              key={message.id}
-              from={message.role === "user" ? "user" : "assistant"}
-            >
+            <Message key={message.id} from={message.role === "user" ? "user" : "assistant"}>
               <MessageContent>
                 <MessageParts
                   message={message}
                   isLast={index === messages.length - 1}
                   isStreaming={status === "streaming"}
                   ctx={ctx}
-                  onApprove={(id, approved) =>
-                    addToolApprovalResponse({ id, approved })
-                  }
+                  onApprove={(id, approved) => addToolApprovalResponse({ id, approved })}
                 />
               </MessageContent>
             </Message>
@@ -217,7 +217,7 @@ function ChatView({ workspaceId, threadId, initialMessage, onTurnSettled }: Chat
               <span>Recovering turn…</span>
             </div>
           )}
-          {status === "error" && (
+          {status === "error" && !isRecovering && (
             <div className="px-1 text-sm text-destructive">
               Something went wrong. Try sending again.
             </div>
@@ -257,12 +257,9 @@ interface MessagePartsProps {
 
 function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessagePartsProps) {
   const reasoningParts = message.parts.filter((p) => p.type === "reasoning");
-  const reasoningText = reasoningParts
-    .map((p) => (p as { text?: string }).text ?? "")
-    .join("\n\n");
+  const reasoningText = reasoningParts.map((p) => (p as { text?: string }).text ?? "").join("\n\n");
   const lastPart = message.parts.at(-1);
-  const isReasoningStreaming =
-    isLast && isStreaming && lastPart?.type === "reasoning";
+  const isReasoningStreaming = isLast && isStreaming && lastPart?.type === "reasoning";
 
   const sourceParts = message.parts.filter(
     (p) => p.type === "source-url" || p.type === "source-document",
@@ -297,7 +294,26 @@ function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessageP
         if (part.type === "text") {
           const text = (part as { text: string }).text;
           if (text.length === 0) return null;
-          return <MessageResponse key={`${message.id}-txt-${i}`}>{text}</MessageResponse>;
+          // User messages are plain text — render directly without OpenUI parsing
+          if (message.role === "user") {
+            return (
+              <div key={`${message.id}-txt-${i}`} className="whitespace-pre-wrap">
+                {text}
+              </div>
+            );
+          }
+          // Assistant messages use OpenUI Renderer
+          return (
+            <Renderer
+              key={`${message.id}-txt-${i}`}
+              library={asterLibrary}
+              response={text}
+              isStreaming={isStreaming}
+              onError={() => {
+                /* suppress parse errors during streaming */
+              }}
+            />
+          );
         }
         if (part.type === "file") {
           const file = part as FileUIPart;
@@ -330,7 +346,11 @@ function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessageP
                   errorText={toolPart.errorText}
                 />
                 {approval && toolPart.state === "approval-requested" && (
-                  <Confirmation approval={approval as ToolUIPart["approval"]} state={toolPart.state} className="mt-2">
+                  <Confirmation
+                    approval={approval as ToolUIPart["approval"]}
+                    state={toolPart.state}
+                    className="mt-2"
+                  >
                     <ConfirmationRequest>
                       The teacher wants to run <strong>{toolName}</strong>. Approve?
                     </ConfirmationRequest>
@@ -348,7 +368,11 @@ function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessageP
                   </Confirmation>
                 )}
                 {approval && toolPart.state !== "approval-requested" && (
-                  <Confirmation approval={approval as ToolUIPart["approval"]} state={toolPart.state} className="mt-2">
+                  <Confirmation
+                    approval={approval as ToolUIPart["approval"]}
+                    state={toolPart.state}
+                    className="mt-2"
+                  >
                     <ConfirmationAccepted>You approved this action</ConfirmationAccepted>
                     <ConfirmationRejected>You rejected this action</ConfirmationRejected>
                   </Confirmation>
@@ -389,10 +413,7 @@ function TeacherPromptInput({
   return (
     <PromptInput accept="image/*" multiple onSubmit={onSubmit}>
       <PromptInputAttachments />
-      <PromptInputButton
-        aria-label="Add attachment"
-        onClick={() => attachments.openFileDialog()}
-      >
+      <PromptInputButton aria-label="Add attachment" onClick={() => attachments.openFileDialog()}>
         <PlusIcon className="size-5" />
       </PromptInputButton>
       <PromptInputTextarea placeholder="Ask your teacher…" />
@@ -401,11 +422,7 @@ function TeacherPromptInput({
           <span className="text-xs">Retry</span>
         </PromptInputButton>
       )}
-      <PromptInputSubmit
-        status={status}
-        disabled={!hasContent && !isBusy}
-        onStop={onStop}
-      />
+      <PromptInputSubmit status={status} disabled={!hasContent && !isBusy} onStop={onStop} />
     </PromptInput>
   );
 }

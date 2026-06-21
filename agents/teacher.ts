@@ -10,6 +10,7 @@ import {
   DEFAULT_MODEL,
 } from "../src/server/features/workspace/model";
 import SYSTEM_PROMPT from "./prompts/teacher.md?raw";
+import OPENUI_PROMPT from "../src/lib/openui/component-prompt.txt?raw";
 
 type Env = Cloudflare.Env & {
   ASTER_KV: KVNamespace;
@@ -72,7 +73,7 @@ export class TeacherAgent extends Think<Env> {
 
     return {
       model,
-      system: `${SYSTEM_PROMPT}${workspaceBlock}`,
+      system: `${SYSTEM_PROMPT}${workspaceBlock}\n\n${OPENUI_PROMPT}`,
       tools: this.threadTools(),
     };
   }
@@ -123,7 +124,67 @@ export class TeacherAgent extends Think<Env> {
           return { updated: true };
         },
       }),
+      createLesson: tool({
+        description:
+          "Save a lesson to the workspace. Use when you've produced substantial teaching content worth preserving, or when the user asks to save something as a lesson.",
+        inputSchema: z.object({
+          title: z.string().describe("Short descriptive title for the lesson"),
+          content: z.string().describe("Full OpenUI Lang content for the lesson"),
+        }),
+        execute: async ({ title, content }) => {
+          const id = crypto.randomUUID();
+          const r2Key = `lessons/${id}.openui`;
+          const now = new Date();
+
+          await this.env.ASTER_R2.put(r2Key, content);
+          await this.db().insert(schema.lessons).values({
+            id,
+            workspaceId: this._threadKey.workspaceId,
+            title,
+            r2Key,
+            createdAt: now,
+          });
+          await this.db()
+            .update(schema.workspaces)
+            .set({ lessonCount: (await this.getWorkspaceLessonCount()) + 1, updatedAt: now })
+            .where(eq(schema.workspaces.id, this._threadKey.workspaceId));
+
+          return { lessonId: id, title };
+        },
+      }),
+      createRecord: tool({
+        description:
+          "Save a learning record capturing what the user has learned. Use after meaningful progress to track insights and knowledge.",
+        inputSchema: z.object({
+          content: z.string().describe("Full OpenUI Lang content for the learning record"),
+        }),
+        execute: async ({ content }) => {
+          const id = crypto.randomUUID();
+          const r2Key = `records/${id}.openui`;
+          const now = new Date();
+
+          await this.env.ASTER_R2.put(r2Key, content);
+          await this.db().insert(schema.records).values({
+            id,
+            workspaceId: this._threadKey.workspaceId,
+            r2Key,
+            createdAt: now,
+          });
+
+          return { recordId: id };
+        },
+      }),
     };
+  }
+
+  private async getWorkspaceLessonCount(): Promise<number> {
+    const row = await this.db()
+      .select({ lessonCount: schema.workspaces.lessonCount })
+      .from(schema.workspaces)
+      .where(eq(schema.workspaces.id, this._threadKey.workspaceId))
+      .limit(1)
+      .then((r) => r[0]);
+    return row?.lessonCount ?? 0;
   }
 
   getSystemPrompt() {
@@ -187,3 +248,4 @@ export class TeacherAgent extends Think<Env> {
     }
   }
 }
+

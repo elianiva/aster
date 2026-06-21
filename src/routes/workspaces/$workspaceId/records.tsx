@@ -8,7 +8,8 @@ export const Route = createFileRoute('/workspaces/$workspaceId/records')({
 })
 
 function RouteRecords() {
-  return <RecordsTab />
+  const { workspaceId } = Route.useParams();
+  return <RecordsTab workspaceId={workspaceId} />
 }
 
 function RecordsSkeleton() {

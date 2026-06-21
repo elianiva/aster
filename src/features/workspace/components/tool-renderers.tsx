@@ -16,6 +16,11 @@ const renderers: Record<string, ToolOutputRenderer> = {
   },
   updateMission: () => <SimpleLine icon={Task01Icon} label="Mission updated for this workspace" />,
   updateKnowledge: () => <SimpleLine icon={Task01Icon} label="Knowledge level updated" />,
+  createLesson: (output) => {
+    const result = output as { lessonId?: string; title?: string } | undefined;
+    return <SimpleLine icon={Task01Icon} label={`Lesson "${result?.title ?? "Untitled"}" saved`} />;
+  },
+  createRecord: () => <SimpleLine icon={Task01Icon} label="Learning record saved" />,
 };
 
 export function renderToolOutput(

@@ -8,7 +8,8 @@ export const Route = createFileRoute('/workspaces/$workspaceId/lessons')({
 })
 
 function RouteLessons() {
-  return <LessonsTab />
+  const { workspaceId } = Route.useParams();
+  return <LessonsTab workspaceId={workspaceId} />
 }
 
 function LessonsSkeleton() {

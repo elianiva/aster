@@ -47,5 +47,11 @@
 			"database_id": "e46fcc25-c8e4-4768-b74c-20d6a52d212f",
 			"remote": false,
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "ASTER_R2",
+			"bucket_name": "aster-r2",
+		}
 	]
 }
