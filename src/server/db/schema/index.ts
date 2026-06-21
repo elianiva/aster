@@ -1,5 +1,13 @@
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
+export const threads = sqliteTable("threads", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull(),
+  name: text("name").notNull().default(""),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
 export const workspaces = sqliteTable("workspaces", {
   id: text("id").primaryKey(),
   topic: text("topic").notNull(),
