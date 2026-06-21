@@ -8,6 +8,13 @@
       "when": 1781869177884,
       "tag": "0000_huge_wolf_cub",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1782052642008,
+      "tag": "0001_right_joshua_kane",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,8 @@
 import { Context, Effect, Layer, Option, Schema } from "effect";
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { Database } from "../../db/client";
 import { threads } from "../../db/schema";
+import { WorkspaceService, WorkspaceNotFound, WorkspaceUpdateFailed, WorkspaceQueryFailed } from "../workspace/service";
 
 export interface Thread {
   id: string;
@@ -57,15 +58,15 @@ function toThread(row: typeof threads.$inferSelect): Thread {
 export class ThreadService extends Context.Service<ThreadService, {
   readonly list: (workspaceId: string) => Effect.Effect<Thread[], ThreadQueryFailed>;
   readonly get: (id: string) => Effect.Effect<Option.Option<Thread>, ThreadQueryFailed>;
-  readonly create: (input: CreateThreadInput) => Effect.Effect<Thread, ThreadInsertFailed>;
+  readonly create: (input: CreateThreadInput) => Effect.Effect<Thread, ThreadInsertFailed | WorkspaceNotFound | WorkspaceUpdateFailed | WorkspaceQueryFailed>;
   readonly rename: (id: string, name: string) => Effect.Effect<Thread, ThreadNotFound | ThreadQueryFailed | ThreadUpdateFailed>;
   readonly delete: (id: string) => Effect.Effect<void, ThreadDeleteFailed>;
-  readonly touch: (id: string) => Effect.Effect<void, ThreadNotFound | ThreadQueryFailed | ThreadUpdateFailed>;
 }>()("@aster/features/thread/ThreadService") {
   static readonly layer = Layer.effect(
     this,
     Effect.gen(function* () {
       const db = yield* Database;
+      const workspaces = yield* WorkspaceService;
       const client = db.client;
 
       const list = Effect.fn("ThreadService.list")(function* (workspaceId: string) {
@@ -110,6 +111,7 @@ export class ThreadService extends Context.Service<ThreadService, {
             }),
           catch: (cause) => new ThreadInsertFailed({ message: `Failed to create thread: ${cause}` }),
         }).pipe(Effect.withSpan("db.createThread"));
+        yield* workspaces.incrementThreadCount(input.workspaceId, 1);
         return thread;
       });
 
@@ -129,21 +131,9 @@ export class ThreadService extends Context.Service<ThreadService, {
 
       const delete_ = Effect.fn("ThreadService.delete")(function* (id: string) {
         yield* Effect.tryPromise({
-          try: () => client.delete(threads).where(and(eq(threads.id, id))),
+          try: () => client.delete(threads).where(eq(threads.id, id)),
           catch: (cause) => new ThreadDeleteFailed({ message: `Failed to delete thread: ${cause}` }),
         }).pipe(Effect.withSpan("db.deleteThread"));
-      });
-
-      const touch = Effect.fn("ThreadService.touch")(function* (id: string) {
-        const existing = yield* get(id);
-        if (Option.isNone(existing)) {
-          return yield* new ThreadNotFound({ message: `Thread ${id} not found` });
-        }
-        const now = new Date();
-        yield* Effect.tryPromise({
-          try: () => client.update(threads).set({ updatedAt: now }).where(eq(threads.id, id)),
-          catch: (cause) => new ThreadUpdateFailed({ message: `Failed to touch thread: ${cause}` }),
-        }).pipe(Effect.withSpan("db.touchThread"));
       });
 
       return ThreadService.of({
@@ -152,7 +142,6 @@ export class ThreadService extends Context.Service<ThreadService, {
         create,
         rename,
         delete: delete_,
-        touch,
       });
     }),
   );

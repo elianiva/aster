@@ -14,9 +14,27 @@ export function useThreads(workspaceId: string) {
 
   const create = useMutation({
     ...ThreadRpc.createThread(),
-    onSuccess: (thread) => {
-      queryClient.setQueryData([...listKey, "list"], (prev: Thread[] | undefined) =>
-        prev ? [thread, ...prev] : [thread],
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: [...listKey, "list"] });
+      const prev = queryClient.getQueryData<Thread[]>([...listKey, "list"]);
+      const optimistic: Thread = {
+        id: crypto.randomUUID(),
+        workspaceId: input.workspaceId,
+        name: input.name ?? "",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      queryClient.setQueryData<Thread[]>([...listKey, "list"], (cur) =>
+        cur ? [optimistic, ...cur] : [optimistic],
+      );
+      return { prev, optimistic };
+    },
+    onError: (_e, _input, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData([...listKey, "list"], ctx.prev);
+    },
+    onSuccess: (thread, _input, ctx) => {
+      queryClient.setQueryData<Thread[]>([...listKey, "list"], (cur) =>
+        (cur ?? []).map((t) => (t.id === ctx?.optimistic.id ? thread : t)),
       );
     },
   });

@@ -2,7 +2,7 @@ import { Think, type Session, type TurnContext, type TurnConfig } from "@cloudfl
 import { tool } from "ai";
 import { z } from "zod";
 import { drizzle } from "drizzle-orm/d1";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as schema from "../src/server/db/schema";
 import {
   createModel,
@@ -96,10 +96,6 @@ export class TeacherAgent extends Think<Env> {
             createdAt: now,
             updatedAt: now,
           });
-          await this.db()
-            .update(schema.workspaces)
-            .set({ threadCount: sql`${schema.workspaces.threadCount} + 1`, updatedAt: now })
-            .where(eq(schema.workspaces.id, this._threadKey.workspaceId));
           return { threadId: id, name };
         },
       }),

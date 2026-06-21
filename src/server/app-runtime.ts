@@ -17,7 +17,7 @@ const BaseLayer = Layer.mergeAll(
 export const AppLayer = Layer.mergeAll(
   SettingsService.layer,
   WorkspaceService.layer,
-  ThreadService.layer,
+  ThreadService.layer.pipe(Layer.provide(WorkspaceService.layer)),
 ).pipe(Layer.provide(BaseLayer));
 
 export const AppRuntime = ManagedRuntime.make(AppLayer);

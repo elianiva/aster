@@ -34,11 +34,8 @@ export const createThread = createServerFn({ method: "POST" })
   .handler(({ data }) =>
     AppRuntime.runPromise(
       Effect.gen(function* () {
-        const threads = yield* ThreadService;
-        const workspaces = yield* WorkspaceService;
-        const thread = yield* threads.create(data);
-        yield* workspaces.incrementThreadCount(data.workspaceId, 1);
-        return thread;
+        const service = yield* ThreadService;
+        return yield* service.create(data);
       }).pipe(Effect.withSpan("createThread")),
     ).catch(errorHandler),
   );
@@ -60,9 +57,9 @@ export const deleteThread = createServerFn({ method: "POST" })
     AppRuntime.runPromise(
       Effect.gen(function* () {
         const threads = yield* ThreadService;
+        const workspaces = yield* WorkspaceService;
         const existing = yield* threads.get(data.id);
         if (Option.isSome(existing)) {
-          const workspaces = yield* WorkspaceService;
           yield* workspaces.incrementThreadCount(existing.value.workspaceId, -1);
         }
         yield* threads.delete(data.id);

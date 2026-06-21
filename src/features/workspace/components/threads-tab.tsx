@@ -101,8 +101,8 @@ export function ThreadsTab({ workspaceId }: ThreadsTabProps) {
     [rename],
   );
   const handleDelete = useCallback(
-    (id: string) => {
-      remove.mutate({ id });
+    async (id: string) => {
+      await remove.mutateAsync({ id });
       if (selectedThreadId === id) handleNewThread();
     },
     [remove, selectedThreadId, handleNewThread],
