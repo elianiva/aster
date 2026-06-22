@@ -15,6 +15,20 @@
       "when": 1782052642008,
       "tag": "0001_right_joshua_kane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1782146000000,
+      "tag": "0002_lessons_and_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1782146157921,
+      "tag": "0003_big_mindworm",
+      "breakpoints": true
     }
   ]
 }

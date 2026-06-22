@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite dev",
     "generate-routes": "tsr generate",
+    "db:generate": "drizzle-kit generate",
     "gen:openui": "npx @openuidev/cli@latest generate ./src/components/openui/library.tsx --out ./src/lib/openui/component-prompt.txt",
     "build": "vite build",
     "preview": "vite preview",
