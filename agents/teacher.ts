@@ -28,7 +28,12 @@ function parseThreadKey(name: string): { workspaceId: string; threadId: string }
 
 export class TeacherAgent extends Think<Env> {
   private _cachedConfig: ModelConfig | null = null;
-  private _threadKey = parseThreadKey(this.name);
+  private _threadKey: { workspaceId: string; threadId: string } | null = null;
+
+  private get threadKey() {
+    if (!this._threadKey) this._threadKey = parseThreadKey(this.name);
+    return this._threadKey;
+  }
 
   private db() {
     return drizzle(this.env.aster_db, { schema });
@@ -63,7 +68,7 @@ export class TeacherAgent extends Think<Env> {
     const row = await this.db()
       .select()
       .from(schema.workspaces)
-      .where(eq(schema.workspaces.id, this._threadKey.workspaceId))
+      .where(eq(schema.workspaces.id, this.threadKey.workspaceId))
       .limit(1)
       .then((r) => r[0]);
 
@@ -92,7 +97,7 @@ export class TeacherAgent extends Think<Env> {
           const id = crypto.randomUUID();
           await this.db().insert(schema.threads).values({
             id,
-            workspaceId: this._threadKey.workspaceId,
+            workspaceId: this.threadKey.workspaceId,
             name,
             createdAt: now,
             updatedAt: now,
@@ -108,7 +113,7 @@ export class TeacherAgent extends Think<Env> {
           await this.db()
             .update(schema.workspaces)
             .set({ mission, updatedAt: new Date() })
-            .where(eq(schema.workspaces.id, this._threadKey.workspaceId));
+            .where(eq(schema.workspaces.id, this.threadKey.workspaceId));
           return { updated: true };
         },
       }),
@@ -120,7 +125,7 @@ export class TeacherAgent extends Think<Env> {
           await this.db()
             .update(schema.workspaces)
             .set({ currentKnowledge, updatedAt: new Date() })
-            .where(eq(schema.workspaces.id, this._threadKey.workspaceId));
+            .where(eq(schema.workspaces.id, this.threadKey.workspaceId));
           return { updated: true };
         },
       }),
@@ -139,7 +144,7 @@ export class TeacherAgent extends Think<Env> {
           await this.env.ASTER_R2.put(r2Key, content);
           await this.db().insert(schema.lessons).values({
             id,
-            workspaceId: this._threadKey.workspaceId,
+            workspaceId: this.threadKey.workspaceId,
             title,
             r2Key,
             createdAt: now,
@@ -147,7 +152,7 @@ export class TeacherAgent extends Think<Env> {
           await this.db()
             .update(schema.workspaces)
             .set({ lessonCount: (await this.getWorkspaceLessonCount()) + 1, updatedAt: now })
-            .where(eq(schema.workspaces.id, this._threadKey.workspaceId));
+            .where(eq(schema.workspaces.id, this.threadKey.workspaceId));
 
           return { lessonId: id, title };
         },
@@ -166,7 +171,7 @@ export class TeacherAgent extends Think<Env> {
           await this.env.ASTER_R2.put(r2Key, content);
           await this.db().insert(schema.records).values({
             id,
-            workspaceId: this._threadKey.workspaceId,
+            workspaceId: this.threadKey.workspaceId,
             r2Key,
             createdAt: now,
           });
@@ -181,7 +186,7 @@ export class TeacherAgent extends Think<Env> {
     const row = await this.db()
       .select({ lessonCount: schema.workspaces.lessonCount })
       .from(schema.workspaces)
-      .where(eq(schema.workspaces.id, this._threadKey.workspaceId))
+      .where(eq(schema.workspaces.id, this.threadKey.workspaceId))
       .limit(1)
       .then((r) => r[0]);
     return row?.lessonCount ?? 0;
@@ -200,13 +205,13 @@ export class TeacherAgent extends Think<Env> {
     await this.db()
       .update(schema.threads)
       .set({ updatedAt: now })
-      .where(eq(schema.threads.id, this._threadKey.threadId))
+      .where(eq(schema.threads.id, this.threadKey.threadId))
       .catch(() => { });
 
     const existing = await this.db()
       .select()
       .from(schema.threads)
-      .where(eq(schema.threads.id, this._threadKey.threadId))
+      .where(eq(schema.threads.id, this.threadKey.threadId))
       .limit(1)
       .then((r) => r[0]);
     if (!existing || existing.name.trim().length > 0) return;
@@ -241,11 +246,10 @@ export class TeacherAgent extends Think<Env> {
         await this.db()
           .update(schema.threads)
           .set({ name: title, updatedAt: new Date() })
-          .where(eq(schema.threads.id, this._threadKey.threadId));
+          .where(eq(schema.threads.id, this.threadKey.threadId));
       }
     } catch {
       // Title generation is best-effort; leave untitled rather than failing the turn.
     }
   }
 }
-

@@ -15,6 +15,7 @@ import { Route as WorkspacesWorkspaceIdIndexRouteImport } from './routes/workspa
 import { Route as WorkspacesWorkspaceIdThreadsRouteImport } from './routes/workspaces/$workspaceId/threads'
 import { Route as WorkspacesWorkspaceIdRecordsRouteImport } from './routes/workspaces/$workspaceId/records'
 import { Route as WorkspacesWorkspaceIdLessonsRouteImport } from './routes/workspaces/$workspaceId/lessons'
+import { Route as WorkspacesWorkspaceIdThreadsThreadIdRouteImport } from './routes/workspaces/$workspaceId/threads/$threadId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -50,21 +51,29 @@ const WorkspacesWorkspaceIdLessonsRoute =
     path: '/lessons',
     getParentRoute: () => WorkspacesWorkspaceIdRoute,
   } as any)
+const WorkspacesWorkspaceIdThreadsThreadIdRoute =
+  WorkspacesWorkspaceIdThreadsThreadIdRouteImport.update({
+    id: '/$threadId',
+    path: '/$threadId',
+    getParentRoute: () => WorkspacesWorkspaceIdThreadsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdRouteWithChildren
   '/workspaces/$workspaceId/lessons': typeof WorkspacesWorkspaceIdLessonsRoute
   '/workspaces/$workspaceId/records': typeof WorkspacesWorkspaceIdRecordsRoute
-  '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRoute
+  '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   '/workspaces/$workspaceId/': typeof WorkspacesWorkspaceIdIndexRoute
+  '/workspaces/$workspaceId/threads/$threadId': typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/workspaces/$workspaceId/lessons': typeof WorkspacesWorkspaceIdLessonsRoute
   '/workspaces/$workspaceId/records': typeof WorkspacesWorkspaceIdRecordsRoute
-  '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRoute
+  '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdIndexRoute
+  '/workspaces/$workspaceId/threads/$threadId': typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -72,8 +81,9 @@ export interface FileRoutesById {
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdRouteWithChildren
   '/workspaces/$workspaceId/lessons': typeof WorkspacesWorkspaceIdLessonsRoute
   '/workspaces/$workspaceId/records': typeof WorkspacesWorkspaceIdRecordsRoute
-  '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRoute
+  '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   '/workspaces/$workspaceId/': typeof WorkspacesWorkspaceIdIndexRoute
+  '/workspaces/$workspaceId/threads/$threadId': typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -84,6 +94,7 @@ export interface FileRouteTypes {
     | '/workspaces/$workspaceId/records'
     | '/workspaces/$workspaceId/threads'
     | '/workspaces/$workspaceId/'
+    | '/workspaces/$workspaceId/threads/$threadId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -91,6 +102,7 @@ export interface FileRouteTypes {
     | '/workspaces/$workspaceId/records'
     | '/workspaces/$workspaceId/threads'
     | '/workspaces/$workspaceId'
+    | '/workspaces/$workspaceId/threads/$threadId'
   id:
     | '__root__'
     | '/'
@@ -99,6 +111,7 @@ export interface FileRouteTypes {
     | '/workspaces/$workspaceId/records'
     | '/workspaces/$workspaceId/threads'
     | '/workspaces/$workspaceId/'
+    | '/workspaces/$workspaceId/threads/$threadId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -150,20 +163,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspacesWorkspaceIdLessonsRouteImport
       parentRoute: typeof WorkspacesWorkspaceIdRoute
     }
+    '/workspaces/$workspaceId/threads/$threadId': {
+      id: '/workspaces/$workspaceId/threads/$threadId'
+      path: '/$threadId'
+      fullPath: '/workspaces/$workspaceId/threads/$threadId'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdThreadsThreadIdRouteImport
+      parentRoute: typeof WorkspacesWorkspaceIdThreadsRoute
+    }
   }
 }
+
+interface WorkspacesWorkspaceIdThreadsRouteChildren {
+  WorkspacesWorkspaceIdThreadsThreadIdRoute: typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
+}
+
+const WorkspacesWorkspaceIdThreadsRouteChildren: WorkspacesWorkspaceIdThreadsRouteChildren =
+  {
+    WorkspacesWorkspaceIdThreadsThreadIdRoute:
+      WorkspacesWorkspaceIdThreadsThreadIdRoute,
+  }
+
+const WorkspacesWorkspaceIdThreadsRouteWithChildren =
+  WorkspacesWorkspaceIdThreadsRoute._addFileChildren(
+    WorkspacesWorkspaceIdThreadsRouteChildren,
+  )
 
 interface WorkspacesWorkspaceIdRouteChildren {
   WorkspacesWorkspaceIdLessonsRoute: typeof WorkspacesWorkspaceIdLessonsRoute
   WorkspacesWorkspaceIdRecordsRoute: typeof WorkspacesWorkspaceIdRecordsRoute
-  WorkspacesWorkspaceIdThreadsRoute: typeof WorkspacesWorkspaceIdThreadsRoute
+  WorkspacesWorkspaceIdThreadsRoute: typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   WorkspacesWorkspaceIdIndexRoute: typeof WorkspacesWorkspaceIdIndexRoute
 }
 
 const WorkspacesWorkspaceIdRouteChildren: WorkspacesWorkspaceIdRouteChildren = {
   WorkspacesWorkspaceIdLessonsRoute: WorkspacesWorkspaceIdLessonsRoute,
   WorkspacesWorkspaceIdRecordsRoute: WorkspacesWorkspaceIdRecordsRoute,
-  WorkspacesWorkspaceIdThreadsRoute: WorkspacesWorkspaceIdThreadsRoute,
+  WorkspacesWorkspaceIdThreadsRoute:
+    WorkspacesWorkspaceIdThreadsRouteWithChildren,
   WorkspacesWorkspaceIdIndexRoute: WorkspacesWorkspaceIdIndexRoute,
 }
 

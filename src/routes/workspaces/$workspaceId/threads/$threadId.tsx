@@ -1,4 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import {
+  createFileRoute,
+  useLocation,
+  useNavigate,
+} from "@tanstack/react-router";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import {
   isToolOrDynamicToolUIPart,
@@ -19,9 +24,21 @@ import {
 import { Message, MessageContent } from "~/components/ai-elements/message";
 import { Renderer } from "@openuidev/react-lang";
 import { asterLibrary } from "~/components/openui/library";
-import { Reasoning, ReasoningContent, ReasoningTrigger } from "~/components/ai-elements/reasoning";
-import { Source, Sources, SourcesContent, SourcesTrigger } from "~/components/ai-elements/sources";
-import { Suggestion, Suggestions } from "~/components/ai-elements/suggestion";
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from "~/components/ai-elements/reasoning";
+import {
+  Source,
+  Sources,
+  SourcesContent,
+  SourcesTrigger,
+} from "~/components/ai-elements/sources";
+import {
+  Suggestion,
+  Suggestions,
+} from "~/components/ai-elements/suggestion";
 import {
   Tool,
   ToolContent,
@@ -60,12 +77,25 @@ import { PlusIcon } from "lucide-react";
 
 import { useTeacherAgent } from "~/features/workspace/hooks/use-teacher-agent";
 import { useThreads } from "~/features/workspace/hooks/use-threads";
-import { renderToolOutput } from "./tool-renderers";
-import { ThreadList } from "./thread-list";
+import { renderToolOutput } from "~/features/workspace/components/tool-renderers";
 
-interface ThreadsTabProps {
-  workspaceId: string;
+export const Route = createFileRoute(
+  "/workspaces/$workspaceId/threads/$threadId",
+)({
+  component: RouteThreadId,
+});
+
+function RouteThreadId() {
+  const { workspaceId, threadId } = Route.useParams();
+
+  if (threadId === "new") {
+    return <EmptyState workspaceId={workspaceId} />;
+  }
+
+  return <ChatView workspaceId={workspaceId} threadId={threadId} />;
 }
+
+// ---------------------------------------------------------------------------
 
 const STARTER_SUGGESTIONS = [
   "What should I learn first?",
@@ -73,69 +103,102 @@ const STARTER_SUGGESTIONS = [
   "Explain the core idea simply",
 ];
 
-export function ThreadsTab({ workspaceId }: ThreadsTabProps) {
-  const { query, create, rename, remove, refetch } = useThreads(workspaceId);
-  const threads = query.data ?? [];
-  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
-  const [pendingFirstMessage, setPendingFirstMessage] = useState<
-    { text: string; files: FileUIPart[] } | undefined
-  >(undefined);
+// ---------------------------------------------------------------------------
 
-  const selectedThread = threads.find((t) => t.id === selectedThreadId) ?? null;
+interface EmptyStateProps {
+  workspaceId: string;
+}
 
-  const handleSendFromEmpty = useCallback(
+function EmptyState({ workspaceId }: EmptyStateProps) {
+  const navigate = useNavigate();
+  const { create, refetch } = useThreads(workspaceId);
+
+  const handleSend = useCallback(
     async (text: string, files: FileUIPart[]) => {
       const thread = await create.mutateAsync({ workspaceId });
-      setPendingFirstMessage({ text, files });
-      setSelectedThreadId(thread.id);
+      refetch();
+      navigate({
+        to: "/workspaces/$workspaceId/threads/$threadId",
+        params: { workspaceId, threadId: thread.id },
+        state: { initialMessage: { text, files } },
+      });
     },
-    [create, workspaceId],
-  );
-
-  const handleNewThread = useCallback(() => {
-    setSelectedThreadId(null);
-    setPendingFirstMessage(undefined);
-  }, []);
-
-  const handleRename = useCallback(
-    (id: string, name: string) => rename.mutate({ id, name }),
-    [rename],
-  );
-  const handleDelete = useCallback(
-    async (id: string) => {
-      await remove.mutateAsync({ id });
-      if (selectedThreadId === id) handleNewThread();
-    },
-    [remove, selectedThreadId, handleNewThread],
+    [create, workspaceId, navigate, refetch],
   );
 
   return (
-    <div className="flex h-full">
-      <div className="flex min-w-0 flex-1 flex-col">
-        {selectedThread ? (
-          <ChatView
-            key={selectedThread.id}
-            workspaceId={workspaceId}
-            threadId={selectedThread.id}
-            initialMessage={pendingFirstMessage}
-            onTurnSettled={refetch}
-          />
-        ) : (
-          <EmptyState workspaceId={workspaceId} onSend={handleSendFromEmpty} />
-        )}
+    <PromptInputProvider>
+      <EmptyStateInner workspaceId={workspaceId} onSend={handleSend} />
+    </PromptInputProvider>
+  );
+}
+
+function EmptyStateInner({
+  workspaceId,
+  onSend,
+}: {
+  workspaceId: string;
+  onSend: (text: string, files: FileUIPart[]) => void | Promise<void>;
+}) {
+  const { textInput } = usePromptInputController();
+  const attachments = usePromptInputAttachments();
+  const isBusy = false;
+  const hasContent =
+    textInput.value.trim().length > 0 || attachments.files.length > 0;
+
+  const submit = ({ text, files }: PromptInputMessage) => {
+    if (!text.trim() && files.length === 0) return;
+    void onSend(text, files);
+  };
+
+  const sendSuggestion = (text: string) => {
+    void onSend(text, []);
+  };
+
+  return (
+    <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 items-center justify-center p-6">
+        <Empty className="max-w-md border-0">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <HugeiconsIcon icon={Message02Icon} />
+            </EmptyMedia>
+            <EmptyTitle>Start a conversation</EmptyTitle>
+            <EmptyDescription>
+              Ask a question and your teacher agent will start a thread for it.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
 
-      <ThreadList
-        threads={threads}
-        selectedThreadId={selectedThreadId}
-        onSelectThread={(id) => {
-          setPendingFirstMessage(undefined);
-          setSelectedThreadId(id);
-        }}
-        onNewThread={handleNewThread}
-        onRenameThread={handleRename}
-        onDeleteThread={handleDelete}
-      />
+      <div className="bg-background p-4">
+        <PromptInput accept="image/*" multiple onSubmit={submit}>
+          <PromptInputAttachments />
+          <PromptInputButton
+            aria-label="Add attachment"
+            onClick={() => attachments.openFileDialog()}
+          >
+            <PlusIcon className="size-5" />
+          </PromptInputButton>
+          <PromptInputTextarea placeholder="Ask your teacher…" />
+          <PromptInputSubmit
+            status={isBusy ? "submitted" : "ready"}
+            disabled={!hasContent}
+          />
+        </PromptInput>
+
+        <Suggestions className="mx-auto mt-3 max-w-3xl">
+          {STARTER_SUGGESTIONS.map((s) => (
+            <Suggestion key={s} suggestion={s} onClick={sendSuggestion}>
+              {s}
+            </Suggestion>
+          ))}
+        </Suggestions>
+
+        <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
+          Workspace: {workspaceId}
+        </p>
+      </div>
     </div>
   );
 }
@@ -145,36 +208,49 @@ export function ThreadsTab({ workspaceId }: ThreadsTabProps) {
 interface ChatViewProps {
   workspaceId: string;
   threadId: string;
-  initialMessage?: { text: string; files: FileUIPart[] };
-  onTurnSettled: () => void;
 }
 
-function ChatView({ workspaceId, threadId, initialMessage, onTurnSettled }: ChatViewProps) {
+function ChatView({ workspaceId, threadId }: ChatViewProps) {
+  const location = useLocation();
+  const initialMessage = location.state?.initialMessage;
+
+  const { refetch } = useThreads(workspaceId);
   const agent = useTeacherAgent(`${workspaceId}::${threadId}`);
 
-  const { messages, sendMessage, status, stop, regenerate, isRecovering, addToolApprovalResponse } =
-    useAgentChat({ agent, id: threadId });
+  const {
+    messages,
+    sendMessage,
+    status,
+    stop,
+    regenerate,
+    isRecovering,
+    addToolApprovalResponse,
+  } = useAgentChat({ agent, id: threadId });
 
   const sentInitial = useRef(false);
   useEffect(() => {
     if (sentInitial.current) return;
-    if (initialMessage && (initialMessage.text.trim() || initialMessage.files.length)) {
+    if (
+      initialMessage &&
+      (initialMessage.text.trim() || initialMessage.files.length)
+    ) {
       sentInitial.current = true;
-      sendMessage({ text: initialMessage.text, files: initialMessage.files });
+      sendMessage({
+        text: initialMessage.text,
+        files: initialMessage.files,
+      });
     }
   }, [initialMessage, sendMessage]);
 
   const prevStatus = useRef<ChatStatus>(status);
   useEffect(() => {
     if (prevStatus.current !== "ready" && status === "ready") {
-      onTurnSettled();
-      // Title generation runs async in onChatResponse after the turn settles.
-      // Delayed refetch picks it up once it's written to D1.
-      const timer = setTimeout(() => onTurnSettled(), 2000);
+      refetch();
+      const timer = setTimeout(() => refetch(), 2000);
       return () => clearTimeout(timer);
     }
     prevStatus.current = status;
-  }, [status, onTurnSettled]);
+  }, [status, refetch]);
 
   const handleSubmit = useCallback(
     ({ text, files }: PromptInputMessage) => {
@@ -193,14 +269,19 @@ function ChatView({ workspaceId, threadId, initialMessage, onTurnSettled }: Chat
       <Conversation className="flex-1">
         <ConversationContent className="mx-auto w-full max-w-5xl">
           {messages.map((message, index) => (
-            <Message key={message.id} from={message.role === "user" ? "user" : "assistant"}>
+            <Message
+              key={message.id}
+              from={message.role === "user" ? "user" : "assistant"}
+            >
               <MessageContent>
                 <MessageParts
                   message={message}
                   isLast={index === messages.length - 1}
                   isStreaming={status === "streaming"}
                   ctx={ctx}
-                  onApprove={(id, approved) => addToolApprovalResponse({ id, approved })}
+                  onApprove={(id, approved) =>
+                    addToolApprovalResponse({ id, approved })
+                  }
                 />
               </MessageContent>
             </Message>
@@ -255,11 +336,20 @@ interface MessagePartsProps {
   onApprove: (id: string, approved: boolean) => void;
 }
 
-function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessagePartsProps) {
+function MessageParts({
+  message,
+  isLast,
+  isStreaming,
+  ctx,
+  onApprove,
+}: MessagePartsProps) {
   const reasoningParts = message.parts.filter((p) => p.type === "reasoning");
-  const reasoningText = reasoningParts.map((p) => (p as { text?: string }).text ?? "").join("\n\n");
+  const reasoningText = reasoningParts
+    .map((p) => (p as { text?: string }).text ?? "")
+    .join("\n\n");
   const lastPart = message.parts.at(-1);
-  const isReasoningStreaming = isLast && isStreaming && lastPart?.type === "reasoning";
+  const isReasoningStreaming =
+    isLast && isStreaming && lastPart?.type === "reasoning";
 
   const sourceParts = message.parts.filter(
     (p) => p.type === "source-url" || p.type === "source-document",
@@ -281,7 +371,11 @@ function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessageP
             {sourceParts.map((part, i) => {
               const p = part as { url?: string; title?: string };
               return (
-                <Source key={`${message.id}-src-${i}`} href={p.url ?? "#"} title={p.title}>
+                <Source
+                  key={`${message.id}-src-${i}`}
+                  href={p.url ?? "#"}
+                  title={p.title}
+                >
                   {p.title ?? p.url}
                 </Source>
               );
@@ -294,24 +388,23 @@ function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessageP
         if (part.type === "text") {
           const text = (part as { text: string }).text;
           if (text.length === 0) return null;
-          // User messages are plain text — render directly without OpenUI parsing
           if (message.role === "user") {
             return (
-              <div key={`${message.id}-txt-${i}`} className="whitespace-pre-wrap">
+              <div
+                key={`${message.id}-txt-${i}`}
+                className="whitespace-pre-wrap"
+              >
                 {text}
               </div>
             );
           }
-          // Assistant messages use OpenUI Renderer
           return (
             <Renderer
               key={`${message.id}-txt-${i}`}
               library={asterLibrary}
               response={text}
               isStreaming={isStreaming}
-              onError={() => {
-                /* suppress parse errors during streaming */
-              }}
+              onError={() => {}}
             />
           );
         }
@@ -335,14 +428,28 @@ function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessageP
             toolPart.type === "dynamic-tool"
               ? (toolPart as DynamicToolUIPart).toolName
               : toolPart.type.slice("tool-".length);
-          const approval = (toolPart as { approval?: { id: string; approved?: boolean } }).approval;
+          const approval = (
+            toolPart as { approval?: { id: string; approved?: boolean } }
+          ).approval;
           return (
-            <Tool key={`${message.id}-tool-${i}`} defaultOpen className="mb-2">
-              <ToolHeader type={toolPart.type} state={toolPart.state} toolName={toolName} />
+            <Tool
+              key={`${message.id}-tool-${i}`}
+              defaultOpen
+              className="mb-2"
+            >
+              <ToolHeader
+                type={toolPart.type}
+                state={toolPart.state}
+                toolName={toolName}
+              />
               <ToolContent>
                 <ToolInput input={toolPart.input} />
                 <ToolOutput
-                  output={renderToolOutput(toolName ?? "", toolPart.output, ctx)}
+                  output={renderToolOutput(
+                    toolName ?? "",
+                    toolPart.output,
+                    ctx,
+                  )}
                   errorText={toolPart.errorText}
                 />
                 {approval && toolPart.state === "approval-requested" && (
@@ -352,7 +459,8 @@ function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessageP
                     className="mt-2"
                   >
                     <ConfirmationRequest>
-                      The teacher wants to run <strong>{toolName}</strong>. Approve?
+                      The teacher wants to run <strong>{toolName}</strong>.
+                      Approve?
                     </ConfirmationRequest>
                     <ConfirmationActions>
                       <ConfirmationAction
@@ -361,7 +469,9 @@ function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessageP
                       >
                         Reject
                       </ConfirmationAction>
-                      <ConfirmationAction onClick={() => onApprove(approval.id, true)}>
+                      <ConfirmationAction
+                        onClick={() => onApprove(approval.id, true)}
+                      >
                         Approve
                       </ConfirmationAction>
                     </ConfirmationActions>
@@ -373,8 +483,12 @@ function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessageP
                     state={toolPart.state}
                     className="mt-2"
                   >
-                    <ConfirmationAccepted>You approved this action</ConfirmationAccepted>
-                    <ConfirmationRejected>You rejected this action</ConfirmationRejected>
+                    <ConfirmationAccepted>
+                      You approved this action
+                    </ConfirmationAccepted>
+                    <ConfirmationRejected>
+                      You rejected this action
+                    </ConfirmationRejected>
                   </Confirmation>
                 )}
               </ToolContent>
@@ -408,12 +522,16 @@ function TeacherPromptInput({
 }: TeacherPromptInputProps) {
   const { textInput } = usePromptInputController();
   const attachments = usePromptInputAttachments();
-  const hasContent = textInput.value.trim().length > 0 || attachments.files.length > 0;
+  const hasContent =
+    textInput.value.trim().length > 0 || attachments.files.length > 0;
 
   return (
     <PromptInput accept="image/*" multiple onSubmit={onSubmit}>
       <PromptInputAttachments />
-      <PromptInputButton aria-label="Add attachment" onClick={() => attachments.openFileDialog()}>
+      <PromptInputButton
+        aria-label="Add attachment"
+        onClick={() => attachments.openFileDialog()}
+      >
         <PlusIcon className="size-5" />
       </PromptInputButton>
       <PromptInputTextarea placeholder="Ask your teacher…" />
@@ -422,82 +540,11 @@ function TeacherPromptInput({
           <span className="text-xs">Retry</span>
         </PromptInputButton>
       )}
-      <PromptInputSubmit status={status} disabled={!hasContent && !isBusy} onStop={onStop} />
+      <PromptInputSubmit
+        status={status}
+        disabled={!hasContent && !isBusy}
+        onStop={onStop}
+      />
     </PromptInput>
-  );
-}
-
-// ---------------------------------------------------------------------------
-
-interface EmptyStateProps {
-  workspaceId: string;
-  onSend: (text: string, files: FileUIPart[]) => void | Promise<void>;
-}
-
-function EmptyState({ workspaceId, onSend }: EmptyStateProps) {
-  return (
-    <PromptInputProvider>
-      <EmptyStateInner workspaceId={workspaceId} onSend={onSend} />
-    </PromptInputProvider>
-  );
-}
-
-function EmptyStateInner({ workspaceId, onSend }: EmptyStateProps) {
-  const { textInput } = usePromptInputController();
-  const attachments = usePromptInputAttachments();
-  const isBusy = false;
-  const hasContent = textInput.value.trim().length > 0 || attachments.files.length > 0;
-
-  const submit = ({ text, files }: PromptInputMessage) => {
-    if (!text.trim() && files.length === 0) return;
-    void onSend(text, files);
-  };
-
-  const sendSuggestion = (text: string) => {
-    void onSend(text, []);
-  };
-
-  return (
-    <div className="flex flex-1 flex-col">
-      <div className="flex flex-1 items-center justify-center p-6">
-        <Empty className="max-w-md border-0">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <HugeiconsIcon icon={Message02Icon} />
-            </EmptyMedia>
-            <EmptyTitle>Start a conversation</EmptyTitle>
-            <EmptyDescription>
-              Ask a question and your teacher agent will start a thread for it.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      </div>
-
-      <div className="bg-background p-4">
-        <PromptInput accept="image/*" multiple onSubmit={submit}>
-          <PromptInputAttachments />
-          <PromptInputButton
-            aria-label="Add attachment"
-            onClick={() => attachments.openFileDialog()}
-          >
-            <PlusIcon className="size-5" />
-          </PromptInputButton>
-          <PromptInputTextarea placeholder="Ask your teacher…" />
-          <PromptInputSubmit status={isBusy ? "submitted" : "ready"} disabled={!hasContent} />
-        </PromptInput>
-
-        <Suggestions className="mx-auto mt-3 max-w-3xl">
-          {STARTER_SUGGESTIONS.map((s) => (
-            <Suggestion key={s} suggestion={s} onClick={sendSuggestion}>
-              {s}
-            </Suggestion>
-          ))}
-        </Suggestions>
-
-        <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
-          Workspace: {workspaceId}
-        </p>
-      </div>
-    </div>
   );
 }
