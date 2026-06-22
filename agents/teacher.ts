@@ -360,6 +360,112 @@ export class TeacherAgent extends Think<Env> {
           return { resourceId: id, updated: false };
         },
       }),
+      listGlossary: tool({
+        description:
+          "List all glossary terms for this workspace. Use before pruning stale or outdated terms, or when you need to check whether a term already exists.",
+        inputSchema: z.object({}),
+        execute: async () => {
+          const rows = await this.db()
+            .select()
+            .from(schema.glossary)
+            .where(eq(schema.glossary.workspaceId, this.threadKey.workspaceId));
+          return rows.map((t) => ({
+            id: t.id,
+            term: t.term,
+            definition: t.definition,
+            avoid: t.avoid,
+          }));
+        },
+      }),
+      listResources: tool({
+        description:
+          "List all curated resources for this workspace. Use before pruning shallow or off-mission resources, or when you need to check whether a resource already exists.",
+        inputSchema: z.object({}),
+        execute: async () => {
+          const rows = await this.db()
+            .select()
+            .from(schema.resources)
+            .where(eq(schema.resources.workspaceId, this.threadKey.workspaceId));
+          return rows.map((r) => ({
+            id: r.id,
+            type: r.type,
+            title: r.title,
+            url: r.url,
+            annotation: r.annotation,
+          }));
+        },
+      }),
+      listReferences: tool({
+        description:
+          "List all reference documents for this workspace. Use before pruning stale reference docs.",
+        inputSchema: z.object({}),
+        execute: async () => {
+          const rows = await this.db()
+            .select()
+            .from(schema.references)
+            .where(eq(schema.references.workspaceId, this.threadKey.workspaceId));
+          return rows.map((r) => ({
+            id: r.id,
+            title: r.title,
+          }));
+        },
+      }),
+      deleteGlossary: tool({
+        description:
+          "Delete a glossary term. Use when a term is stale, redundant, or the user's understanding has moved past it.",
+        inputSchema: z.object({ termId: z.string() }),
+        execute: async ({ termId }) => {
+          await this.db()
+            .delete(schema.glossary)
+            .where(
+              and(
+                eq(schema.glossary.id, termId),
+                eq(schema.glossary.workspaceId, this.threadKey.workspaceId),
+              ),
+            );
+          return { deleted: true };
+        },
+      }),
+      deleteResource: tool({
+        description:
+          "Delete a curated resource. Use when a resource turns out to be wrong, shallow, or off-mission.",
+        inputSchema: z.object({ resourceId: z.string() }),
+        execute: async ({ resourceId }) => {
+          await this.db()
+            .delete(schema.resources)
+            .where(
+              and(
+                eq(schema.resources.id, resourceId),
+                eq(schema.resources.workspaceId, this.threadKey.workspaceId),
+              ),
+            );
+          return { deleted: true };
+        },
+      }),
+      deleteReference: tool({
+        description:
+          "Delete a reference document and its R2 content. Use when a reference doc is stale or no longer accurate.",
+        inputSchema: z.object({ referenceId: z.string() }),
+        execute: async ({ referenceId }) => {
+          const row = await this.db()
+            .select()
+            .from(schema.references)
+            .where(
+              and(
+                eq(schema.references.id, referenceId),
+                eq(schema.references.workspaceId, this.threadKey.workspaceId),
+              ),
+            )
+            .limit(1)
+            .then((r) => r[0]);
+          if (!row) return { deleted: false };
+          await this.env.ASTER_R2.delete(row.r2Key);
+          await this.db()
+            .delete(schema.references)
+            .where(eq(schema.references.id, referenceId));
+          return { deleted: true };
+        },
+      }),
     };
   }
 
