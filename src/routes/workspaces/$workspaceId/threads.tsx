@@ -27,16 +27,27 @@ function RouteThreads() {
   const threadId = (match?.params as { threadId?: string })?.threadId ?? null;
 
   const handleRename = useCallback(
-    (id: string, name: string) => rename.mutate({ id, name }),
+    (id: string, name: string) => {
+      rename.mutate(
+        { id, name },
+        { onError: (error) => console.error("Thread rename failed:", error) },
+      );
+    },
     [rename],
   );
 
   const handleDelete = useCallback(
-    async (id: string) => {
-      await remove.mutateAsync({ id });
-      if (threadId === id) {
-        navigate({ to: `/workspaces/${workspaceId}/threads/new` });
-      }
+    (id: string) => {
+      remove.mutate(
+        { id },
+        {
+          onSuccess: () => {
+            if (threadId === id) {
+              navigate({ to: `/workspaces/${workspaceId}/threads/new` });
+            }
+          },
+        },
+      );
     },
     [remove, threadId, navigate, workspaceId],
   );
