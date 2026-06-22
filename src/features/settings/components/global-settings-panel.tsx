@@ -3,7 +3,6 @@ import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { useForm } from "@tanstack/react-form";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "~/components/ui/dialog";
 import {
   Combobox,
   ComboboxInput,
@@ -35,12 +34,7 @@ interface ProviderGroup {
   items: ModelItem[];
 }
 
-interface SettingsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
+export function GlobalSettingsPanel() {
   const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   const [showApiKey, setShowApiKey] = useState(false);
   const { data: settings } = useSuspenseQuery(SettingsRpc.getSettings());
@@ -182,104 +176,94 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
-        </DialogHeader>
+    <div className="space-y-4">
+      {/* Model */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-1 text-sm font-medium text-foreground">
+          <HugeiconsIcon icon={AiBrainIcon} className="size-4" />
+          <span>Model</span>
+        </div>
+        <Combobox
+          items={groups}
+          value={selectedGroupItem}
+          onValueChange={handleModelChange}
+          inputValue={inputValue}
+          onInputValueChange={setInputValue}
+          itemToStringLabel={(item) => getModelLabel(item)}
+          itemToStringValue={(item) => item.id}
+          isItemEqualToValue={(item, value) => item.id === value.id}
+        >
+          <ComboboxInput placeholder="Search models..." showTrigger={false} />
+          <ComboboxContent>
+            <ComboboxList>
+              {(group) => (
+                <ComboboxGroup key={group.value}>
+                  <ComboboxLabel>{group.value}</ComboboxLabel>
+                  {group.items.map((model: ModelItem) => (
+                    <ComboboxItem key={model.id} value={model}>
+                      <span>{model.name ?? model.id}</span>
+                    </ComboboxItem>
+                  ))}
+                </ComboboxGroup>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
+      </div>
 
-        <div className="space-y-0">
-          {/* Model */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-1 text-sm font-medium text-foreground">
-              <HugeiconsIcon icon={AiBrainIcon} className="size-4" />
-              <span>Model</span>
-            </div>
-            <Combobox
-              items={groups}
-              value={selectedGroupItem}
-              onValueChange={handleModelChange}
-              inputValue={inputValue}
-              onInputValueChange={setInputValue}
-              itemToStringLabel={(item) => getModelLabel(item)}
-              itemToStringValue={(item) => item.id}
-              isItemEqualToValue={(item, value) => item.id === value.id}
-            >
-              <ComboboxInput placeholder="Search models..." showTrigger={false} />
-              <ComboboxContent>
-                <ComboboxList>
-                  {(group) => (
-                    <ComboboxGroup key={group.value}>
-                      <ComboboxLabel>{group.value}</ComboboxLabel>
-                      {group.items.map((model: ModelItem) => (
-                        <ComboboxItem key={model.id} value={model}>
-                          <span>{model.name ?? model.id}</span>
-                        </ComboboxItem>
-                      ))}
-                    </ComboboxGroup>
-                  )}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
-          </div>
-
-          {/* API Key */}
-          {apiKeyEnv && selectedProviderId && (
-            <>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1 text-sm font-medium text-foreground">
-                    <HugeiconsIcon icon={Key02Icon} className="size-4" />
-                    <span>API Key</span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="xs"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                  >
-                    <HugeiconsIcon icon={showApiKey ? EyeOffIcon : EyeIcon} className="size-3.5" />
-                    {showApiKey ? "Hide" : "Show"}
-                  </Button>
-                </div>
-                <Input
-                  type={showApiKey ? "text" : "password"}
-                  defaultValue={form.state.values.apiKeys[selectedProviderId] ?? ""}
-                  onBlur={(e) => handleApiKeyBlur(selectedProviderId, e.target.value)}
-                  placeholder={apiKeyEnv}
-                />
-              </div>
-            </>
-          )}
-
-          <Separator className="my-5" />
-
-          {/* Footer */}
+      {/* API Key */}
+      {apiKeyEnv && selectedProviderId && (
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1 text-sm font-medium text-foreground">
+              <HugeiconsIcon icon={Key02Icon} className="size-4" />
+              <span>API Key</span>
+            </div>
             <Button
               type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleResetDefaults}
-              disabled={mutation.isPending}
+              variant="ghost"
+              size="xs"
+              onClick={() => setShowApiKey(!showApiKey)}
             >
-              <HugeiconsIcon icon={RotateLeft01Icon} className="size-3.5" />
-              Reset to Defaults
+              <HugeiconsIcon icon={showApiKey ? EyeOffIcon : EyeIcon} className="size-3.5" />
+              {showApiKey ? "Hide" : "Show"}
             </Button>
-
-            {status === 'saved' && (
-              <span className="text-xs text-muted-foreground animate-in fade-in duration-200">
-                Saved!
-              </span>
-            )}
-            {status === 'error' && (
-              <span className="text-xs text-destructive animate-in fade-in duration-200" role="alert">
-                {mutation.error instanceof Error ? mutation.error.message : 'Failed to save'}
-              </span>
-            )}
           </div>
+          <Input
+            type={showApiKey ? "text" : "password"}
+            defaultValue={form.state.values.apiKeys[selectedProviderId] ?? ""}
+            onBlur={(e) => handleApiKeyBlur(selectedProviderId, e.target.value)}
+            placeholder={apiKeyEnv}
+          />
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+
+      <Separator className="my-4" />
+
+      {/* Footer */}
+      <div className="flex items-center justify-between">
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={handleResetDefaults}
+          disabled={mutation.isPending}
+        >
+          <HugeiconsIcon icon={RotateLeft01Icon} className="size-3.5" />
+          Reset to Defaults
+        </Button>
+
+        {status === 'saved' && (
+          <span className="text-xs text-muted-foreground animate-in fade-in duration-200">
+            Saved!
+          </span>
+        )}
+        {status === 'error' && (
+          <span className="text-xs text-destructive animate-in fade-in duration-200" role="alert">
+            {mutation.error instanceof Error ? mutation.error.message : 'Failed to save'}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }

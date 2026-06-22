@@ -12,20 +12,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Settings02Icon, SlidersHorizontalIcon } from "@hugeicons/core-free-icons";
 
 import { WorkspaceRpc } from "~/server/rpc/workspace";
+import { GlobalSettingsPanel } from "~/features/settings/components/global-settings-panel";
 import type { Workspace } from "~/server/features/workspace/service";
 
 interface WorkspaceSettingsModalProps {
   workspace: Workspace;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultTab?: "workspace" | "global";
 }
 
 export function WorkspaceSettingsModal({
   workspace,
   open,
   onOpenChange,
+  defaultTab = "workspace",
 }: WorkspaceSettingsModalProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -70,63 +76,83 @@ export function WorkspaceSettingsModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[425px]">
-          <form onSubmit={handleSubmit}>
-            <DialogHeader>
-              <DialogTitle>Workspace Settings</DialogTitle>
-              <DialogDescription>Update your workspace details or delete it.</DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label htmlFor="topic" className="text-sm font-medium">
-                  Topic <span className="text-muted-foreground">*</span>
-                </label>
-                <Input id="topic" value={topic} onChange={(e) => setTopic(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="mission" className="text-sm font-medium">
-                  Mission <span className="text-muted-foreground">*</span>
-                </label>
-                <Textarea
-                  id="mission"
-                  value={mission}
-                  onChange={(e) => setMission(e.target.value)}
-                  rows={3}
-                />
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="currentKnowledge" className="text-sm font-medium">
-                  Current Knowledge
-                </label>
-                <Textarea
-                  id="currentKnowledge"
-                  value={currentKnowledge}
-                  onChange={(e) => setCurrentKnowledge(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            </div>
-            <DialogFooter className="flex justify-between sm:justify-between">
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                Delete Workspace
-              </Button>
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={!topic.trim() || !mission.trim() || updateMutation.isPending}
-                >
-                  {updateMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
-            </DialogFooter>
-          </form>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+            <DialogDescription>Configure your workspace and global preferences.</DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue={defaultTab}>
+            <TabsList className="w-full">
+              <TabsTrigger value="workspace" className="flex-1">
+                <HugeiconsIcon icon={SlidersHorizontalIcon} className="mr-1.5 size-4" />
+                Workspace
+              </TabsTrigger>
+              <TabsTrigger value="global" className="flex-1">
+                <HugeiconsIcon icon={Settings02Icon} className="mr-1.5 size-4" />
+                Global
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="workspace">
+              <form onSubmit={handleSubmit}>
+                <div className="grid gap-4 py-2">
+                  <div className="grid gap-2">
+                    <label htmlFor="topic" className="text-sm font-medium">
+                      Topic <span className="text-muted-foreground">*</span>
+                    </label>
+                    <Input id="topic" value={topic} onChange={(e) => setTopic(e.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="mission" className="text-sm font-medium">
+                      Mission <span className="text-muted-foreground">*</span>
+                    </label>
+                    <Textarea
+                      id="mission"
+                      value={mission}
+                      onChange={(e) => setMission(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="currentKnowledge" className="text-sm font-medium">
+                      Current Knowledge
+                    </label>
+                    <Textarea
+                      id="currentKnowledge"
+                      value={currentKnowledge}
+                      onChange={(e) => setCurrentKnowledge(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <DialogFooter className="flex justify-between sm:justify-between mt-4">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    Delete Workspace
+                  </Button>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={!topic.trim() || !mission.trim() || updateMutation.isPending}
+                    >
+                      {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
+                </DialogFooter>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="global">
+              <GlobalSettingsPanel />
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

@@ -14,7 +14,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { CreateWorkspaceForm } from "./create-form";
 import { WorkspaceCard } from "./workspace-card";
-import { SettingsDialog } from "~/features/settings/components/dialog";
+import { SettingsDialog } from "~/features/settings/components/global-settings-dialog";
 
 export function HomePage() {
   const [showCreateForm, setShowCreateForm] = useState(false);

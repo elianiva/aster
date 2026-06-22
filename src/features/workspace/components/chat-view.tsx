@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import type { ChatStatus } from "ai";
 import {
@@ -18,11 +18,16 @@ import {
   usePromptInputController,
 } from "~/components/ai-elements/prompt-input";
 import { Spinner } from "~/components/ui/spinner";
+import { Button } from "~/components/ui/button";
 import { PlusIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Key02Icon } from "@hugeicons/core-free-icons";
+import { SettingsDialog } from "~/features/settings/components/global-settings-dialog";
 import { useTeacherAgent } from "~/features/workspace/hooks/use-teacher-agent";
 import { useThreads } from "~/features/workspace/hooks/use-threads";
 import { MessageParts } from "./message-parts";
 import { pendingMessageRef } from "./pending-message";
+import { useApiKeyStatus } from "~/hooks/use-api-key";
 
 // ============================================================================
 // Types
@@ -40,6 +45,7 @@ interface ChatViewProps {
 export function ChatView({ workspaceId, threadId }: ChatViewProps) {
   const { refetch } = useThreads(workspaceId);
   const agent = useTeacherAgent(`${workspaceId}::${threadId}`);
+  const { hasKey, providerName } = useApiKeyStatus();
 
   const {
     messages,
@@ -149,6 +155,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
       </Conversation>
 
       <div className="bg-background p-4">
+        {!hasKey && <ApiKeyBanner providerName={providerName} />}
         <ChatPromptInput
           status={status}
           isBusy={isBusy}
@@ -156,6 +163,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
           onStop={stop}
           onRegenerate={() => regenerate()}
           canRegenerate={messages.length > 0 && !isBusy}
+          disabled={!hasKey}
         />
         <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
           Your teacher agent may make mistakes. Verify important information.
@@ -176,6 +184,7 @@ interface ChatPromptInputProps {
   onStop: () => void;
   onRegenerate: () => void;
   canRegenerate: boolean;
+  disabled?: boolean;
 }
 
 function ChatPromptInput({
@@ -185,6 +194,7 @@ function ChatPromptInput({
   onStop,
   onRegenerate,
   canRegenerate,
+  disabled,
 }: ChatPromptInputProps) {
   const { textInput } = usePromptInputController();
   const attachments = usePromptInputAttachments();
@@ -192,15 +202,16 @@ function ChatPromptInput({
     textInput.value.trim().length > 0 || attachments.files.length > 0;
 
   return (
-    <PromptInput accept="image/*" multiple onSubmit={onSubmit}>
+    <PromptInput accept="image/*" multiple onSubmit={onSubmit} aria-disabled={disabled}>
       <PromptInputAttachments />
       <PromptInputButton
         aria-label="Add attachment"
         onClick={() => attachments.openFileDialog()}
+        disabled={disabled}
       >
         <PlusIcon className="size-5" />
       </PromptInputButton>
-      <PromptInputTextarea placeholder="Ask your teacher…" />
+      <PromptInputTextarea placeholder={disabled ? "Set an API key in Settings to continue…" : "Ask your teacher…"} disabled={disabled} />
       {canRegenerate && (
         <PromptInputButton aria-label="Regenerate" onClick={onRegenerate}>
           <span className="text-xs">Retry</span>
@@ -208,9 +219,28 @@ function ChatPromptInput({
       )}
       <PromptInputSubmit
         status={status}
-        disabled={!hasContent && !isBusy}
+        disabled={!hasContent && !isBusy || disabled}
         onStop={onStop}
       />
     </PromptInput>
+  );
+}
+
+function ApiKeyBanner({ providerName }: { providerName: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mx-auto mb-3 max-w-3xl rounded-xl border border-dashed border-muted-foreground/30 bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
+      <div className="flex items-center justify-center gap-2">
+        <HugeiconsIcon icon={Key02Icon} className="size-4" />
+        <span>
+          No API key configured for <strong>{providerName}</strong>.
+        </span>
+        <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setOpen(true)}>
+          Open Settings
+        </Button>
+      </div>
+      <SettingsDialog open={open} onOpenChange={setOpen} />
+    </div>
   );
 }

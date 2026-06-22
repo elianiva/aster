@@ -40,7 +40,7 @@ export function BentoCard({ children, span, className, ...props }: BentoCardProp
   const spanClass = span ? `col-span-${span}` : "";
 
   return (
-    <div className={`rounded-lg border bg-card p-4 ${spanClass} ${className ?? ""}`} {...props}>
+    <div className={`rounded-lg bg-secondary/70 p-4 ${spanClass} ${className ?? ""}`} {...props}>
       {children}
     </div>
   );

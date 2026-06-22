@@ -277,13 +277,14 @@ export const PromptInputAttachments = ({
 // PromptInputTextarea
 // ============================================================================
 
-export type PromptInputTextareaProps = ComponentProps<typeof InputGroupTextarea>;
+export type PromptInputTextareaProps = ComponentProps<typeof InputGroupTextarea> & { disabled?: boolean };
 
 export const PromptInputTextarea = ({
   onChange,
   onKeyDown,
   className,
   placeholder = "What would you like to know?",
+  disabled,
   ...props
 }: PromptInputTextareaProps) => {
   const { textInput } = usePromptInputController();
@@ -344,7 +345,7 @@ export const PromptInputTextarea = ({
 
   return (
     <InputGroupTextarea
-      className={cn("field-sizing-content max-h-48 min-h-0", className)}
+      className={cn("field-sizing-content max-h-48 min-h-0", disabled && "opacity-50 cursor-not-allowed", className)}
       name="message"
       onCompositionEnd={() => setIsComposing(false)}
       onCompositionStart={() => setIsComposing(true)}
@@ -356,6 +357,8 @@ export const PromptInputTextarea = ({
         onChange?.(e);
       }}
       value={textInput.value}
+      disabled={disabled}
+      readOnly={disabled}
       {...props}
     />
   );

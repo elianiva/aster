@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Message02Icon } from "@hugeicons/core-free-icons";
+import { Message02Icon, Key02Icon } from "@hugeicons/core-free-icons";
 import {
   PromptInput,
   type PromptInputMessage,
@@ -23,6 +23,9 @@ import { Suggestion, Suggestions } from "~/components/ai-elements/suggestion";
 import { PlusIcon } from "lucide-react";
 import { useThreads } from "~/features/workspace/hooks/use-threads";
 import { pendingMessageRef } from "./pending-message";
+import { useApiKeyStatus } from "~/hooks/use-api-key";
+import { Button } from "~/components/ui/button";
+import { SettingsDialog } from "~/features/settings/components/global-settings-dialog";
 
 const STARTER_SUGGESTIONS = [
   "What should I learn first?",
@@ -38,6 +41,7 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
   const navigate = useNavigate();
   const { create, refetch } = useThreads(workspaceId);
   const [createError, setCreateError] = useState<string | null>(null);
+  const { hasKey, providerName } = useApiKeyStatus();
 
   const handleSend = useCallback(
     (message?: PromptInputMessage) => {
@@ -85,7 +89,8 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
             {createError}
           </p>
         )}
-        <EmptyStateInput onSend={handleSend} />
+        {!hasKey && <ApiKeyBanner providerName={providerName} />}
+        <EmptyStateInput onSend={handleSend} disabled={!hasKey} />
 
         <Suggestions className="mx-auto mt-3 max-w-3xl">
           {STARTER_SUGGESTIONS.map((s) => (
@@ -93,6 +98,7 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
               key={s}
               suggestion={s}
               onClick={() => handleSend({ text: s, files: [] })}
+              disabled={!hasKey}
             >
               {s}
             </Suggestion>
@@ -109,8 +115,10 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
 
 function EmptyStateInput({
   onSend,
+  disabled,
 }: {
   onSend: (message?: PromptInputMessage) => void | Promise<void>;
+  disabled?: boolean;
 }) {
   const { textInput } = usePromptInputController();
   const attachments = usePromptInputAttachments();
@@ -123,16 +131,36 @@ function EmptyStateInput({
   };
 
   return (
-    <PromptInput accept="image/*" multiple onSubmit={submit}>
+    <PromptInput accept="image/*" multiple onSubmit={submit} aria-disabled={disabled}>
       <PromptInputAttachments />
       <PromptInputButton
         aria-label="Add attachment"
         onClick={() => attachments.openFileDialog()}
+        disabled={disabled}
       >
         <PlusIcon className="size-5" />
       </PromptInputButton>
-      <PromptInputTextarea placeholder="Ask your teacher…" />
-      <PromptInputSubmit status="ready" disabled={!hasContent} />
+      <PromptInputTextarea placeholder={disabled ? "Set an API key in Settings to start…" : "Ask your teacher…"} disabled={disabled} />
+      <PromptInputSubmit status="ready" disabled={!hasContent || disabled} />
     </PromptInput>
+  );
+}
+
+function ApiKeyBanner({ providerName }: { providerName: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="mx-auto mb-3 max-w-3xl rounded-xl border border-dashed border-muted-foreground/30 bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
+      <div className="flex items-center justify-center gap-2">
+        <HugeiconsIcon icon={Key02Icon} className="size-4" />
+        <span>
+          No API key configured for <strong>{providerName}</strong>.
+        </span>
+        <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setOpen(true)}>
+          Open Settings
+        </Button>
+      </div>
+      <SettingsDialog open={open} onOpenChange={setOpen} />
+    </div>
   );
 }
