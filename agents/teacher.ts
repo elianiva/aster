@@ -2,7 +2,7 @@ import { Think, type Session, type TurnContext, type TurnConfig } from "@cloudfl
 import { tool } from "ai";
 import { z } from "zod";
 import { drizzle } from "drizzle-orm/d1";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import * as schema from "../src/server/db/schema";
 import {
   createModel,
@@ -10,6 +10,7 @@ import {
   DEFAULT_MODEL,
 } from "../src/server/features/workspace/model";
 import SYSTEM_PROMPT from "./prompts/teacher.md?raw";
+import TEACH_FORMATS from "./prompts/teach-formats.md?raw";
 import OPENUI_PROMPT from "../src/lib/openui/component-prompt.txt?raw";
 
 type Env = Cloudflare.Env & {
@@ -65,26 +66,37 @@ export class TeacherAgent extends Think<Env> {
     this._cachedConfig = config;
     const model = createModel(config);
 
-    const row = await this.db()
-      .select()
-      .from(schema.workspaces)
-      .where(eq(schema.workspaces.id, this.threadKey.workspaceId))
-      .limit(1)
-      .then((r) => r[0]);
+    const [workspace, thread] = await Promise.all([
+      this.db()
+        .select()
+        .from(schema.workspaces)
+        .where(eq(schema.workspaces.id, this.threadKey.workspaceId))
+        .limit(1)
+        .then((r) => r[0]),
+      this.db()
+        .select()
+        .from(schema.threads)
+        .where(eq(schema.threads.id, this.threadKey.threadId))
+        .limit(1)
+        .then((r) => r[0]),
+    ]);
 
-    const workspaceBlock = row
-      ? `\n## Current Workspace\nTopic: ${row.topic}\nMission: ${row.mission}\nCurrent knowledge: ${row.currentKnowledge}`
+    const workspaceBlock = workspace
+      ? `\n## Current Workspace\nTopic: ${workspace.topic}\nMission: ${workspace.mission}\nCurrent knowledge: ${workspace.currentKnowledge}`
       : "";
+
+    const teachingMode = thread?.teachingMode ?? true;
+    const formatsBlock = teachingMode ? `\n\n${TEACH_FORMATS}` : "";
 
     return {
       model,
-      system: `${SYSTEM_PROMPT}${workspaceBlock}\n\n${OPENUI_PROMPT}`,
-      tools: this.threadTools(),
+      system: `${SYSTEM_PROMPT}${workspaceBlock}${formatsBlock}\n\n${OPENUI_PROMPT}`,
+      tools: this.threadTools(teachingMode),
     };
   }
 
-  private threadTools() {
-    return {
+  private threadTools(teachingMode: boolean) {
+    const base = {
       createThread: tool({
         description:
           "Start a new thread for a distinct sub-topic or practice session. Use only when the current conversation clearly deserves its own space. Tell the user the thread is ready in their sidebar and stay in the current thread.",
@@ -129,6 +141,24 @@ export class TeacherAgent extends Think<Env> {
           return { updated: true };
         },
       }),
+      setTeachingMode: tool({
+        description:
+          "Enable or disable full teaching mode for this thread. When enabled, detailed format instructions for creating lessons, records, glossary entries, reference docs, resources, and notes are loaded. Suggest enabling when the user would benefit from a structured lesson or record. Ask the user before enabling.",
+        inputSchema: z.object({ enabled: z.boolean() }),
+        execute: async ({ enabled }) => {
+          await this.db()
+            .update(schema.threads)
+            .set({ teachingMode: enabled, updatedAt: new Date() })
+            .where(eq(schema.threads.id, this.threadKey.threadId));
+          return { teachingMode: enabled };
+        },
+      }),
+    };
+
+    if (!teachingMode) return base;
+
+    return {
+      ...base,
       createLesson: tool({
         description:
           "Save a lesson to the workspace. Use when you've produced substantial teaching content worth preserving, or when the user asks to save something as a lesson.",
@@ -177,6 +207,157 @@ export class TeacherAgent extends Think<Env> {
           });
 
           return { recordId: id };
+        },
+      }),
+      createReference: tool({
+        description:
+          "Save a reference document to the workspace — cheat sheets, syntax guides, glossaries. These are the compressed essence designed for quick reference, revisited more than lessons.",
+        inputSchema: z.object({
+          title: z.string().describe("Short descriptive title for the reference doc"),
+          content: z.string().describe("Full OpenUI Lang content for the reference doc"),
+        }),
+        execute: async ({ title, content }) => {
+          const id = crypto.randomUUID();
+          const r2Key = `references/${id}.openui`;
+          const now = new Date();
+
+          await this.env.ASTER_R2.put(r2Key, content);
+          await this.db().insert(schema.references).values({
+            id,
+            workspaceId: this.threadKey.workspaceId,
+            title,
+            r2Key,
+            createdAt: now,
+          });
+
+          return { referenceId: id, title };
+        },
+      }),
+      createNote: tool({
+        description:
+          "Save the workspace notes scratchpad. One note per workspace — this overwrites the existing note, so append your new content to what's already there before calling. Use for user preferences and working notes, not learning insights.",
+        inputSchema: z.object({
+          content: z.string().describe("Full OpenUI Lang content for the notes"),
+        }),
+        execute: async ({ content }) => {
+          const now = new Date();
+          const existing = await this.db()
+            .select()
+            .from(schema.notes)
+            .where(eq(schema.notes.workspaceId, this.threadKey.workspaceId))
+            .limit(1)
+            .then((r) => r[0]);
+
+          if (existing) {
+            const r2Key = existing.r2Key;
+            await this.env.ASTER_R2.put(r2Key, content);
+            await this.db()
+              .update(schema.notes)
+              .set({ updatedAt: now })
+              .where(eq(schema.notes.id, existing.id));
+            return { noteId: existing.id };
+          }
+
+          const id = crypto.randomUUID();
+          const r2Key = `notes/${id}.openui`;
+          await this.env.ASTER_R2.put(r2Key, content);
+          await this.db().insert(schema.notes).values({
+            id,
+            workspaceId: this.threadKey.workspaceId,
+            r2Key,
+            createdAt: now,
+            updatedAt: now,
+          });
+
+          return { noteId: id };
+        },
+      }),
+      upsertGlossary: tool({
+        description:
+          "Add or update a glossary term for this workspace. Add a term only when the user understands it — the glossary is compressed knowledge, not a dictionary. If the term already exists, its definition is replaced.",
+        inputSchema: z.object({
+          term: z.string().describe("The canonical term"),
+          definition: z.string().describe("One or two sentences. Define what it IS, not what it does."),
+          avoid: z.string().optional().describe("Aliases to avoid — comma-separated"),
+        }),
+        execute: async ({ term, definition, avoid }) => {
+          const now = new Date();
+          const existing = await this.db()
+            .select()
+            .from(schema.glossary)
+            .where(
+              and(
+                eq(schema.glossary.workspaceId, this.threadKey.workspaceId),
+                eq(schema.glossary.term, term),
+              ),
+            )
+            .limit(1)
+            .then((r) => r[0]);
+
+          if (existing) {
+            await this.db()
+              .update(schema.glossary)
+              .set({ definition, avoid })
+              .where(eq(schema.glossary.id, existing.id));
+            return { glossaryId: existing.id, term, updated: true };
+          }
+
+          const id = crypto.randomUUID();
+          await this.db().insert(schema.glossary).values({
+            id,
+            workspaceId: this.threadKey.workspaceId,
+            term,
+            definition,
+            avoid,
+            createdAt: now,
+          });
+
+          return { glossaryId: id, term, updated: false };
+        },
+      }),
+      upsertResource: tool({
+        description:
+          "Add or update a resource for this workspace. Use type 'knowledge' for books, articles, documentation. Use type 'wisdom' for communities — forums, subreddits, classes.",
+        inputSchema: z.object({
+          type: z.enum(["knowledge", "wisdom"]),
+          title: z.string().describe("Title of the resource"),
+          url: z.string().describe("URL to the resource"),
+          annotation: z.string().describe("One line: what it covers and when to reach for it"),
+        }),
+        execute: async ({ type, title, url, annotation }) => {
+          const now = new Date();
+          const existing = await this.db()
+            .select()
+            .from(schema.resources)
+            .where(
+              and(
+                eq(schema.resources.workspaceId, this.threadKey.workspaceId),
+                eq(schema.resources.url, url),
+              ),
+            )
+            .limit(1)
+            .then((r) => r[0]);
+
+          if (existing) {
+            await this.db()
+              .update(schema.resources)
+              .set({ type, title, annotation })
+              .where(eq(schema.resources.id, existing.id));
+            return { resourceId: existing.id, updated: true };
+          }
+
+          const id = crypto.randomUUID();
+          await this.db().insert(schema.resources).values({
+            id,
+            workspaceId: this.threadKey.workspaceId,
+            type,
+            title,
+            url,
+            annotation,
+            createdAt: now,
+          });
+
+          return { resourceId: id, updated: false };
         },
       }),
     };
