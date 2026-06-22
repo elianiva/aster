@@ -31,7 +31,7 @@ A capture of what the user has learned. An artifact stored in R2 as OpenUI Lang,
 _Avoid_: Progress, completion
 
 **Resource**:
-External reference material the agent finds to ground its teaching.
+A curated high-trust source the agent uses to ground its teaching. Stored in D1. Two types: knowledge (books, articles, documentation) and wisdom (communities, forums, classes).
 _Avoid_: Source, link
 
 **Teacher Agent**:
@@ -39,7 +39,7 @@ The AI agent that teaches. Extends Think, lives in a Durable Object. Generates l
 _Avoid_: Bot, assistant
 
 **Artifact**:
-A generated output stored in R2 — lessons, reference docs, learning records. Stored as OpenUI Lang, rendered interactively on the frontend.
+A generated output stored in R2 — lessons, reference docs, learning records, notes. Stored as OpenUI Lang, rendered interactively on the frontend.
 _Avoid_: File, document, output
 
 **OpenUI Lang**:
@@ -53,3 +53,19 @@ _Avoid_: Memory, state, config
 **Guided Onboarding**:
 The workspace creation form that collects topic, mission, and current knowledge. Replaces the teach skill's nondeterministic LLM questioning with deterministic UI.
 _Avoid_: Setup wizard, intake form
+
+**Teaching Mode**:
+A per-thread toggle controlling whether the agent loads detailed format instructions for artifact creation. On by default. When off, the agent teaches conversationally and can suggest enabling it when a lesson or record would help.
+_Avoid_: Learning mode, skill toggle
+
+**Glossary**:
+The canonical terminology for a workspace. One entry per term, stored in D1. Terms are added only once the user understands them — compressed knowledge, not a dictionary.
+_Avoid_: Dictionary, terminology list
+
+**Reference Doc**:
+A compressed reference artifact stored in R2 as OpenUI Lang — cheat sheets, syntax guides, glossaries. Designed for quick reference; revisited more than lessons.
+_Avoid_: Cheatsheet, summary
+
+**Notes**:
+The agent's scratchpad for a workspace — user preferences, working notes, meta-observations about teaching. One per workspace, stored in R2 as OpenUI Lang. For steering, not for what was learned.
+_Avoid_: Memo, journal
