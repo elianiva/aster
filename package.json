@@ -9,6 +9,7 @@
     "dev": "vite dev",
     "generate-routes": "tsr generate",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "wrangler d1 migrations apply aster-db",
     "gen:openui": "npx @openuidev/cli@latest generate ./src/components/openui/library.tsx --out ./src/lib/openui/component-prompt.txt",
     "build": "vite build",
     "preview": "vite preview",
