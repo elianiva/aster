@@ -1,0 +1,25 @@
+import type { ComponentProps } from "react";
+import { cn } from "~/lib/utils";
+
+export interface HeadingProps extends ComponentProps<"h1" | "h2" | "h3" | "h4" | "h5" | "h6"> {
+  text: string;
+  level: "1" | "2" | "3" | "4" | "5" | "6";
+}
+
+const sizeClasses = {
+  1: "text-3xl font-bold tracking-tight",
+  2: "text-2xl font-semibold tracking-tight",
+  3: "text-xl font-semibold",
+  4: "text-lg font-medium",
+  5: "text-base font-medium",
+  6: "text-sm font-medium",
+};
+
+export function Heading({ text, level, className, ...props }: HeadingProps) {
+  const Tag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  return (
+    <Tag className={cn(sizeClasses[level], className)} {...props}>
+      {text}
+    </Tag>
+  );
+}
