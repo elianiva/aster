@@ -10,7 +10,7 @@ import { WorkspaceService } from "../features/workspace/service";
 import { AppRuntime } from "../app-runtime";
 import { createErrorHandler } from "./errors";
 
-const errorHandler = createErrorHandler({
+const onError = createErrorHandler({
   ThreadNotFound: "Thread not found. It may have been deleted.",
   ThreadQueryFailed: "Failed to load threads. Please try again.",
   ThreadInsertFailed: "Failed to create thread. Please try again.",
@@ -20,41 +20,41 @@ const errorHandler = createErrorHandler({
 
 export const listThreads = createServerFn({ method: "GET" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data))
-  .handler(({ data }) =>
-    AppRuntime.runPromise(
+  .handler(({ data }) => {
+    return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* ThreadService;
         return yield* service.list(data.workspaceId);
       }).pipe(Effect.withSpan("listThreads")),
-    ).catch(errorHandler),
-  );
+    ).catch(onError);
+  });
 
 export const createThread = createServerFn({ method: "POST" })
   .validator((data: unknown) => Schema.decodeUnknownSync(CreateThreadInput)(data))
-  .handler(({ data }) =>
-    AppRuntime.runPromise(
+  .handler(({ data }) => {
+    return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* ThreadService;
         return yield* service.create(data);
       }).pipe(Effect.withSpan("createThread")),
-    ).catch(errorHandler),
-  );
+    ).catch(onError);
+  });
 
 export const renameThread = createServerFn({ method: "POST" })
   .validator((data: unknown) => Schema.decodeUnknownSync(RenameThreadInput)(data))
-  .handler(({ data }) =>
-    AppRuntime.runPromise(
+  .handler(({ data }) => {
+    return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* ThreadService;
         return yield* service.rename(data.id, data.name);
       }).pipe(Effect.withSpan("renameThread")),
-    ).catch(errorHandler),
-  );
+    ).catch(onError);
+  });
 
 export const deleteThread = createServerFn({ method: "POST" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(data))
-  .handler(({ data }) =>
-    AppRuntime.runPromise(
+  .handler(({ data }) => {
+    return AppRuntime.runPromise(
       Effect.gen(function* () {
         const threads = yield* ThreadService;
         const workspaces = yield* WorkspaceService;
@@ -64,8 +64,8 @@ export const deleteThread = createServerFn({ method: "POST" })
         }
         yield* threads.delete(data.id);
       }).pipe(Effect.withSpan("deleteThread")),
-    ).catch(errorHandler),
-  );
+    ).catch(onError);
+  });
 
 export const ThreadRpc = {
   thread: (workspaceId: string) => ["thread", workspaceId] as const,

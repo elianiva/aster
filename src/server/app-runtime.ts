@@ -14,10 +14,17 @@ const BaseLayer = Layer.mergeAll(
   Database.layer,
 );
 
-export const AppLayer = Layer.mergeAll(
+const ServicesLayer = Layer.mergeAll(
   SettingsService.layer,
   WorkspaceService.layer,
   ThreadService.layer.pipe(Layer.provide(WorkspaceService.layer)),
-).pipe(Layer.provide(BaseLayer));
+);
+
+// Services consume BaseLayer internally; re-expose BaseLayer (Database, KV, …)
+// alongside the services so RPCs that read directly from D1/R2 can access the
+// shared client without re-instantiating drizzle per call.
+export const AppLayer = Layer.mergeAll(ServicesLayer, BaseLayer).pipe(
+  Layer.provide(BaseLayer),
+);
 
 export const AppRuntime = ManagedRuntime.make(AppLayer);

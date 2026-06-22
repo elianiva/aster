@@ -1,24 +1,31 @@
-import { env } from "cloudflare:workers";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 import { queryOptions } from "@tanstack/react-query";
-import { drizzle } from "drizzle-orm/d1";
 import { eq } from "drizzle-orm";
 import * as schema from "../db/schema";
 import { AppRuntime } from "../app-runtime";
+import { Database } from "../db/client";
+import { ArtifactQueryFailed } from "../errors";
+import { createErrorHandler } from "./errors";
 
-const db = () => drizzle(env.aster_db, { schema });
+const onError = createErrorHandler({
+	ArtifactQueryFailed: "Failed to load resources. Please try again.",
+});
 
 export const listResources = createServerFn({ method: "GET" })
 	.validator((data: unknown) =>
 		Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data)
 	)
-	.handler(({ data }) =>
-		AppRuntime.runPromise(
+	.handler(({ data }) => {
+		const ctx = getRequestContext();
+		return AppRuntime.runPromise(
 			Effect.gen(function* () {
-				const resources = yield* Effect.promise(() =>
-					db().select().from(schema.resources).where(eq(schema.resources.workspaceId, data.workspaceId))
-				);
+				const { client } = yield* Database;
+				const resources = yield* Effect.tryPromise({
+					try: () =>
+						client.select().from(schema.resources).where(eq(schema.resources.workspaceId, data.workspaceId)),
+					catch: (cause) => new ArtifactQueryFailed({ message: `Failed to list resources: ${cause}` }),
+				});
 				return resources.map((r) => ({
 					id: r.id,
 					type: r.type,
@@ -28,8 +35,8 @@ export const listResources = createServerFn({ method: "GET" })
 					createdAt: r.createdAt.toISOString(),
 				}));
 			}).pipe(Effect.withSpan("listResources"))
-		)
-	);
+		).catch(onError);
+	});
 
 export const ResourceRpc = {
 	resources: (workspaceId: string) => ["resources", workspaceId] as const,

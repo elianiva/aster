@@ -273,8 +273,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               </span>
             )}
             {status === 'error' && (
-              <span className="text-xs text-destructive animate-in fade-in duration-200">
-                Failed to save
+              <span className="text-xs text-destructive animate-in fade-in duration-200" role="alert">
+                {mutation.error instanceof Error ? mutation.error.message : 'Failed to save'}
               </span>
             )}
           </div>

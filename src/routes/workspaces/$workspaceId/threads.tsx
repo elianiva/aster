@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { createFileRoute, Outlet, redirect, useMatch, useNavigate } from "@tanstack/react-router";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useThreads } from "~/features/workspace/hooks/use-threads";
@@ -22,15 +22,20 @@ function RouteThreads() {
   const navigate = useNavigate();
   const { query, rename, remove } = useThreads(workspaceId);
   const threads = query.data ?? [];
+  const [threadError, setThreadError] = useState<string | null>(null);
 
   const match = useMatch({ strict: false });
   const threadId = (match?.params as { threadId?: string })?.threadId ?? null;
 
   const handleRename = useCallback(
     (id: string, name: string) => {
+      setThreadError(null);
       rename.mutate(
         { id, name },
-        { onError: (error) => console.error("Thread rename failed:", error) },
+        {
+          onError: (error) =>
+            setThreadError(error instanceof Error ? error.message : "Failed to rename thread."),
+        },
       );
     },
     [rename],
@@ -38,6 +43,7 @@ function RouteThreads() {
 
   const handleDelete = useCallback(
     (id: string) => {
+      setThreadError(null);
       remove.mutate(
         { id },
         {
@@ -46,6 +52,8 @@ function RouteThreads() {
               navigate({ to: `/workspaces/${workspaceId}/threads/new` });
             }
           },
+          onError: (error) =>
+            setThreadError(error instanceof Error ? error.message : "Failed to delete thread."),
         },
       );
     },
@@ -55,6 +63,11 @@ function RouteThreads() {
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        {threadError && (
+          <div className="border-b border-destructive/20 bg-destructive/5 px-4 py-2 text-xs text-destructive" role="alert">
+            {threadError}
+          </div>
+        )}
         <Outlet />
       </div>
       <ThreadList

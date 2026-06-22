@@ -37,6 +37,11 @@ export function CreateWorkspaceForm({ open, onOpenChange }: CreateWorkspaceFormP
       navigate({ to: "/workspaces/$workspaceId", params: { workspaceId: workspace.id } });
     },
   });
+  const errorMessage = createMutation.isError
+    ? createMutation.error instanceof Error
+      ? createMutation.error.message
+      : "Failed to create workspace. Please try again."
+    : null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +111,11 @@ export function CreateWorkspaceForm({ open, onOpenChange }: CreateWorkspaceFormP
             </div>
           </div>
           <DialogFooter>
+            {errorMessage && (
+              <p className="text-xs text-destructive sm:mr-auto" role="alert">
+                {errorMessage}
+              </p>
+            )}
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

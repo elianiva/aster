@@ -9,7 +9,7 @@ export function createErrorHandler(errorMap: Record<string, string>) {
         throw new Error(errorMap[tag]);
       }
     }
-    console.error(JSON.stringify({ level: "error", msg: "rpc error", error: String(error) }));
+    console.error(JSON.stringify({ level: "error", msg: "rpc error", error: error instanceof Error ? error.message : String(error) }));
     throw new Error(DEFAULT_MESSAGE);
   };
 }

@@ -6,51 +6,44 @@ import { SettingsService } from "../features/settings/service";
 import { AppRuntime } from "../app-runtime";
 import { createErrorHandler } from "./errors";
 
-const errorHandler = createErrorHandler({
+const onError = createErrorHandler({
   ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
   KeyValueStoreError: "Failed to save settings. Please try again.",
+  ArtifactQueryFailed: "Failed to load. Please try again.",
 });
 
-export const getSettings = createServerFn({ method: "GET" }).handler(() =>
-  AppRuntime.runPromise(
+export const getSettings = createServerFn({ method: "GET" }).handler(() => {
+  return AppRuntime.runPromise(
     Effect.gen(function*() {
       yield* Effect.log("getSettings");
       const service = yield* SettingsService;
       const settings = yield* service.get();
       return Option.getOrElse(settings, () => DEFAULT_SETTINGS);
     }).pipe(Effect.withSpan("getSettings")),
-  ).catch(errorHandler),
-);
+  ).catch(onError);
+});
 
 export const updateSettings = createServerFn({ method: "POST" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Settings)(data))
-  .handler(({ data }) =>
-    AppRuntime.runPromise(
+  .handler(({ data }) => {
+    return AppRuntime.runPromise(
       Effect.gen(function*() {
         yield* Effect.log("updateSettings");
         const service = yield* SettingsService;
         yield* service.update(data);
       }).pipe(Effect.withSpan("updateSettings")),
-    ).catch(errorHandler),
-  );
+    ).catch(onError);
+  });
 
-export const fetchProviders = createServerFn({ method: "GET" }).handler(() =>
-  AppRuntime.runPromise(
+export const fetchProviders = createServerFn({ method: "GET" }).handler(() => {
+  return AppRuntime.runPromise(
     Effect.gen(function*() {
       yield* Effect.log("fetchProviders");
       const service = yield* SettingsService;
       return yield* service.fetchProviders();
     }).pipe(Effect.withSpan("fetchProviders")),
-  ).catch(errorHandler),
-);
-
-export const pushSettingsToAgent = createServerFn({ method: "POST" })
-  .validator((data: unknown) => Schema.decodeUnknownSync(Settings)(data))
-  .handler(({ data }) => {
-    // Settings are pushed to the agent DO when the client connects
-    // The useAgentChat hook sends settings as part of the connection
-    return AppRuntime.runPromise(Effect.succeed(data));
-  });
+  ).catch(onError);
+});
 
 export const SettingsRpc = {
   settings: () => ["settings"],
@@ -68,10 +61,5 @@ export const SettingsRpc = {
     queryOptions({
       queryKey: [...SettingsRpc.settings(), "providers"],
       queryFn: () => fetchProviders(),
-    }),
-  pushSettingsToAgent: () =>
-    mutationOptions({
-      mutationKey: [...SettingsRpc.settings(), "pushToAgent"],
-      mutationFn: (input: Settings) => pushSettingsToAgent({ data: input }),
     }),
 };

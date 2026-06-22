@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Message02Icon } from "@hugeicons/core-free-icons";
@@ -37,9 +37,11 @@ interface EmptyStateProps {
 export function EmptyState({ workspaceId }: EmptyStateProps) {
   const navigate = useNavigate();
   const { create, refetch } = useThreads(workspaceId);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const handleSend = useCallback(
     (message?: PromptInputMessage) => {
+      setCreateError(null);
       create.mutate(
         { workspaceId },
         {
@@ -53,7 +55,8 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
               params: { workspaceId, threadId: thread.id },
             });
           },
-          onError: (error) => console.error("Thread creation failed:", error),
+          onError: (error) =>
+            setCreateError(error instanceof Error ? error.message : "Failed to start thread."),
         },
       );
     },
@@ -77,6 +80,11 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
       </div>
 
       <div className="bg-background p-4">
+        {createError && (
+          <p className="mx-auto mb-2 max-w-3xl text-center text-xs text-destructive" role="alert">
+            {createError}
+          </p>
+        )}
         <EmptyStateInput onSend={handleSend} />
 
         <Suggestions className="mx-auto mt-3 max-w-3xl">
