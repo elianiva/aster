@@ -17,7 +17,6 @@ export const getArtifactCounts = createServerFn({ method: "GET" })
 		Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data)
 	)
 	.handler(({ data }) => {
-		const ctx = getRequestContext();
 		return AppRuntime.runPromise(
 			Effect.gen(function* () {
 				const { client } = yield* Database;
