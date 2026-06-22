@@ -10,6 +10,9 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -18,10 +21,17 @@ import {
   SidebarProvider,
 } from "~/components/ui/sidebar";
 
-const TABS = [
+const LEARN_TABS = [
   { label: "Threads", path: "/workspaces/$workspaceId/threads" },
   { label: "Lessons", path: "/workspaces/$workspaceId/lessons" },
+  { label: "Reference Docs", path: "/workspaces/$workspaceId/reference-docs" },
   { label: "Records", path: "/workspaces/$workspaceId/records" },
+] as const;
+
+const REFERENCE_TABS = [
+  { label: "Glossary", path: "/workspaces/$workspaceId/glossary" },
+  { label: "Resources", path: "/workspaces/$workspaceId/resources" },
+  { label: "Notes", path: "/workspaces/$workspaceId/notes" },
 ] as const;
 
 interface WorkspaceLayoutProps {
@@ -48,22 +58,48 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
         </SidebarHeader>
 
         <SidebarContent className="p-2">
-          <SidebarMenu>
-            {TABS.map((tab) => {
-              const basePath = `/workspaces/${workspaceId}/${tab.path.split("/").pop()}`;
-              const isActive = currentPath.startsWith(basePath);
-              return (
-                <SidebarMenuItem key={tab.path}>
-                  <SidebarMenuButton
-                    isActive={isActive}
-                    render={<Link to={tab.path} params={{ workspaceId }} />}
-                  >
-                    {tab.label}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
+          <SidebarGroup>
+            <SidebarGroupLabel>Learn</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {LEARN_TABS.map((tab) => {
+                  const basePath = `/workspaces/${workspaceId}/${tab.path.split("/").pop()}`;
+                  const isActive = currentPath.startsWith(basePath);
+                  return (
+                    <SidebarMenuItem key={tab.path}>
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        render={<Link to={tab.path} params={{ workspaceId }} />}
+                      >
+                        {tab.label}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarGroupLabel>Reference</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {REFERENCE_TABS.map((tab) => {
+                  const basePath = `/workspaces/${workspaceId}/${tab.path.split("/").pop()}`;
+                  const isActive = currentPath.startsWith(basePath);
+                  return (
+                    <SidebarMenuItem key={tab.path}>
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        render={<Link to={tab.path} params={{ workspaceId }} />}
+                      >
+                        {tab.label}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
 
         <SidebarFooter>
