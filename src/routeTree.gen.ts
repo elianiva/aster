@@ -19,7 +19,13 @@ import { Route as WorkspacesWorkspaceIdRecordsRouteImport } from './routes/works
 import { Route as WorkspacesWorkspaceIdNotesRouteImport } from './routes/workspaces/$workspaceId/notes'
 import { Route as WorkspacesWorkspaceIdLessonsRouteImport } from './routes/workspaces/$workspaceId/lessons'
 import { Route as WorkspacesWorkspaceIdGlossaryRouteImport } from './routes/workspaces/$workspaceId/glossary'
+import { Route as WorkspacesWorkspaceIdReferenceDocsIndexRouteImport } from './routes/workspaces/$workspaceId/reference-docs/index'
+import { Route as WorkspacesWorkspaceIdRecordsIndexRouteImport } from './routes/workspaces/$workspaceId/records/index'
+import { Route as WorkspacesWorkspaceIdLessonsIndexRouteImport } from './routes/workspaces/$workspaceId/lessons/index'
 import { Route as WorkspacesWorkspaceIdThreadsThreadIdRouteImport } from './routes/workspaces/$workspaceId/threads/$threadId'
+import { Route as WorkspacesWorkspaceIdReferenceDocsReferenceIdRouteImport } from './routes/workspaces/$workspaceId/reference-docs/$referenceId'
+import { Route as WorkspacesWorkspaceIdRecordsRecordIdRouteImport } from './routes/workspaces/$workspaceId/records/$recordId'
+import { Route as WorkspacesWorkspaceIdLessonsLessonIdRouteImport } from './routes/workspaces/$workspaceId/lessons/$lessonId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -79,51 +85,102 @@ const WorkspacesWorkspaceIdGlossaryRoute =
     path: '/glossary',
     getParentRoute: () => WorkspacesWorkspaceIdRoute,
   } as any)
+const WorkspacesWorkspaceIdReferenceDocsIndexRoute =
+  WorkspacesWorkspaceIdReferenceDocsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => WorkspacesWorkspaceIdReferenceDocsRoute,
+  } as any)
+const WorkspacesWorkspaceIdRecordsIndexRoute =
+  WorkspacesWorkspaceIdRecordsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => WorkspacesWorkspaceIdRecordsRoute,
+  } as any)
+const WorkspacesWorkspaceIdLessonsIndexRoute =
+  WorkspacesWorkspaceIdLessonsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => WorkspacesWorkspaceIdLessonsRoute,
+  } as any)
 const WorkspacesWorkspaceIdThreadsThreadIdRoute =
   WorkspacesWorkspaceIdThreadsThreadIdRouteImport.update({
     id: '/$threadId',
     path: '/$threadId',
     getParentRoute: () => WorkspacesWorkspaceIdThreadsRoute,
   } as any)
+const WorkspacesWorkspaceIdReferenceDocsReferenceIdRoute =
+  WorkspacesWorkspaceIdReferenceDocsReferenceIdRouteImport.update({
+    id: '/$referenceId',
+    path: '/$referenceId',
+    getParentRoute: () => WorkspacesWorkspaceIdReferenceDocsRoute,
+  } as any)
+const WorkspacesWorkspaceIdRecordsRecordIdRoute =
+  WorkspacesWorkspaceIdRecordsRecordIdRouteImport.update({
+    id: '/$recordId',
+    path: '/$recordId',
+    getParentRoute: () => WorkspacesWorkspaceIdRecordsRoute,
+  } as any)
+const WorkspacesWorkspaceIdLessonsLessonIdRoute =
+  WorkspacesWorkspaceIdLessonsLessonIdRouteImport.update({
+    id: '/$lessonId',
+    path: '/$lessonId',
+    getParentRoute: () => WorkspacesWorkspaceIdLessonsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdRouteWithChildren
   '/workspaces/$workspaceId/glossary': typeof WorkspacesWorkspaceIdGlossaryRoute
-  '/workspaces/$workspaceId/lessons': typeof WorkspacesWorkspaceIdLessonsRoute
+  '/workspaces/$workspaceId/lessons': typeof WorkspacesWorkspaceIdLessonsRouteWithChildren
   '/workspaces/$workspaceId/notes': typeof WorkspacesWorkspaceIdNotesRoute
-  '/workspaces/$workspaceId/records': typeof WorkspacesWorkspaceIdRecordsRoute
-  '/workspaces/$workspaceId/reference-docs': typeof WorkspacesWorkspaceIdReferenceDocsRoute
+  '/workspaces/$workspaceId/records': typeof WorkspacesWorkspaceIdRecordsRouteWithChildren
+  '/workspaces/$workspaceId/reference-docs': typeof WorkspacesWorkspaceIdReferenceDocsRouteWithChildren
   '/workspaces/$workspaceId/resources': typeof WorkspacesWorkspaceIdResourcesRoute
   '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   '/workspaces/$workspaceId/': typeof WorkspacesWorkspaceIdIndexRoute
+  '/workspaces/$workspaceId/lessons/$lessonId': typeof WorkspacesWorkspaceIdLessonsLessonIdRoute
+  '/workspaces/$workspaceId/records/$recordId': typeof WorkspacesWorkspaceIdRecordsRecordIdRoute
+  '/workspaces/$workspaceId/reference-docs/$referenceId': typeof WorkspacesWorkspaceIdReferenceDocsReferenceIdRoute
   '/workspaces/$workspaceId/threads/$threadId': typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
+  '/workspaces/$workspaceId/lessons/': typeof WorkspacesWorkspaceIdLessonsIndexRoute
+  '/workspaces/$workspaceId/records/': typeof WorkspacesWorkspaceIdRecordsIndexRoute
+  '/workspaces/$workspaceId/reference-docs/': typeof WorkspacesWorkspaceIdReferenceDocsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/workspaces/$workspaceId/glossary': typeof WorkspacesWorkspaceIdGlossaryRoute
-  '/workspaces/$workspaceId/lessons': typeof WorkspacesWorkspaceIdLessonsRoute
   '/workspaces/$workspaceId/notes': typeof WorkspacesWorkspaceIdNotesRoute
-  '/workspaces/$workspaceId/records': typeof WorkspacesWorkspaceIdRecordsRoute
-  '/workspaces/$workspaceId/reference-docs': typeof WorkspacesWorkspaceIdReferenceDocsRoute
   '/workspaces/$workspaceId/resources': typeof WorkspacesWorkspaceIdResourcesRoute
   '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdIndexRoute
+  '/workspaces/$workspaceId/lessons/$lessonId': typeof WorkspacesWorkspaceIdLessonsLessonIdRoute
+  '/workspaces/$workspaceId/records/$recordId': typeof WorkspacesWorkspaceIdRecordsRecordIdRoute
+  '/workspaces/$workspaceId/reference-docs/$referenceId': typeof WorkspacesWorkspaceIdReferenceDocsReferenceIdRoute
   '/workspaces/$workspaceId/threads/$threadId': typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
+  '/workspaces/$workspaceId/lessons': typeof WorkspacesWorkspaceIdLessonsIndexRoute
+  '/workspaces/$workspaceId/records': typeof WorkspacesWorkspaceIdRecordsIndexRoute
+  '/workspaces/$workspaceId/reference-docs': typeof WorkspacesWorkspaceIdReferenceDocsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdRouteWithChildren
   '/workspaces/$workspaceId/glossary': typeof WorkspacesWorkspaceIdGlossaryRoute
-  '/workspaces/$workspaceId/lessons': typeof WorkspacesWorkspaceIdLessonsRoute
+  '/workspaces/$workspaceId/lessons': typeof WorkspacesWorkspaceIdLessonsRouteWithChildren
   '/workspaces/$workspaceId/notes': typeof WorkspacesWorkspaceIdNotesRoute
-  '/workspaces/$workspaceId/records': typeof WorkspacesWorkspaceIdRecordsRoute
-  '/workspaces/$workspaceId/reference-docs': typeof WorkspacesWorkspaceIdReferenceDocsRoute
+  '/workspaces/$workspaceId/records': typeof WorkspacesWorkspaceIdRecordsRouteWithChildren
+  '/workspaces/$workspaceId/reference-docs': typeof WorkspacesWorkspaceIdReferenceDocsRouteWithChildren
   '/workspaces/$workspaceId/resources': typeof WorkspacesWorkspaceIdResourcesRoute
   '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   '/workspaces/$workspaceId/': typeof WorkspacesWorkspaceIdIndexRoute
+  '/workspaces/$workspaceId/lessons/$lessonId': typeof WorkspacesWorkspaceIdLessonsLessonIdRoute
+  '/workspaces/$workspaceId/records/$recordId': typeof WorkspacesWorkspaceIdRecordsRecordIdRoute
+  '/workspaces/$workspaceId/reference-docs/$referenceId': typeof WorkspacesWorkspaceIdReferenceDocsReferenceIdRoute
   '/workspaces/$workspaceId/threads/$threadId': typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
+  '/workspaces/$workspaceId/lessons/': typeof WorkspacesWorkspaceIdLessonsIndexRoute
+  '/workspaces/$workspaceId/records/': typeof WorkspacesWorkspaceIdRecordsIndexRoute
+  '/workspaces/$workspaceId/reference-docs/': typeof WorkspacesWorkspaceIdReferenceDocsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,19 +195,28 @@ export interface FileRouteTypes {
     | '/workspaces/$workspaceId/resources'
     | '/workspaces/$workspaceId/threads'
     | '/workspaces/$workspaceId/'
+    | '/workspaces/$workspaceId/lessons/$lessonId'
+    | '/workspaces/$workspaceId/records/$recordId'
+    | '/workspaces/$workspaceId/reference-docs/$referenceId'
     | '/workspaces/$workspaceId/threads/$threadId'
+    | '/workspaces/$workspaceId/lessons/'
+    | '/workspaces/$workspaceId/records/'
+    | '/workspaces/$workspaceId/reference-docs/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/workspaces/$workspaceId/glossary'
-    | '/workspaces/$workspaceId/lessons'
     | '/workspaces/$workspaceId/notes'
-    | '/workspaces/$workspaceId/records'
-    | '/workspaces/$workspaceId/reference-docs'
     | '/workspaces/$workspaceId/resources'
     | '/workspaces/$workspaceId/threads'
     | '/workspaces/$workspaceId'
+    | '/workspaces/$workspaceId/lessons/$lessonId'
+    | '/workspaces/$workspaceId/records/$recordId'
+    | '/workspaces/$workspaceId/reference-docs/$referenceId'
     | '/workspaces/$workspaceId/threads/$threadId'
+    | '/workspaces/$workspaceId/lessons'
+    | '/workspaces/$workspaceId/records'
+    | '/workspaces/$workspaceId/reference-docs'
   id:
     | '__root__'
     | '/'
@@ -163,7 +229,13 @@ export interface FileRouteTypes {
     | '/workspaces/$workspaceId/resources'
     | '/workspaces/$workspaceId/threads'
     | '/workspaces/$workspaceId/'
+    | '/workspaces/$workspaceId/lessons/$lessonId'
+    | '/workspaces/$workspaceId/records/$recordId'
+    | '/workspaces/$workspaceId/reference-docs/$referenceId'
     | '/workspaces/$workspaceId/threads/$threadId'
+    | '/workspaces/$workspaceId/lessons/'
+    | '/workspaces/$workspaceId/records/'
+    | '/workspaces/$workspaceId/reference-docs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -243,6 +315,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspacesWorkspaceIdGlossaryRouteImport
       parentRoute: typeof WorkspacesWorkspaceIdRoute
     }
+    '/workspaces/$workspaceId/reference-docs/': {
+      id: '/workspaces/$workspaceId/reference-docs/'
+      path: '/'
+      fullPath: '/workspaces/$workspaceId/reference-docs/'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdReferenceDocsIndexRouteImport
+      parentRoute: typeof WorkspacesWorkspaceIdReferenceDocsRoute
+    }
+    '/workspaces/$workspaceId/records/': {
+      id: '/workspaces/$workspaceId/records/'
+      path: '/'
+      fullPath: '/workspaces/$workspaceId/records/'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdRecordsIndexRouteImport
+      parentRoute: typeof WorkspacesWorkspaceIdRecordsRoute
+    }
+    '/workspaces/$workspaceId/lessons/': {
+      id: '/workspaces/$workspaceId/lessons/'
+      path: '/'
+      fullPath: '/workspaces/$workspaceId/lessons/'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdLessonsIndexRouteImport
+      parentRoute: typeof WorkspacesWorkspaceIdLessonsRoute
+    }
     '/workspaces/$workspaceId/threads/$threadId': {
       id: '/workspaces/$workspaceId/threads/$threadId'
       path: '/$threadId'
@@ -250,8 +343,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspacesWorkspaceIdThreadsThreadIdRouteImport
       parentRoute: typeof WorkspacesWorkspaceIdThreadsRoute
     }
+    '/workspaces/$workspaceId/reference-docs/$referenceId': {
+      id: '/workspaces/$workspaceId/reference-docs/$referenceId'
+      path: '/$referenceId'
+      fullPath: '/workspaces/$workspaceId/reference-docs/$referenceId'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdReferenceDocsReferenceIdRouteImport
+      parentRoute: typeof WorkspacesWorkspaceIdReferenceDocsRoute
+    }
+    '/workspaces/$workspaceId/records/$recordId': {
+      id: '/workspaces/$workspaceId/records/$recordId'
+      path: '/$recordId'
+      fullPath: '/workspaces/$workspaceId/records/$recordId'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdRecordsRecordIdRouteImport
+      parentRoute: typeof WorkspacesWorkspaceIdRecordsRoute
+    }
+    '/workspaces/$workspaceId/lessons/$lessonId': {
+      id: '/workspaces/$workspaceId/lessons/$lessonId'
+      path: '/$lessonId'
+      fullPath: '/workspaces/$workspaceId/lessons/$lessonId'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdLessonsLessonIdRouteImport
+      parentRoute: typeof WorkspacesWorkspaceIdLessonsRoute
+    }
   }
 }
+
+interface WorkspacesWorkspaceIdLessonsRouteChildren {
+  WorkspacesWorkspaceIdLessonsLessonIdRoute: typeof WorkspacesWorkspaceIdLessonsLessonIdRoute
+  WorkspacesWorkspaceIdLessonsIndexRoute: typeof WorkspacesWorkspaceIdLessonsIndexRoute
+}
+
+const WorkspacesWorkspaceIdLessonsRouteChildren: WorkspacesWorkspaceIdLessonsRouteChildren =
+  {
+    WorkspacesWorkspaceIdLessonsLessonIdRoute:
+      WorkspacesWorkspaceIdLessonsLessonIdRoute,
+    WorkspacesWorkspaceIdLessonsIndexRoute:
+      WorkspacesWorkspaceIdLessonsIndexRoute,
+  }
+
+const WorkspacesWorkspaceIdLessonsRouteWithChildren =
+  WorkspacesWorkspaceIdLessonsRoute._addFileChildren(
+    WorkspacesWorkspaceIdLessonsRouteChildren,
+  )
+
+interface WorkspacesWorkspaceIdRecordsRouteChildren {
+  WorkspacesWorkspaceIdRecordsRecordIdRoute: typeof WorkspacesWorkspaceIdRecordsRecordIdRoute
+  WorkspacesWorkspaceIdRecordsIndexRoute: typeof WorkspacesWorkspaceIdRecordsIndexRoute
+}
+
+const WorkspacesWorkspaceIdRecordsRouteChildren: WorkspacesWorkspaceIdRecordsRouteChildren =
+  {
+    WorkspacesWorkspaceIdRecordsRecordIdRoute:
+      WorkspacesWorkspaceIdRecordsRecordIdRoute,
+    WorkspacesWorkspaceIdRecordsIndexRoute:
+      WorkspacesWorkspaceIdRecordsIndexRoute,
+  }
+
+const WorkspacesWorkspaceIdRecordsRouteWithChildren =
+  WorkspacesWorkspaceIdRecordsRoute._addFileChildren(
+    WorkspacesWorkspaceIdRecordsRouteChildren,
+  )
+
+interface WorkspacesWorkspaceIdReferenceDocsRouteChildren {
+  WorkspacesWorkspaceIdReferenceDocsReferenceIdRoute: typeof WorkspacesWorkspaceIdReferenceDocsReferenceIdRoute
+  WorkspacesWorkspaceIdReferenceDocsIndexRoute: typeof WorkspacesWorkspaceIdReferenceDocsIndexRoute
+}
+
+const WorkspacesWorkspaceIdReferenceDocsRouteChildren: WorkspacesWorkspaceIdReferenceDocsRouteChildren =
+  {
+    WorkspacesWorkspaceIdReferenceDocsReferenceIdRoute:
+      WorkspacesWorkspaceIdReferenceDocsReferenceIdRoute,
+    WorkspacesWorkspaceIdReferenceDocsIndexRoute:
+      WorkspacesWorkspaceIdReferenceDocsIndexRoute,
+  }
+
+const WorkspacesWorkspaceIdReferenceDocsRouteWithChildren =
+  WorkspacesWorkspaceIdReferenceDocsRoute._addFileChildren(
+    WorkspacesWorkspaceIdReferenceDocsRouteChildren,
+  )
 
 interface WorkspacesWorkspaceIdThreadsRouteChildren {
   WorkspacesWorkspaceIdThreadsThreadIdRoute: typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
@@ -270,10 +438,10 @@ const WorkspacesWorkspaceIdThreadsRouteWithChildren =
 
 interface WorkspacesWorkspaceIdRouteChildren {
   WorkspacesWorkspaceIdGlossaryRoute: typeof WorkspacesWorkspaceIdGlossaryRoute
-  WorkspacesWorkspaceIdLessonsRoute: typeof WorkspacesWorkspaceIdLessonsRoute
+  WorkspacesWorkspaceIdLessonsRoute: typeof WorkspacesWorkspaceIdLessonsRouteWithChildren
   WorkspacesWorkspaceIdNotesRoute: typeof WorkspacesWorkspaceIdNotesRoute
-  WorkspacesWorkspaceIdRecordsRoute: typeof WorkspacesWorkspaceIdRecordsRoute
-  WorkspacesWorkspaceIdReferenceDocsRoute: typeof WorkspacesWorkspaceIdReferenceDocsRoute
+  WorkspacesWorkspaceIdRecordsRoute: typeof WorkspacesWorkspaceIdRecordsRouteWithChildren
+  WorkspacesWorkspaceIdReferenceDocsRoute: typeof WorkspacesWorkspaceIdReferenceDocsRouteWithChildren
   WorkspacesWorkspaceIdResourcesRoute: typeof WorkspacesWorkspaceIdResourcesRoute
   WorkspacesWorkspaceIdThreadsRoute: typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   WorkspacesWorkspaceIdIndexRoute: typeof WorkspacesWorkspaceIdIndexRoute
@@ -281,11 +449,13 @@ interface WorkspacesWorkspaceIdRouteChildren {
 
 const WorkspacesWorkspaceIdRouteChildren: WorkspacesWorkspaceIdRouteChildren = {
   WorkspacesWorkspaceIdGlossaryRoute: WorkspacesWorkspaceIdGlossaryRoute,
-  WorkspacesWorkspaceIdLessonsRoute: WorkspacesWorkspaceIdLessonsRoute,
+  WorkspacesWorkspaceIdLessonsRoute:
+    WorkspacesWorkspaceIdLessonsRouteWithChildren,
   WorkspacesWorkspaceIdNotesRoute: WorkspacesWorkspaceIdNotesRoute,
-  WorkspacesWorkspaceIdRecordsRoute: WorkspacesWorkspaceIdRecordsRoute,
+  WorkspacesWorkspaceIdRecordsRoute:
+    WorkspacesWorkspaceIdRecordsRouteWithChildren,
   WorkspacesWorkspaceIdReferenceDocsRoute:
-    WorkspacesWorkspaceIdReferenceDocsRoute,
+    WorkspacesWorkspaceIdReferenceDocsRouteWithChildren,
   WorkspacesWorkspaceIdResourcesRoute: WorkspacesWorkspaceIdResourcesRoute,
   WorkspacesWorkspaceIdThreadsRoute:
     WorkspacesWorkspaceIdThreadsRouteWithChildren,
