@@ -4,6 +4,7 @@ import { cjk } from "@streamdown/cjk";
 import { code } from "@streamdown/code";
 import { math } from "@streamdown/math";
 import { mermaid } from "@streamdown/mermaid";
+import { cn } from "~/lib/utils";
 
 const plugins = { cjk, code, math, mermaid };
 
@@ -27,8 +28,8 @@ export function TextContent({
   ...props
 }: TextContentProps) {
   return (
-    <div className={className} {...props}>
-      <Streamdown className={styleClasses[variant]} plugins={plugins}>
+    <div className={cn("w-full", className)} {...props}>
+      <Streamdown className={cn("min-w-full!", styleClasses[variant])} plugins={plugins}>
         {content}
       </Streamdown>
     </div>

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import {
   createFileRoute,
-  useLocation,
   useNavigate,
 } from "@tanstack/react-router";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
@@ -114,13 +113,12 @@ function EmptyState({ workspaceId }: EmptyStateProps) {
   const { create, refetch } = useThreads(workspaceId);
 
   const handleSend = useCallback(
-    async (text: string, files: FileUIPart[]) => {
+    async () => {
       const thread = await create.mutateAsync({ workspaceId });
       refetch();
       navigate({
         to: "/workspaces/$workspaceId/threads/$threadId",
         params: { workspaceId, threadId: thread.id },
-        state: { initialMessage: { text, files } },
       });
     },
     [create, workspaceId, navigate, refetch],
@@ -138,7 +136,7 @@ function EmptyStateInner({
   onSend,
 }: {
   workspaceId: string;
-  onSend: (text: string, files: FileUIPart[]) => void | Promise<void>;
+  onSend: () => void | Promise<void>;
 }) {
   const { textInput } = usePromptInputController();
   const attachments = usePromptInputAttachments();
@@ -148,11 +146,11 @@ function EmptyStateInner({
 
   const submit = ({ text, files }: PromptInputMessage) => {
     if (!text.trim() && files.length === 0) return;
-    void onSend(text, files);
+    void onSend();
   };
 
-  const sendSuggestion = (text: string) => {
-    void onSend(text, []);
+  const sendSuggestion = (_text: string) => {
+    void onSend();
   };
 
   return (
@@ -211,9 +209,6 @@ interface ChatViewProps {
 }
 
 function ChatView({ workspaceId, threadId }: ChatViewProps) {
-  const location = useLocation();
-  const initialMessage = location.state?.initialMessage;
-
   const { refetch } = useThreads(workspaceId);
   const agent = useTeacherAgent(`${workspaceId}::${threadId}`);
 
@@ -226,21 +221,6 @@ function ChatView({ workspaceId, threadId }: ChatViewProps) {
     isRecovering,
     addToolApprovalResponse,
   } = useAgentChat({ agent, id: threadId });
-
-  const sentInitial = useRef(false);
-  useEffect(() => {
-    if (sentInitial.current) return;
-    if (
-      initialMessage &&
-      (initialMessage.text.trim() || initialMessage.files.length)
-    ) {
-      sentInitial.current = true;
-      sendMessage({
-        text: initialMessage.text,
-        files: initialMessage.files,
-      });
-    }
-  }, [initialMessage, sendMessage]);
 
   const prevStatus = useRef<ChatStatus>(status);
   useEffect(() => {
@@ -267,7 +247,7 @@ function ChatView({ workspaceId, threadId }: ChatViewProps) {
   return (
     <>
       <Conversation className="flex-1">
-        <ConversationContent className="mx-auto w-full max-w-5xl">
+        <ConversationContent className="mx-auto w-full max-w-4xl">
           {messages.map((message, index) => (
             <Message
               key={message.id}

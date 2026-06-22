@@ -26,8 +26,4 @@ declare module '@tanstack/react-router' {
   interface Register {
     router: ReturnType<typeof getRouter>
   }
-
-  interface HistoryState {
-    initialMessage?: { text: string; files: Array<{ type: 'file'; mediaType: string; url: string; filename?: string }> };
-  }
 }

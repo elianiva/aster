@@ -1,11 +1,5 @@
 import { useCallback } from "react";
-import {
-  createFileRoute,
-  Outlet,
-  redirect,
-  useMatch,
-  useNavigate,
-} from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useMatch, useNavigate } from "@tanstack/react-router";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useThreads } from "~/features/workspace/hooks/use-threads";
 import { ThreadList } from "~/features/workspace/components/thread-list";
@@ -48,19 +42,15 @@ function RouteThreads() {
   );
 
   return (
-    <div className="flex h-full">
-      <div className="flex min-w-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <Outlet />
       </div>
       <ThreadList
         threads={threads}
         selectedThreadId={threadId === "new" ? null : threadId}
-        onSelectThread={(id) =>
-          navigate({ to: `/workspaces/${workspaceId}/threads/${id}` })
-        }
-        onNewThread={() =>
-          navigate({ to: `/workspaces/${workspaceId}/threads/new` })
-        }
+        onSelectThread={(id) => navigate({ to: `/workspaces/${workspaceId}/threads/${id}` })}
+        onNewThread={() => navigate({ to: `/workspaces/${workspaceId}/threads/new` })}
         onRenameThread={handleRename}
         onDeleteThread={handleDelete}
       />
@@ -71,12 +61,6 @@ function RouteThreads() {
 function ThreadsSkeleton() {
   return (
     <div className="flex h-full">
-      <div className="w-64 shrink-0 border-r p-3 space-y-2">
-        <Skeleton className="h-6 w-20" />
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-full" />
-        ))}
-      </div>
       <div className="flex-1 flex flex-col">
         <div className="flex-1 p-4 space-y-4">
           <Skeleton className="h-12 w-3/4" />
@@ -85,6 +69,15 @@ function ThreadsSkeleton() {
         <div className="border-t p-4">
           <Skeleton className="h-12 w-full" />
         </div>
+      </div>
+      <div className="w-64 shrink-0 border-l p-3 space-y-2">
+        <div className="flex items-center justify-between px-2">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-4 w-4 rounded-full" />
+        </div>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-8 w-full" />
+        ))}
       </div>
     </div>
   );

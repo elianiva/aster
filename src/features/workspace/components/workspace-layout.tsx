@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Link, Outlet, useMatchRoute } from "@tanstack/react-router";
+import { Suspense, useState } from "react";
+import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { Button } from "~/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeftIcon, Settings02Icon } from "@hugeicons/core-free-icons";
+import { Settings02Icon } from "@hugeicons/core-free-icons";
 import { WorkspaceSettingsModal } from "./workspace-settings-modal";
 import {
   Sidebar,
@@ -19,9 +19,9 @@ import {
 } from "~/components/ui/sidebar";
 
 const TABS = [
-  { label: "Threads", to: "/workspaces/$workspaceId/threads" },
-  { label: "Lessons", to: "/workspaces/$workspaceId/lessons" },
-  { label: "Records", to: "/workspaces/$workspaceId/records" },
+  { label: "Threads", path: "/workspaces/$workspaceId/threads" },
+  { label: "Lessons", path: "/workspaces/$workspaceId/lessons" },
+  { label: "Records", path: "/workspaces/$workspaceId/records" },
 ] as const;
 
 interface WorkspaceLayoutProps {
@@ -31,7 +31,8 @@ interface WorkspaceLayoutProps {
 export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { data: workspace } = useSuspenseQuery(WorkspaceRpc.getWorkspace(workspaceId));
-  const matchRoute = useMatchRoute();
+  const router = useRouterState();
+  const currentPath = router.location.pathname;
 
   if (!workspace) {
     return <div className="p-6 text-muted-foreground">Workspace not found</div>;
@@ -49,12 +50,13 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
         <SidebarContent className="p-2">
           <SidebarMenu>
             {TABS.map((tab) => {
-              const isActive = matchRoute({ to: tab.to, params: { workspaceId } });
+              const basePath = `/workspaces/${workspaceId}/${tab.path.split("/").pop()}`;
+              const isActive = currentPath.startsWith(basePath);
               return (
-                <SidebarMenuItem key={tab.to}>
+                <SidebarMenuItem key={tab.path}>
                   <SidebarMenuButton
-                    isActive={!!isActive}
-                    render={<Link to={tab.to} params={{ workspaceId }} />}
+                    isActive={isActive}
+                    render={<Link to={tab.path} params={{ workspaceId }} />}
                   >
                     {tab.label}
                   </SidebarMenuButton>
@@ -76,9 +78,13 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
         </SidebarFooter>
       </Sidebar>
 
-      <SidebarInset className="p-3 bg-sidebar">
-        <main className="bg-white rounded-2xl overflow-hidden border border-border/50 flex-1">
-          <Outlet />
+      <SidebarInset className="p-0 md:p-2 md:pl-0 bg-sidebar">
+        <main className="flex h-dvh md:h-full md:max-h-[calc(100svh-16px)] flex-col overflow-hidden rounded-2xl bg-white inset-shadow-sm border border-border/50">
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            <Suspense fallback={<div className="flex-1" />}>
+              <Outlet />
+            </Suspense>
+          </div>
         </main>
       </SidebarInset>
 

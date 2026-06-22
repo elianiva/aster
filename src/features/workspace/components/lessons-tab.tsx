@@ -12,6 +12,7 @@ import {
 } from "~/components/ui/empty";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Notebook01Icon } from "@hugeicons/core-free-icons";
+import { Skeleton } from "~/components/ui/skeleton";
 
 interface LessonsTabProps {
 	workspaceId: string;
@@ -24,8 +25,16 @@ export function LessonsTab({ workspaceId }: LessonsTabProps) {
 
 	if (isLoading) {
 		return (
-			<div className="flex h-full items-center justify-center p-6">
-				<p className="text-sm text-muted-foreground">Loading lessons…</p>
+			<div className="flex h-full flex-col p-4">
+				<Skeleton className="mb-4 h-6 w-24" />
+				<div className="flex flex-col gap-2">
+					{Array.from({ length: 4 }).map((_, i) => (
+						<div key={i} className="flex items-center justify-between rounded-lg border bg-card p-3">
+							<Skeleton className="h-4 w-36" />
+							<Skeleton className="h-3 w-16" />
+						</div>
+					))}
+				</div>
 			</div>
 		);
 	}
@@ -106,7 +115,12 @@ function LessonView({ workspaceId, lessonId, title, onBack }: LessonViewProps) {
 			</div>
 			<div className="flex-1 overflow-y-auto">
 				{isLoading ? (
-					<p className="text-sm text-muted-foreground">Loading…</p>
+					<div className="flex flex-col gap-3">
+						<Skeleton className="h-4 w-48" />
+						<Skeleton className="h-4 w-full" />
+						<Skeleton className="h-4 w-full" />
+						<Skeleton className="h-4 w-3/4" />
+					</div>
 				) : content ? (
 					<Renderer library={asterLibrary} response={content} isStreaming={false} />
 				) : (
