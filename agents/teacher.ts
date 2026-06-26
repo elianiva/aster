@@ -742,6 +742,11 @@ export class TeacherAgent extends Think<Env> {
       .then((r) => r[0]?.lessonCount ?? 0);
   }
 
+  async deleteStorage() {
+    await this.ctx.storage.deleteAll();
+    await this.ctx.storage.deleteAlarm();
+  }
+
   getSystemPrompt() {
     return SYSTEM_PROMPT;
   }
