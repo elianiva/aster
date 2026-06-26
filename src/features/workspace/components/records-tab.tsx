@@ -124,7 +124,7 @@ function RecordView({ workspaceId, recordId, title, onBack }: RecordViewProps) {
 						<Skeleton className="h-4 w-3/4" />
 					</div>
 				) : content ? (
-					<Renderer library={asterLibrary} response={content} isStreaming={false} />
+					<Renderer library={asterLibrary} response={content.content} isStreaming={false} />
 				) : (
 					<p className="text-sm text-muted-foreground">Failed to load record content.</p>
 				)}

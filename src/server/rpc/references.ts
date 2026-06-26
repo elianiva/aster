@@ -61,10 +61,11 @@ export const getReferenceContent = createServerFn({ method: "GET" })
 					catch: fail("Failed to fetch reference content"),
 				});
 				if (!obj) return null;
-				return yield* Effect.tryPromise({
+				const content = yield* Effect.tryPromise({
 					try: () => obj.text(),
 					catch: fail("Failed to read reference content"),
 				});
+				return { content };
 			}).pipe(Effect.withSpan("getReferenceContent"))
 		).catch(onError);
 	});
