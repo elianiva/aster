@@ -125,7 +125,7 @@ function LessonView({ workspaceId, lessonId, title, onBack }: LessonViewProps) {
             <Skeleton className="h-4 w-3/4" />
           </div>
         ) : content ? (
-          <Renderer library={asterLibrary} response={content} isStreaming={false} />
+          <Renderer library={asterLibrary} response={content.content} isStreaming={false} />
         ) : (
           <p className="text-sm text-muted-foreground">Failed to load lesson content.</p>
         )}
