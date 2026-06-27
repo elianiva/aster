@@ -5,6 +5,7 @@ import {
   ThreadService,
   CreateThreadInput,
   RenameThreadInput,
+  SetTeachingModeInput,
 } from "../features/thread/service";
 import { WorkspaceService } from "../features/workspace/service";
 import { AppRuntime } from "../app-runtime";
@@ -17,6 +18,17 @@ const onError = createErrorHandler({
   ThreadUpdateFailed: "Failed to update thread. Please try again.",
   ThreadDeleteFailed: "Failed to delete thread. Please try again.",
 });
+
+export const setTeachingMode = createServerFn({ method: "POST" })
+  .validator((data: unknown) => Schema.decodeUnknownSync(SetTeachingModeInput)(data))
+  .handler(({ data }) => {
+    return AppRuntime.runPromise(
+      Effect.gen(function* () {
+        const service = yield* ThreadService;
+        return yield* service.setTeachingMode(data.id, data.enabled);
+      }).pipe(Effect.withSpan("setTeachingMode")),
+    ).catch(onError);
+  });
 
 export const listThreads = createServerFn({ method: "GET" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data))
@@ -67,12 +79,29 @@ export const deleteThread = createServerFn({ method: "POST" })
     ).catch(onError);
   });
 
+export const getThread = createServerFn({ method: "GET" })
+  .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(data))
+  .handler(({ data }) => {
+    return AppRuntime.runPromise(
+      Effect.gen(function* () {
+        const service = yield* ThreadService;
+        const result = yield* service.get(data.id);
+        return Option.getOrNull(result);
+      }).pipe(Effect.withSpan("getThread")),
+    ).catch(onError);
+  });
+
 export const ThreadRpc = {
   thread: (workspaceId: string) => ["thread", workspaceId] as const,
   listThreads: (workspaceId: string) =>
     queryOptions({
       queryKey: [...ThreadRpc.thread(workspaceId), "list"],
       queryFn: () => listThreads({ data: { workspaceId } }),
+    }),
+  getThread: (threadId: string) =>
+    queryOptions({
+      queryKey: ["thread", threadId],
+      queryFn: () => getThread({ data: { id: threadId } }),
     }),
   createThread: () =>
     mutationOptions({
@@ -88,5 +117,10 @@ export const ThreadRpc = {
     mutationOptions({
       mutationKey: ["thread", "delete"],
       mutationFn: (input: { id: string }) => deleteThread({ data: input }),
+    }),
+  setTeachingMode: () =>
+    mutationOptions({
+      mutationKey: ["thread", "setTeachingMode"],
+      mutationFn: (input: SetTeachingModeInput) => setTeachingMode({ data: input }),
     }),
 };
