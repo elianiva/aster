@@ -3,6 +3,7 @@ import { Effect, Option, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import {
   ThreadService,
+  ThreadDeleteFailed,
   CreateThreadInput,
   RenameThreadInput,
   SetTeachingModeInput,
@@ -68,13 +69,22 @@ export const deleteThread = createServerFn({ method: "POST" })
   .handler(({ data }) => {
     return AppRuntime.runPromise(
       Effect.gen(function* () {
+        const { env } = yield* Effect.tryPromise(() => import("cloudflare:workers"));
         const threads = yield* ThreadService;
         const workspaces = yield* WorkspaceService;
         const existing = yield* threads.get(data.id);
         if (Option.isSome(existing)) {
+          yield* threads.delete(data.id);
           yield* workspaces.incrementThreadCount(existing.value.workspaceId, -1);
+          yield* Effect.tryPromise({
+            try: async () => {
+              const ns = env.Teacher as DurableObjectNamespace;
+              const stub = ns.get(ns.idFromName(`${existing.value.workspaceId}::${data.id}`));
+              await (stub as unknown as { deleteStorage(): Promise<void> }).deleteStorage();
+            },
+            catch: (cause) => new ThreadDeleteFailed({ message: `Failed to clean up DO storage: ${cause}` }),
+          });
         }
-        yield* threads.delete(data.id);
       }).pipe(Effect.withSpan("deleteThread")),
     ).catch(onError);
   });
