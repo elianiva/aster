@@ -2,7 +2,6 @@ import { Context, Effect, Layer, Option, Schema } from "effect";
 import { desc, eq } from "drizzle-orm";
 import { Database } from "../../db/client";
 import { threads } from "../../db/schema";
-import { WorkspaceService, WorkspaceNotFound, WorkspaceUpdateFailed, WorkspaceQueryFailed } from "../workspace/service";
 
 export interface Thread {
   id: string;
@@ -66,7 +65,7 @@ function toThread(row: typeof threads.$inferSelect): Thread {
 export class ThreadService extends Context.Service<ThreadService, {
   readonly list: (workspaceId: string) => Effect.Effect<Thread[], ThreadQueryFailed>;
   readonly get: (id: string) => Effect.Effect<Option.Option<Thread>, ThreadQueryFailed>;
-  readonly create: (input: CreateThreadInput) => Effect.Effect<Thread, ThreadInsertFailed | WorkspaceNotFound | WorkspaceUpdateFailed | WorkspaceQueryFailed>;
+  readonly create: (input: CreateThreadInput) => Effect.Effect<Thread, ThreadInsertFailed>;
   readonly rename: (id: string, name: string) => Effect.Effect<Thread, ThreadNotFound | ThreadQueryFailed | ThreadUpdateFailed>;
   readonly delete: (id: string) => Effect.Effect<void, ThreadDeleteFailed>;
   readonly setTeachingMode: (id: string, enabled: boolean) => Effect.Effect<Thread, ThreadNotFound | ThreadQueryFailed | ThreadUpdateFailed>;
@@ -75,7 +74,6 @@ export class ThreadService extends Context.Service<ThreadService, {
     this,
     Effect.gen(function* () {
       const db = yield* Database;
-      const workspaces = yield* WorkspaceService;
       const client = db.client;
 
       const list = Effect.fn("ThreadService.list")(function* (workspaceId: string) {
@@ -121,7 +119,6 @@ export class ThreadService extends Context.Service<ThreadService, {
             }),
           catch: (cause) => new ThreadInsertFailed({ message: `Failed to create thread: ${cause}` }),
         }).pipe(Effect.withSpan("db.createThread"));
-        yield* workspaces.incrementThreadCount(input.workspaceId, 1);
         return thread;
       });
 

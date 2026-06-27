@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { Effect, Option, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import {
   ThreadService,
@@ -7,7 +7,6 @@ import {
   RenameThreadInput,
   SetTeachingModeInput,
 } from "../features/thread/service";
-import { WorkspaceService } from "../features/workspace/service";
 import { AppRuntime } from "../app-runtime";
 import { createErrorHandler } from "./errors";
 
@@ -69,11 +68,6 @@ export const deleteThread = createServerFn({ method: "POST" })
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         const threads = yield* ThreadService;
-        const workspaces = yield* WorkspaceService;
-        const existing = yield* threads.get(data.id);
-        if (Option.isSome(existing)) {
-          yield* workspaces.incrementThreadCount(existing.value.workspaceId, -1);
-        }
         yield* threads.delete(data.id);
       }).pipe(Effect.withSpan("deleteThread")),
     ).catch(onError);
