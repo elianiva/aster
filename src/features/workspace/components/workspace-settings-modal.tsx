@@ -161,8 +161,17 @@ export function WorkspaceSettingsModal({
           <DialogHeader>
             <DialogTitle>Are you sure?</DialogTitle>
             <DialogDescription>
-              This will permanently delete this workspace and all its threads, lessons, and records.
-              This action cannot be undone.
+              <p>This will permanently delete this workspace and all its contents:</p>
+              <ul className="list-disc pl-5 mt-2 space-y-0.5 text-sm">
+                <li>Threads</li>
+                <li>Lessons</li>
+                <li>Learning Records</li>
+                <li>Reference Docs</li>
+                <li>Glossary</li>
+                <li>Resources</li>
+                <li>Notes</li>
+              </ul>
+              <p className="mt-3">This action cannot be undone.</p>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

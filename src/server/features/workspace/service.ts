@@ -1,7 +1,7 @@
 import { Context, Effect, Layer, Option, Schema } from "effect";
 import { eq } from "drizzle-orm";
 import { Database } from "../../db/client";
-import { workspaces } from "../../db/schema";
+import { workspaces, threads, lessons, records, references, glossary, resources, notes } from "../../db/schema";
 
 export interface Workspace {
   id: string;
@@ -49,6 +49,10 @@ export class WorkspaceDeleteFailed extends Schema.TaggedErrorClass<WorkspaceDele
   message: Schema.String,
 }) {}
 
+export class WorkspaceCascadeDeleteFailed extends Schema.TaggedErrorClass<WorkspaceCascadeDeleteFailed>()("WorkspaceCascadeDeleteFailed", {
+  message: Schema.String,
+}) {}
+
 function toWorkspace(row: typeof workspaces.$inferSelect): Workspace {
   return {
     id: row.id,
@@ -68,6 +72,10 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
   readonly create: (input: CreateWorkspaceInput) => Effect.Effect<Workspace, WorkspaceInsertFailed>;
   readonly update: (id: string, input: UpdateWorkspaceInput) => Effect.Effect<Workspace, WorkspaceNotFound | WorkspaceUpdateFailed | WorkspaceQueryFailed>;
   readonly delete: (id: string) => Effect.Effect<void, WorkspaceDeleteFailed>;
+  readonly cascadeDelete: (id: string) => Effect.Effect<
+    { threadIds: string[]; r2Keys: string[] },
+    WorkspaceCascadeDeleteFailed
+  >;
   readonly incrementThreadCount: (id: string, delta: number) => Effect.Effect<void, WorkspaceNotFound | WorkspaceUpdateFailed | WorkspaceQueryFailed>;
   readonly incrementLessonCount: (id: string, delta: number) => Effect.Effect<void, WorkspaceNotFound | WorkspaceUpdateFailed | WorkspaceQueryFailed>;
 }>()("@aster/features/workspace/WorkspaceService") {
@@ -164,6 +172,41 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
         }).pipe(Effect.withSpan("db.deleteWorkspace"), Effect.annotateLogs({ id }));
       });
 
+      const cascadeDelete = Effect.fn("WorkspaceService.cascadeDelete")(function* (id: string) {
+        yield* Effect.log("cascadeDelete workspace artifacts").pipe(Effect.annotateLogs({ id }));
+
+        const threadRows = yield* Effect.tryPromise({
+          try: () => client.select({ id: threads.id }).from(threads).where(eq(threads.workspaceId, id)),
+          catch: (cause) => new WorkspaceCascadeDeleteFailed({ message: `Failed to list threads: ${cause}` }),
+        });
+        const threadIds = threadRows.map((r) => r.id);
+
+        const r2Tables = [lessons, records, references, notes] as const;
+        const r2Keys: string[] = [];
+        for (const table of r2Tables) {
+          const rows = yield* Effect.tryPromise({
+            try: () => client.select({ r2Key: table.r2Key }).from(table).where(eq(table.workspaceId, id)),
+            catch: (cause) => new WorkspaceCascadeDeleteFailed({ message: `Failed to list R2 keys: ${cause}` }),
+          });
+          for (const row of rows) r2Keys.push(row.r2Key);
+        }
+
+        const childTables = [threads, lessons, records, references, glossary, resources, notes] as const;
+        for (const table of childTables) {
+          yield* Effect.tryPromise({
+            try: () => client.delete(table).where(eq(table.workspaceId, id)),
+            catch: (cause) => new WorkspaceCascadeDeleteFailed({ message: `Failed to delete child rows: ${cause}` }),
+          });
+        }
+
+        yield* Effect.tryPromise({
+          try: () => client.delete(workspaces).where(eq(workspaces.id, id)),
+          catch: (cause) => new WorkspaceCascadeDeleteFailed({ message: `Failed to delete workspace: ${cause}` }),
+        });
+
+        return { threadIds, r2Keys };
+      });
+
       const incrementThreadCount = Effect.fn("WorkspaceService.incrementThreadCount")(function* (id: string, delta: number) {
         const existing = yield* get(id);
         if (Option.isNone(existing)) {
@@ -204,7 +247,7 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
         }).pipe(Effect.withSpan("db.incrementLessonCount"), Effect.annotateLogs({ id, delta }));
       });
 
-      return WorkspaceService.of({ list, get, create, update, delete: delete_, incrementThreadCount, incrementLessonCount });
+      return WorkspaceService.of({ list, get, create, update, delete: delete_, cascadeDelete, incrementThreadCount, incrementLessonCount });
     }),
   );
 }
