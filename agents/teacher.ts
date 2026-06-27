@@ -694,6 +694,78 @@ export class TeacherAgent extends Think<Env> {
             }),
           ),
       }),
+      deleteLesson: tool({
+        description:
+          "Delete a lesson and its R2 content. Use when a lesson is stale, incorrect, or the user wants to clean up.",
+        inputSchema: z.object({ lessonId: z.string() }),
+        execute: ({ lessonId }: { lessonId: string }) =>
+          this.runTool(
+            Effect.gen(function*() {
+              const row = yield* Effect.tryPromise({
+                try: () =>
+                  db
+                    .select()
+                    .from(schema.lessons)
+                    .where(
+                      and(
+                        eq(schema.lessons.id, lessonId),
+                        eq(schema.lessons.workspaceId, workspaceId),
+                      ),
+                    )
+                    .limit(1)
+                    .then((r) => r[0]),
+                catch: fail("deleteLesson"),
+              });
+              if (!row) return { deleted: false };
+              yield* Effect.tryPromise({
+                try: () => r2.delete(row.r2Key),
+                catch: fail("deleteLesson"),
+              });
+              yield* Effect.tryPromise({
+                try: () =>
+                  db.delete(schema.lessons).where(eq(schema.lessons.id, lessonId)),
+                catch: fail("deleteLesson"),
+              });
+              return { deleted: true };
+            }),
+          ),
+      }),
+      deleteRecord: tool({
+        description:
+          "Delete a learning record and its R2 content. Use when a record is stale, incorrect, or the user wants to clean up.",
+        inputSchema: z.object({ recordId: z.string() }),
+        execute: ({ recordId }: { recordId: string }) =>
+          this.runTool(
+            Effect.gen(function*() {
+              const row = yield* Effect.tryPromise({
+                try: () =>
+                  db
+                    .select()
+                    .from(schema.records)
+                    .where(
+                      and(
+                        eq(schema.records.id, recordId),
+                        eq(schema.records.workspaceId, workspaceId),
+                      ),
+                    )
+                    .limit(1)
+                    .then((r) => r[0]),
+                catch: fail("deleteRecord"),
+              });
+              if (!row) return { deleted: false };
+              yield* Effect.tryPromise({
+                try: () => r2.delete(row.r2Key),
+                catch: fail("deleteRecord"),
+              });
+              yield* Effect.tryPromise({
+                try: () =>
+                  db.delete(schema.records).where(eq(schema.records.id, recordId)),
+                catch: fail("deleteRecord"),
+              });
+              return { deleted: true };
+            }),
+          ),
+      }),
       deleteReference: tool({
         description:
           "Delete a reference document and its R2 content. Use when a reference doc is stale or no longer accurate.",
