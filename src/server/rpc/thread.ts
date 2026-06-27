@@ -62,6 +62,8 @@ export const deleteThread = createServerFn({ method: "POST" })
         const workspaces = yield* WorkspaceService;
         const existing = yield* threads.get(data.id);
         if (Option.isSome(existing)) {
+          yield* threads.delete(data.id);
+          yield* workspaces.incrementThreadCount(existing.value.workspaceId, -1);
           yield* Effect.tryPromise({
             try: async () => {
               const ns = env.Teacher as DurableObjectNamespace;
@@ -70,9 +72,7 @@ export const deleteThread = createServerFn({ method: "POST" })
             },
             catch: (cause) => new ThreadDeleteFailed({ message: `Failed to clean up DO storage: ${cause}` }),
           });
-          yield* workspaces.incrementThreadCount(existing.value.workspaceId, -1);
         }
-        yield* threads.delete(data.id);
       }).pipe(Effect.withSpan("deleteThread")),
     ).catch(onError);
   });
