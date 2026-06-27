@@ -1,1 +1,1 @@
-ALTER TABLE `records` ADD `title` text NOT NULL DEFAULT '';
+ALTER TABLE `records` ADD `title` text;
