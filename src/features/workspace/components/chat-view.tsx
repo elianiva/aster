@@ -48,7 +48,7 @@ interface ChatViewProps {
 export function ChatView({ workspaceId, threadId }: ChatViewProps) {
   const { refetch } = useThreads(workspaceId);
   const agent = useTeacherAgent(`${workspaceId}::${threadId}`);
-  const { hasKey, providerName } = useApiKeyStatus();
+  const { hasKey, providerName, isLoading: apiKeyLoading } = useApiKeyStatus();
   const queryClient = useQueryClient();
 
   const { data: threadData } = useQuery({
@@ -184,7 +184,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
       </Conversation>
 
       <div className="bg-background p-4">
-        {!hasKey && <ApiKeyBanner providerName={providerName} />}
+        {!apiKeyLoading && !hasKey && <ApiKeyBanner providerName={providerName} />}
         <ChatPromptInput
           status={status}
           isBusy={isBusy}

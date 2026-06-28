@@ -1,6 +1,6 @@
 import { Suspense, useState } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { CountRpc } from "~/server/rpc/counts";
 import { Button } from "~/components/ui/button";
@@ -55,7 +55,7 @@ interface WorkspaceLayoutProps {
 
 export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { data: workspace } = useSuspenseQuery(WorkspaceRpc.getWorkspace(workspaceId));
+  const { data: workspace, isLoading: workspaceLoading, isError } = useQuery(WorkspaceRpc.getWorkspace(workspaceId));
   const { data: counts } = useQuery(CountRpc.getArtifactCounts(workspaceId));
   const router = useRouterState();
   const currentPath = router.location.pathname;
@@ -66,6 +66,14 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
     if (!counts) return 0;
     return counts[key] ?? 0;
   };
+
+  if (workspaceLoading) {
+    return <WorkspaceSidebarSkeleton />;
+  }
+
+  if (isError) {
+    return <div className="p-6 text-muted-foreground">Failed to load workspace. Please try again.</div>;
+  }
 
   if (!workspace) {
     return <div className="p-6 text-muted-foreground">Workspace not found</div>;
@@ -167,5 +175,63 @@ function CountBadge({ children }: { children: React.ReactNode }) {
     <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-sidebar-accent px-1.5 text-xs font-medium text-sidebar-accent-foreground tabular-nums">
       {children}
     </span>
+  );
+}
+
+function SidebarSkeletonRow() {
+  return (
+    <div className="flex items-center gap-2 px-2 py-1.5">
+      <div className="size-4 rounded bg-sidebar-accent animate-pulse" />
+      <div className="h-3.5 flex-1 rounded bg-sidebar-accent animate-pulse" />
+    </div>
+  );
+}
+
+function WorkspaceSidebarSkeleton() {
+  return (
+    <SidebarProvider>
+      <Sidebar side="left" className="border-none">
+        <SidebarHeader className="p-4">
+          <div className="mt-3 h-6 w-3/4 rounded bg-sidebar-accent animate-pulse" />
+        </SidebarHeader>
+
+        <SidebarContent className="p-2">
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              <div className="h-3 w-12 rounded bg-sidebar-accent animate-pulse" />
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <SidebarMenuItem key={i}>
+                    <SidebarSkeletonRow />
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              <div className="h-3 w-16 rounded bg-sidebar-accent animate-pulse" />
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <SidebarMenuItem key={i}>
+                    <SidebarSkeletonRow />
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+      </Sidebar>
+
+      <SidebarInset className="p-0 md:p-2 md:pl-0 bg-sidebar">
+        <main className="flex h-dvh md:h-full md:max-h-[calc(100svh-16px)] flex-col overflow-hidden rounded-2xl bg-white inset-shadow-sm border border-border/50">
+          <div className="flex-1" />
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

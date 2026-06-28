@@ -41,7 +41,7 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
   const navigate = useNavigate();
   const { create, refetch } = useThreads(workspaceId);
   const [createError, setCreateError] = useState<string | null>(null);
-  const { hasKey, providerName } = useApiKeyStatus();
+  const { hasKey, providerName, isLoading: apiKeyLoading } = useApiKeyStatus();
 
   const handleSend = useCallback(
     (message?: PromptInputMessage) => {
@@ -89,7 +89,7 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
             {createError}
           </p>
         )}
-        {!hasKey && <ApiKeyBanner providerName={providerName} />}
+        {!apiKeyLoading && !hasKey && <ApiKeyBanner providerName={providerName} />}
         <EmptyStateInput onSend={handleSend} disabled={!hasKey} />
 
         <Suggestions className="mx-auto mt-3 max-w-3xl">
