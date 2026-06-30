@@ -31,6 +31,7 @@ export const lessons = sqliteTable("lessons", {
 export const records = sqliteTable("records", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id").notNull().references(() => workspaces.id),
+  title: text("title").notNull(),
   r2Key: text("r2_key").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
