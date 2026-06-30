@@ -55,7 +55,7 @@ interface WorkspaceLayoutProps {
 
 export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { data: workspace, isLoading: workspaceLoading } = useQuery(WorkspaceRpc.getWorkspace(workspaceId));
+  const { data: workspace, isLoading: workspaceLoading, error } = useQuery(WorkspaceRpc.getWorkspace(workspaceId));
   const { data: counts } = useQuery(CountRpc.getArtifactCounts(workspaceId));
   const router = useRouterState();
   const currentPath = router.location.pathname;
@@ -69,6 +69,14 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
 
   if (workspaceLoading) {
     return <WorkspaceSidebarSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-destructive">
+        {error instanceof Error ? error.message : "Failed to load workspace"}
+      </div>
+    );
   }
 
   if (!workspace) {
