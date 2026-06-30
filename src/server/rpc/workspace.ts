@@ -85,13 +85,13 @@ export const deleteWorkspace = createServerFn({ method: "POST" })
               await (stub as unknown as { deleteStorage(): Promise<void> }).deleteStorage();
             },
             catch: (cause) => new Error(`DO cleanup failed: ${cause}`),
-          }).pipe(Effect.catch((e) => Effect.logWarning(e.message)));
+          });
 
         const cleanupR2 = (key: string) =>
           Effect.tryPromise({
             try: () => env.ASTER_R2.delete(key),
             catch: (cause) => new Error(`R2 cleanup failed: ${cause}`),
-          }).pipe(Effect.catch((e) => Effect.logWarning(e.message)));
+          });
 
         yield* Effect.all(threadIds.map(cleanupDO), { concurrency: "unbounded" });
         yield* Effect.all(r2Keys.map(cleanupR2), { concurrency: "unbounded" });
