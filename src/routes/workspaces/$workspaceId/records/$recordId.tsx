@@ -42,7 +42,7 @@ function RouteRecordDetail() {
   return (
     <div className="flex h-full flex-col p-4">
       <div className="flex-1 overflow-y-auto">
-        <Renderer library={asterLibrary} response={record} isStreaming={false} />
+        <Renderer library={asterLibrary} response={record.content} isStreaming={false} />
       </div>
     </div>
   );
