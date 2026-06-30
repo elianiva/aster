@@ -7,9 +7,16 @@ export interface Thread {
   id: string;
   workspaceId: string;
   name: string;
+  teachingMode: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+export const SetTeachingModeInput = Schema.Struct({
+  id: Schema.String,
+  enabled: Schema.Boolean,
+});
+export type SetTeachingModeInput = typeof SetTeachingModeInput.Type;
 
 export const CreateThreadInput = Schema.Struct({
   workspaceId: Schema.String,
@@ -49,6 +56,7 @@ function toThread(row: typeof threads.$inferSelect): Thread {
     id: row.id,
     workspaceId: row.workspaceId,
     name: row.name,
+    teachingMode: row.teachingMode,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -60,6 +68,7 @@ export class ThreadService extends Context.Service<ThreadService, {
   readonly create: (input: CreateThreadInput) => Effect.Effect<Thread, ThreadInsertFailed>;
   readonly rename: (id: string, name: string) => Effect.Effect<Thread, ThreadNotFound | ThreadQueryFailed | ThreadUpdateFailed>;
   readonly delete: (id: string) => Effect.Effect<void, ThreadDeleteFailed>;
+  readonly setTeachingMode: (id: string, enabled: boolean) => Effect.Effect<Thread, ThreadNotFound | ThreadQueryFailed | ThreadUpdateFailed>;
 }>()("@aster/features/thread/ThreadService") {
   static readonly layer = Layer.effect(
     this,
@@ -95,6 +104,7 @@ export class ThreadService extends Context.Service<ThreadService, {
           id,
           workspaceId: input.workspaceId,
           name: input.name ?? "",
+          teachingMode: true,
           createdAt: now.toISOString(),
           updatedAt: now.toISOString(),
         };
@@ -133,12 +143,27 @@ export class ThreadService extends Context.Service<ThreadService, {
         }).pipe(Effect.withSpan("db.deleteThread"));
       });
 
+      const setTeachingMode = Effect.fn("ThreadService.setTeachingMode")(function* (id: string, enabled: boolean) {
+        const existing = yield* get(id);
+        if (Option.isNone(existing)) {
+          return yield* new ThreadNotFound({ message: `Thread ${id} not found` });
+        }
+        const now = new Date();
+        yield* Effect.tryPromise({
+          try: () => client.update(threads).set({ teachingMode: enabled, updatedAt: now }).where(eq(threads.id, id)),
+          catch: (cause) => new ThreadUpdateFailed({ message: `Failed to set teaching mode: ${cause}` }),
+        }).pipe(Effect.withSpan("db.setTeachingMode"));
+        const updated: Thread = { ...existing.value, teachingMode: enabled, updatedAt: now.toISOString() };
+        return updated;
+      });
+
       return ThreadService.of({
         list,
         get,
         create,
         rename,
         delete: delete_,
+        setTeachingMode,
       });
     }),
   );
