@@ -11,6 +11,7 @@ const onError = createErrorHandler({
   WorkspaceInsertFailed: "Failed to create workspace. Please try again.",
   WorkspaceUpdateFailed: "Failed to update workspace. Please try again.",
   WorkspaceDeleteFailed: "Failed to delete workspace. Please try again.",
+  WorkspaceCascadeDeleteFailed: "Failed to delete workspace. Please try again.",
 });
 
 export const listWorkspaces = createServerFn({ method: "GET" }).handler(() => {
@@ -71,33 +72,42 @@ export const deleteWorkspace = createServerFn({ method: "POST" })
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         yield* Effect.log("deleteWorkspace");
+        const { env } = yield* Effect.tryPromise(() => import("cloudflare:workers"));
         const service = yield* WorkspaceService;
-        yield* service.delete(data.id);
+
+        const { threadIds, r2Keys } = yield* service.cascadeDelete(data.id);
+
+        const cleanupDO = (threadId: string) =>
+          Effect.tryPromise({
+            try: async () => {
+              const ns = env.Teacher as DurableObjectNamespace;
+              const stub = ns.get(ns.idFromName(`${data.id}::${threadId}`));
+              await (stub as unknown as { deleteStorage(): Promise<void> }).deleteStorage();
+            },
+            catch: (cause) => new Error(`DO cleanup failed: ${cause}`),
+          }).pipe(
+            Effect.catchAll((error) =>
+              Effect.gen(function* () {
+                yield* Effect.log(`Durable Object cleanup failed for threadId=${threadId}: ${error.message}`);
+              }),
+            ),
+          );
+
+        const cleanupR2 = (key: string) =>
+          Effect.tryPromise({
+            try: () => env.ASTER_R2.delete(key),
+            catch: (cause) => new Error(`R2 cleanup failed: ${cause}`),
+          }).pipe(
+            Effect.catchAll((error) =>
+              Effect.gen(function* () {
+                yield* Effect.log(`R2 cleanup failed for key=${key}: ${error.message}`);
+              }),
+            ),
+          );
+
+        yield* Effect.all(threadIds.map(cleanupDO), { concurrency: "unbounded" });
+        yield* Effect.all(r2Keys.map(cleanupR2), { concurrency: "unbounded" });
       }).pipe(Effect.withSpan("deleteWorkspace"), Effect.annotateLogs({ id: data.id })),
-    ).catch(onError);
-  });
-
-export const incrementThreadCount = createServerFn({ method: "POST" })
-  .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String, delta: Schema.Number }))(data))
-  .handler(({ data }) => {
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        yield* Effect.log("incrementThreadCount");
-        const service = yield* WorkspaceService;
-        yield* service.incrementThreadCount(data.id, data.delta);
-      }).pipe(Effect.withSpan("incrementThreadCount"), Effect.annotateLogs({ id: data.id, delta: data.delta })),
-    ).catch(onError);
-  });
-
-export const incrementLessonCount = createServerFn({ method: "POST" })
-  .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String, delta: Schema.Number }))(data))
-  .handler(({ data }) => {
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        yield* Effect.log("incrementLessonCount");
-        const service = yield* WorkspaceService;
-        yield* service.incrementLessonCount(data.id, data.delta);
-      }).pipe(Effect.withSpan("incrementLessonCount"), Effect.annotateLogs({ id: data.id, delta: data.delta })),
     ).catch(onError);
   });
 
@@ -127,15 +137,5 @@ export const WorkspaceRpc = {
     mutationOptions({
       mutationKey: [...WorkspaceRpc.workspace()],
       mutationFn: (input: { id: string }) => deleteWorkspace({ data: input }),
-    }),
-  incrementThreadCount: () =>
-    mutationOptions({
-      mutationKey: [...WorkspaceRpc.workspace()],
-      mutationFn: (input: { id: string; delta: number }) => incrementThreadCount({ data: input }),
-    }),
-  incrementLessonCount: () =>
-    mutationOptions({
-      mutationKey: [...WorkspaceRpc.workspace()],
-      mutationFn: (input: { id: string; delta: number }) => incrementLessonCount({ data: input }),
     }),
 };

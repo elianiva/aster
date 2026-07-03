@@ -30,6 +30,7 @@ export const listRecords = createServerFn({ method: "GET" })
 				});
 				return records.map((r) => ({
 					id: r.id,
+					title: r.title,
 					r2Key: r.r2Key,
 					createdAt: r.createdAt.toISOString(),
 				}));
@@ -61,10 +62,11 @@ export const getRecordContent = createServerFn({ method: "GET" })
 					catch: fail("Failed to fetch record content"),
 				});
 				if (!obj) return null;
-				return yield* Effect.tryPromise({
+				const content = yield* Effect.tryPromise({
 					try: () => obj.text(),
 					catch: fail("Failed to read record content"),
 				});
+				return { content };
 			}).pipe(Effect.withSpan("getRecordContent"))
 		).catch(onError);
 	});

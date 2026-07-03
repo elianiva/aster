@@ -3,10 +3,11 @@ import { Effect, Option, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import {
   ThreadService,
+  ThreadDeleteFailed,
   CreateThreadInput,
   RenameThreadInput,
+  SetTeachingModeInput,
 } from "../features/thread/service";
-import { WorkspaceService } from "../features/workspace/service";
 import { AppRuntime } from "../app-runtime";
 import { createErrorHandler } from "./errors";
 
@@ -17,6 +18,17 @@ const onError = createErrorHandler({
   ThreadUpdateFailed: "Failed to update thread. Please try again.",
   ThreadDeleteFailed: "Failed to delete thread. Please try again.",
 });
+
+export const setTeachingMode = createServerFn({ method: "POST" })
+  .validator((data: unknown) => Schema.decodeUnknownSync(SetTeachingModeInput)(data))
+  .handler(({ data }) => {
+    return AppRuntime.runPromise(
+      Effect.gen(function* () {
+        const service = yield* ThreadService;
+        return yield* service.setTeachingMode(data.id, data.enabled);
+      }).pipe(Effect.withSpan("setTeachingMode")),
+    ).catch(onError);
+  });
 
 export const listThreads = createServerFn({ method: "GET" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data))
@@ -56,14 +68,33 @@ export const deleteThread = createServerFn({ method: "POST" })
   .handler(({ data }) => {
     return AppRuntime.runPromise(
       Effect.gen(function* () {
+        const { env } = yield* Effect.tryPromise(() => import("cloudflare:workers"));
         const threads = yield* ThreadService;
-        const workspaces = yield* WorkspaceService;
         const existing = yield* threads.get(data.id);
         if (Option.isSome(existing)) {
-          yield* workspaces.incrementThreadCount(existing.value.workspaceId, -1);
+          yield* threads.delete(data.id);
+          yield* Effect.tryPromise({
+            try: async () => {
+              const ns = env.Teacher as DurableObjectNamespace;
+              const stub = ns.get(ns.idFromName(`${existing.value.workspaceId}::${data.id}`));
+              await (stub as unknown as { deleteStorage(): Promise<void> }).deleteStorage();
+            },
+            catch: (cause) => new ThreadDeleteFailed({ message: `Failed to clean up DO storage: ${cause}` }),
+          });
         }
-        yield* threads.delete(data.id);
       }).pipe(Effect.withSpan("deleteThread")),
+    ).catch(onError);
+  });
+
+export const getThread = createServerFn({ method: "GET" })
+  .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(data))
+  .handler(({ data }) => {
+    return AppRuntime.runPromise(
+      Effect.gen(function* () {
+        const service = yield* ThreadService;
+        const result = yield* service.get(data.id);
+        return Option.getOrNull(result);
+      }).pipe(Effect.withSpan("getThread")),
     ).catch(onError);
   });
 
@@ -73,6 +104,11 @@ export const ThreadRpc = {
     queryOptions({
       queryKey: [...ThreadRpc.thread(workspaceId), "list"],
       queryFn: () => listThreads({ data: { workspaceId } }),
+    }),
+  getThread: (threadId: string) =>
+    queryOptions({
+      queryKey: ["thread", threadId],
+      queryFn: () => getThread({ data: { id: threadId } }),
     }),
   createThread: () =>
     mutationOptions({
@@ -88,5 +124,10 @@ export const ThreadRpc = {
     mutationOptions({
       mutationKey: ["thread", "delete"],
       mutationFn: (input: { id: string }) => deleteThread({ data: input }),
+    }),
+  setTeachingMode: () =>
+    mutationOptions({
+      mutationKey: ["thread", "setTeachingMode"],
+      mutationFn: (input: SetTeachingModeInput) => setTeachingMode({ data: input }),
     }),
 };

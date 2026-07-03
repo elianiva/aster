@@ -5,8 +5,6 @@ export const workspaces = sqliteTable("workspaces", {
   topic: text("topic").notNull(),
   mission: text("mission").notNull(),
   currentKnowledge: text("current_knowledge").notNull(),
-  threadCount: integer("thread_count").notNull().default(0),
-  lessonCount: integer("lesson_count").notNull().default(0),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
@@ -31,6 +29,7 @@ export const lessons = sqliteTable("lessons", {
 export const records = sqliteTable("records", {
   id: text("id").primaryKey(),
   workspaceId: text("workspace_id").notNull().references(() => workspaces.id),
+  title: text("title").notNull(),
   r2Key: text("r2_key").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
