@@ -345,9 +345,10 @@ export class TeacherAgent extends Think<Env> {
         description:
           "Save a learning record capturing what the user has learned. Use after meaningful progress to track insights and knowledge.",
         inputSchema: z.object({
+          title: z.string().describe("Short descriptive title for the learning record"),
           content: z.string().describe("Full OpenUI Lang content for the learning record"),
         }),
-        execute: ({ content }: { content: string }) =>
+        execute: ({ title, content }: { title: string; content: string }) =>
           this.runTool(
             Effect.gen(function*() {
               const id = crypto.randomUUID();
@@ -360,11 +361,11 @@ export class TeacherAgent extends Think<Env> {
               });
               yield* Effect.tryPromise({
                 try: () =>
-                  db.insert(schema.records).values({ id, workspaceId, r2Key, createdAt: now }),
+                  db.insert(schema.records).values({ id, workspaceId, title, r2Key, createdAt: now }),
                 catch: fail("createRecord"),
               });
 
-              return { recordId: id };
+              return { recordId: id, title };
             }),
           ),
       }),
@@ -740,6 +741,11 @@ export class TeacherAgent extends Think<Env> {
       .where(eq(schema.workspaces.id, this.threadKey.workspaceId))
       .limit(1)
       .then((r) => r[0]?.lessonCount ?? 0);
+  }
+
+  async deleteStorage() {
+    await this.ctx.storage.deleteAll();
+    await this.ctx.storage.deleteAlarm();
   }
 
   getSystemPrompt() {

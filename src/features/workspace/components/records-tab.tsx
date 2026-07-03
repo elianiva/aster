@@ -58,10 +58,12 @@ export function RecordsTab({ workspaceId }: RecordsTabProps) {
 	}
 
 	if (selectedRecordId) {
+		const selectedRecord = records.find((r) => r.id === selectedRecordId);
 		return (
 			<RecordView
 				workspaceId={workspaceId}
 				recordId={selectedRecordId}
+				title={selectedRecord?.title ?? ""}
 				onBack={() => setSelectedRecordId(null)}
 			/>
 		);
@@ -78,7 +80,7 @@ export function RecordsTab({ workspaceId }: RecordsTabProps) {
 						onClick={() => setSelectedRecordId(record.id)}
 						className="flex w-full items-center justify-between rounded-lg border bg-card p-3 text-left hover:bg-accent"
 					>
-						<span className="text-sm text-muted-foreground">Record</span>
+						<span className="text-sm">{record.title}</span>
 						<span className="text-xs text-muted-foreground">
 							{new Date(record.createdAt).toLocaleDateString()}
 						</span>
@@ -92,10 +94,11 @@ export function RecordsTab({ workspaceId }: RecordsTabProps) {
 interface RecordViewProps {
 	workspaceId: string;
 	recordId: string;
+	title: string;
 	onBack: () => void;
 }
 
-function RecordView({ workspaceId, recordId, onBack }: RecordViewProps) {
+function RecordView({ workspaceId, recordId, title, onBack }: RecordViewProps) {
 	const { data: content, isLoading } = useQuery(
 		RecordRpc.getRecordContent(workspaceId, recordId)
 	);
@@ -110,7 +113,7 @@ function RecordView({ workspaceId, recordId, onBack }: RecordViewProps) {
 				>
 					← Back
 				</button>
-				<h2 className="text-lg font-semibold">Learning Record</h2>
+				<h2 className="text-lg font-semibold">{title || "Learning Record"}</h2>
 			</div>
 			<div className="flex-1 overflow-y-auto">
 				{isLoading ? (

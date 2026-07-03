@@ -21,6 +21,7 @@ export function useThreads(workspaceId: string) {
         id: crypto.randomUUID(),
         workspaceId: input.workspaceId,
         name: input.name ?? "",
+        teachingMode: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

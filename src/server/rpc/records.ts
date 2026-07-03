@@ -30,6 +30,7 @@ export const listRecords = createServerFn({ method: "GET" })
 				});
 				return records.map((r) => ({
 					id: r.id,
+					title: r.title,
 					r2Key: r.r2Key,
 					createdAt: r.createdAt.toISOString(),
 				}));
