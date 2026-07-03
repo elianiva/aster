@@ -21,8 +21,14 @@ const renderers: Record<string, ToolOutputRenderer> = {
     return <SimpleLine icon={Task01Icon} label={`Lesson "${result?.title ?? "Untitled"}" saved`} />;
   },
   createRecord: () => <SimpleLine icon={Task01Icon} label="Learning record saved" />,
-  deleteLesson: () => <SimpleLine icon={Task01Icon} label="Lesson deleted" />,
-  deleteRecord: () => <SimpleLine icon={Task01Icon} label="Learning record deleted" />,
+  deleteLesson: (output) => {
+    const result = output as { deleted?: boolean } | undefined;
+    return <SimpleLine icon={Task01Icon} label={result?.deleted === false ? "Lesson not found" : "Lesson deleted"} />;
+  },
+  deleteRecord: (output) => {
+    const result = output as { deleted?: boolean } | undefined;
+    return <SimpleLine icon={Task01Icon} label={result?.deleted === false ? "Learning record not found" : "Learning record deleted"} />;
+  },
 };
 
 export function renderToolOutput(

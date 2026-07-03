@@ -718,12 +718,24 @@ export class TeacherAgent extends Think<Env> {
               });
               if (!row) return { deleted: false };
               yield* Effect.tryPromise({
+                try: () =>
+                  db.delete(schema.lessons).where(eq(schema.lessons.id, lessonId)),
+                catch: fail("deleteLesson"),
+              });
+              yield* Effect.tryPromise({
                 try: () => r2.delete(row.r2Key),
+                catch: fail("deleteLesson"),
+              });
+              const lessonCount = yield* Effect.tryPromise({
+                try: () => getLessonCount(),
                 catch: fail("deleteLesson"),
               });
               yield* Effect.tryPromise({
                 try: () =>
-                  db.delete(schema.lessons).where(eq(schema.lessons.id, lessonId)),
+                  db
+                    .update(schema.workspaces)
+                    .set({ lessonCount: lessonCount - 1, updatedAt: new Date() })
+                    .where(eq(schema.workspaces.id, workspaceId)),
                 catch: fail("deleteLesson"),
               });
               return { deleted: true };
@@ -754,12 +766,12 @@ export class TeacherAgent extends Think<Env> {
               });
               if (!row) return { deleted: false };
               yield* Effect.tryPromise({
-                try: () => r2.delete(row.r2Key),
+                try: () =>
+                  db.delete(schema.records).where(eq(schema.records.id, recordId)),
                 catch: fail("deleteRecord"),
               });
               yield* Effect.tryPromise({
-                try: () =>
-                  db.delete(schema.records).where(eq(schema.records.id, recordId)),
+                try: () => r2.delete(row.r2Key),
                 catch: fail("deleteRecord"),
               });
               return { deleted: true };
