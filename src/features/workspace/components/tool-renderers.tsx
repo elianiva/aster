@@ -21,6 +21,14 @@ const renderers: Record<string, ToolOutputRenderer> = {
     return <SimpleLine icon={Task01Icon} label={`Lesson "${result?.title ?? "Untitled"}" saved`} />;
   },
   createRecord: () => <SimpleLine icon={Task01Icon} label="Learning record saved" />,
+  deleteLesson: (output) => {
+    const result = output as { deleted?: boolean } | undefined;
+    return <SimpleLine icon={Task01Icon} label={result?.deleted === false ? "Lesson not found" : "Lesson deleted"} />;
+  },
+  deleteRecord: (output) => {
+    const result = output as { deleted?: boolean } | undefined;
+    return <SimpleLine icon={Task01Icon} label={result?.deleted === false ? "Learning record not found" : "Learning record deleted"} />;
+  },
 };
 
 export function renderToolOutput(
@@ -85,12 +93,15 @@ function CreateThreadOutput({
     <button
       type="button"
       onClick={() =>
-        navigate({ to: "/workspaces/$workspaceId/threads", params: { workspaceId } })
+        navigate({
+          to: "/workspaces/$workspaceId/threads/$threadId",
+          params: { workspaceId, threadId },
+        })
       }
       className="inline-flex items-center gap-1.5 rounded-md border bg-card px-2 py-1 text-xs hover:bg-accent"
     >
       <HugeiconsIcon icon={Link02Icon} className="size-3.5 text-primary" />
-      <span>Thread “{name || "Untitled"}” ready in sidebar</span>
+      <span>Thread “{name || "Untitled"}” ready</span>
     </button>
   );
 }
