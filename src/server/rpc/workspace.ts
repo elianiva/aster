@@ -3,15 +3,13 @@ import { Effect, Option, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { WorkspaceService, CreateWorkspaceInput, UpdateWorkspaceInput } from "../features/workspace/service";
 import { AppRuntime } from "../app-runtime";
-import { createErrorHandler } from "./errors";
+import { createErrorHandler } from "../errors";
+import { deleteDOStorage } from "../durable-object-helpers";
+import { deleteR2Content } from "../r2-service";
 
 const onError = createErrorHandler({
   WorkspaceNotFound: "Workspace not found. It may have been deleted.",
-  WorkspaceQueryFailed: "Failed to load workspaces. Please try again.",
-  WorkspaceInsertFailed: "Failed to create workspace. Please try again.",
-  WorkspaceUpdateFailed: "Failed to update workspace. Please try again.",
-  WorkspaceDeleteFailed: "Failed to delete workspace. Please try again.",
-  WorkspaceCascadeDeleteFailed: "Failed to delete workspace. Please try again.",
+  WorkspacePersistenceFailed: "Failed to complete operation. Please try again.",
 });
 
 export const listWorkspaces = createServerFn({ method: "GET" }).handler(() => {
@@ -72,41 +70,27 @@ export const deleteWorkspace = createServerFn({ method: "POST" })
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         yield* Effect.log("deleteWorkspace");
-        const { env } = yield* Effect.tryPromise(() => import("cloudflare:workers"));
         const service = yield* WorkspaceService;
-
         const { threadIds, r2Keys } = yield* service.cascadeDelete(data.id);
 
         const cleanupDO = (threadId: string) =>
-          Effect.tryPromise({
-            try: async () => {
-              const ns = env.Teacher as DurableObjectNamespace;
-              const stub = ns.get(ns.idFromName(`${data.id}::${threadId}`));
-              await (stub as unknown as { deleteStorage(): Promise<void> }).deleteStorage();
-            },
-            catch: (cause) => new Error(`DO cleanup failed: ${cause}`),
-          }).pipe(
-            Effect.catchAll((error) =>
-              Effect.gen(function* () {
-                yield* Effect.log(`Durable Object cleanup failed for threadId=${threadId}: ${error.message}`);
-              }),
+          deleteDOStorage(`${data.id}::${threadId}`).pipe(
+            Effect.catch((error) =>
+              Effect.log(`DO cleanup failed for threadId=${threadId}: ${error.message}`),
             ),
           );
 
         const cleanupR2 = (key: string) =>
-          Effect.tryPromise({
-            try: () => env.ASTER_R2.delete(key),
-            catch: (cause) => new Error(`R2 cleanup failed: ${cause}`),
-          }).pipe(
-            Effect.catchAll((error) =>
-              Effect.gen(function* () {
-                yield* Effect.log(`R2 cleanup failed for key=${key}: ${error.message}`);
-              }),
+          deleteR2Content(key).pipe(
+            Effect.catch((error) =>
+              Effect.log(`R2 cleanup failed for key=${key}: ${error.message}`),
             ),
           );
 
-        yield* Effect.all(threadIds.map(cleanupDO), { concurrency: "unbounded" });
-        yield* Effect.all(r2Keys.map(cleanupR2), { concurrency: "unbounded" });
+        yield* Effect.all(
+          [...threadIds.map(cleanupDO), ...r2Keys.map(cleanupR2)],
+          { concurrency: "unbounded" },
+        );
       }).pipe(Effect.withSpan("deleteWorkspace"), Effect.annotateLogs({ id: data.id })),
     ).catch(onError);
   });

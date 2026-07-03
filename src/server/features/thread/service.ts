@@ -1,6 +1,7 @@
 import { Context, Effect, Layer, Option, Schema } from "effect";
 import { desc, eq } from "drizzle-orm";
 import { Database } from "../../db/client";
+import { ThreadNotFound, ThreadPersistenceFailed } from "../../errors";
 import { threads } from "../../db/schema";
 
 export interface Thread {
@@ -31,26 +32,6 @@ export const RenameThreadInput = Schema.Struct({
 export type CreateThreadInput = typeof CreateThreadInput.Type;
 export type RenameThreadInput = typeof RenameThreadInput.Type;
 
-export class ThreadNotFound extends Schema.TaggedErrorClass<ThreadNotFound>()("ThreadNotFound", {
-  message: Schema.String,
-}) {}
-
-export class ThreadQueryFailed extends Schema.TaggedErrorClass<ThreadQueryFailed>()("ThreadQueryFailed", {
-  message: Schema.String,
-}) {}
-
-export class ThreadInsertFailed extends Schema.TaggedErrorClass<ThreadInsertFailed>()("ThreadInsertFailed", {
-  message: Schema.String,
-}) {}
-
-export class ThreadUpdateFailed extends Schema.TaggedErrorClass<ThreadUpdateFailed>()("ThreadUpdateFailed", {
-  message: Schema.String,
-}) {}
-
-export class ThreadDeleteFailed extends Schema.TaggedErrorClass<ThreadDeleteFailed>()("ThreadDeleteFailed", {
-  message: Schema.String,
-}) {}
-
 function toThread(row: typeof threads.$inferSelect): Thread {
   return {
     id: row.id,
@@ -62,13 +43,16 @@ function toThread(row: typeof threads.$inferSelect): Thread {
   };
 }
 
+const fail = (op: string) => (cause: unknown) =>
+  new ThreadPersistenceFailed({ message: `${op}: ${cause}` });
+
 export class ThreadService extends Context.Service<ThreadService, {
-  readonly list: (workspaceId: string) => Effect.Effect<Thread[], ThreadQueryFailed>;
-  readonly get: (id: string) => Effect.Effect<Option.Option<Thread>, ThreadQueryFailed>;
-  readonly create: (input: CreateThreadInput) => Effect.Effect<Thread, ThreadInsertFailed>;
-  readonly rename: (id: string, name: string) => Effect.Effect<Thread, ThreadNotFound | ThreadQueryFailed | ThreadUpdateFailed>;
-  readonly delete: (id: string) => Effect.Effect<void, ThreadDeleteFailed>;
-  readonly setTeachingMode: (id: string, enabled: boolean) => Effect.Effect<Thread, ThreadNotFound | ThreadQueryFailed | ThreadUpdateFailed>;
+  readonly list: (workspaceId: string) => Effect.Effect<Thread[], ThreadPersistenceFailed>;
+  readonly get: (id: string) => Effect.Effect<Option.Option<Thread>, ThreadPersistenceFailed>;
+  readonly create: (input: CreateThreadInput) => Effect.Effect<Thread, ThreadPersistenceFailed>;
+  readonly rename: (id: string, name: string) => Effect.Effect<Thread, ThreadNotFound | ThreadPersistenceFailed>;
+  readonly delete: (id: string) => Effect.Effect<void, ThreadPersistenceFailed>;
+  readonly setTeachingMode: (id: string, enabled: boolean) => Effect.Effect<Thread, ThreadNotFound | ThreadPersistenceFailed>;
 }>()("@aster/features/thread/ThreadService") {
   static readonly layer = Layer.effect(
     this,
@@ -84,7 +68,7 @@ export class ThreadService extends Context.Service<ThreadService, {
               .from(threads)
               .where(eq(threads.workspaceId, workspaceId))
               .orderBy(desc(threads.updatedAt)),
-          catch: (cause) => new ThreadQueryFailed({ message: `Failed to list threads: ${cause}` }),
+          catch: fail("list threads"),
         }).pipe(Effect.withSpan("db.listThreads"));
         return rows.map(toThread);
       });
@@ -92,7 +76,7 @@ export class ThreadService extends Context.Service<ThreadService, {
       const get = Effect.fn("ThreadService.get")(function* (id: string) {
         const rows = yield* Effect.tryPromise({
           try: () => client.select().from(threads).where(eq(threads.id, id)).limit(1),
-          catch: (cause) => new ThreadQueryFailed({ message: `Failed to get thread: ${cause}` }),
+          catch: fail("get thread"),
         }).pipe(Effect.withSpan("db.getThread"));
         return rows[0] ? Option.some(toThread(rows[0])) : Option.none();
       });
@@ -117,7 +101,7 @@ export class ThreadService extends Context.Service<ThreadService, {
               createdAt: now,
               updatedAt: now,
             }),
-          catch: (cause) => new ThreadInsertFailed({ message: `Failed to create thread: ${cause}` }),
+          catch: fail("create thread"),
         }).pipe(Effect.withSpan("db.createThread"));
         return thread;
       });
@@ -131,7 +115,7 @@ export class ThreadService extends Context.Service<ThreadService, {
         const updated: Thread = { ...existing.value, name, updatedAt: now.toISOString() };
         yield* Effect.tryPromise({
           try: () => client.update(threads).set({ name, updatedAt: now }).where(eq(threads.id, id)),
-          catch: (cause) => new ThreadUpdateFailed({ message: `Failed to rename thread: ${cause}` }),
+          catch: fail("rename thread"),
         }).pipe(Effect.withSpan("db.renameThread"));
         return updated;
       });
@@ -139,7 +123,7 @@ export class ThreadService extends Context.Service<ThreadService, {
       const delete_ = Effect.fn("ThreadService.delete")(function* (id: string) {
         yield* Effect.tryPromise({
           try: () => client.delete(threads).where(eq(threads.id, id)),
-          catch: (cause) => new ThreadDeleteFailed({ message: `Failed to delete thread: ${cause}` }),
+          catch: fail("delete thread"),
         }).pipe(Effect.withSpan("db.deleteThread"));
       });
 
@@ -151,7 +135,7 @@ export class ThreadService extends Context.Service<ThreadService, {
         const now = new Date();
         yield* Effect.tryPromise({
           try: () => client.update(threads).set({ teachingMode: enabled, updatedAt: now }).where(eq(threads.id, id)),
-          catch: (cause) => new ThreadUpdateFailed({ message: `Failed to set teaching mode: ${cause}` }),
+          catch: fail("set teaching mode"),
         }).pipe(Effect.withSpan("db.setTeachingMode"));
         const updated: Thread = { ...existing.value, teachingMode: enabled, updatedAt: now.toISOString() };
         return updated;

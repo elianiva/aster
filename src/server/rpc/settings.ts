@@ -4,12 +4,12 @@ import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { Settings, DEFAULT_SETTINGS } from "~/features/settings/lib/schema";
 import { SettingsService } from "../features/settings/service";
 import { AppRuntime } from "../app-runtime";
-import { createErrorHandler } from "./errors";
+import { createErrorHandler } from "../errors";
 
 const onError = createErrorHandler({
   ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
   KeyValueStoreError: "Failed to save settings. Please try again.",
-  ArtifactQueryFailed: "Failed to load. Please try again.",
+  ArtifactError: "Failed to load. Please try again.",
 });
 
 export const getSettings = createServerFn({ method: "GET" }).handler(() => {

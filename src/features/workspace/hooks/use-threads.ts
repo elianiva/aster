@@ -33,10 +33,10 @@ export function useThreads(workspaceId: string) {
     onError: (_e, _input, ctx) => {
       if (ctx?.prev) queryClient.setQueryData([...listKey, "list"], ctx.prev);
     },
-    onSuccess: (thread, _input, ctx) => {
-      queryClient.setQueryData<Thread[]>([...listKey, "list"], (cur) =>
-        (cur ?? []).map((t) => (t.id === ctx?.optimistic.id ? thread : t)),
-      );
+    onSuccess: (_thread, _input, _ctx) => {
+      // Invalidate rather than patch — the server-generated ID differs from
+      // the client's optimistic UUID, so a map-swap can't find the entry.
+      queryClient.invalidateQueries({ queryKey: [...listKey, "list"] });
     },
   });
 

@@ -88,7 +88,7 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
       <Sidebar side="left" className="border-none">
         <SidebarHeader className="p-4">
           <h1 className="mt-3 px-1 text-lg font-medium leading-tight truncate">
-            Learning Workspace
+            {workspace.topic}
           </h1>
         </SidebarHeader>
 

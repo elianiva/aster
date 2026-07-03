@@ -3,20 +3,17 @@ import { Effect, Option, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import {
   ThreadService,
-  ThreadDeleteFailed,
   CreateThreadInput,
   RenameThreadInput,
   SetTeachingModeInput,
 } from "../features/thread/service";
 import { AppRuntime } from "../app-runtime";
-import { createErrorHandler } from "./errors";
+import { createErrorHandler } from "../errors";
+import { deleteDOStorage } from "../durable-object-helpers";
 
 const onError = createErrorHandler({
   ThreadNotFound: "Thread not found. It may have been deleted.",
-  ThreadQueryFailed: "Failed to load threads. Please try again.",
-  ThreadInsertFailed: "Failed to create thread. Please try again.",
-  ThreadUpdateFailed: "Failed to update thread. Please try again.",
-  ThreadDeleteFailed: "Failed to delete thread. Please try again.",
+  ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
 });
 
 export const setTeachingMode = createServerFn({ method: "POST" })
@@ -68,19 +65,15 @@ export const deleteThread = createServerFn({ method: "POST" })
   .handler(({ data }) => {
     return AppRuntime.runPromise(
       Effect.gen(function* () {
-        const { env } = yield* Effect.tryPromise(() => import("cloudflare:workers"));
         const threads = yield* ThreadService;
         const existing = yield* threads.get(data.id);
         if (Option.isSome(existing)) {
           yield* threads.delete(data.id);
-          yield* Effect.tryPromise({
-            try: async () => {
-              const ns = env.Teacher as DurableObjectNamespace;
-              const stub = ns.get(ns.idFromName(`${existing.value.workspaceId}::${data.id}`));
-              await (stub as unknown as { deleteStorage(): Promise<void> }).deleteStorage();
-            },
-            catch: (cause) => new ThreadDeleteFailed({ message: `Failed to clean up DO storage: ${cause}` }),
-          });
+          yield* deleteDOStorage(`${existing.value.workspaceId}::${data.id}`).pipe(
+            Effect.catch((error) =>
+              Effect.log(`DO cleanup failed for thread ${data.id}: ${error.message}`),
+            ),
+          );
         }
       }).pipe(Effect.withSpan("deleteThread")),
     ).catch(onError);

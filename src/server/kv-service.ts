@@ -1,7 +1,8 @@
 import { Effect, Layer } from "effect";
 import * as KeyValueStore from "effect/unstable/persistence/KeyValueStore";
 
-const KV_ERROR = "Unable to access Cloudflare KV";
+const kvError = (method: string, key: string) =>
+  `Cloudflare KV ${method} failed for key "${key}"`;
 
 // `import { env } from "cloudflare:workers"` at module scope captures the
 // binding before the worker env is ready in the Vite dev server.  Access it
@@ -21,7 +22,7 @@ export const KvLayer = Layer.succeed(
           new KeyValueStore.KeyValueStoreError({
             method: "get",
             key,
-            message: KV_ERROR,
+            message: kvError("get", key),
             cause,
           }),
       }).pipe(Effect.annotateLogs({ op: "kv.get", key })),
@@ -32,7 +33,7 @@ export const KvLayer = Layer.succeed(
           new KeyValueStore.KeyValueStoreError({
             method: "set",
             key,
-            message: KV_ERROR,
+            message: kvError("set", key),
             cause,
           }),
       }).pipe(Effect.annotateLogs({ op: "kv.set", key })),
@@ -43,7 +44,7 @@ export const KvLayer = Layer.succeed(
           new KeyValueStore.KeyValueStoreError({
             method: "remove",
             key,
-            message: KV_ERROR,
+            message: kvError("remove", key),
             cause,
           }),
       }).pipe(Effect.annotateLogs({ op: "kv.remove", key })),

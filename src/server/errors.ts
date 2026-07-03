@@ -1,6 +1,6 @@
 import { Schema, Cause } from "effect";
 import { logJson } from "./logger";
-import type { RequestContext } from "./request-context";
+import { getRequestContext } from "./request-context";
 
 const DEFAULT_MESSAGE = "Something went wrong. Please try again.";
 
@@ -8,8 +8,24 @@ export class ProvidersFetchError extends Schema.TaggedErrorClass<ProvidersFetchE
   cause: Schema.Defect(),
 }) {}
 
-/** A read against D1/R2 for an artifact (lesson, record, note, reference, ...) failed. */
-export class ArtifactQueryFailed extends Schema.TaggedErrorClass<ArtifactQueryFailed>()("ArtifactQueryFailed", {
+/** Any R2 or D1 operation on an artifact failed. */
+export class ArtifactError extends Schema.TaggedErrorClass<ArtifactError>()("ArtifactError", {
+  message: Schema.String,
+}) {}
+
+export class WorkspaceNotFound extends Schema.TaggedErrorClass<WorkspaceNotFound>()("WorkspaceNotFound", {
+  message: Schema.String,
+}) {}
+
+export class WorkspacePersistenceFailed extends Schema.TaggedErrorClass<WorkspacePersistenceFailed>()("WorkspacePersistenceFailed", {
+  message: Schema.String,
+}) {}
+
+export class ThreadNotFound extends Schema.TaggedErrorClass<ThreadNotFound>()("ThreadNotFound", {
+  message: Schema.String,
+}) {}
+
+export class ThreadPersistenceFailed extends Schema.TaggedErrorClass<ThreadPersistenceFailed>()("ThreadPersistenceFailed", {
   message: Schema.String,
 }) {}
 
@@ -42,12 +58,13 @@ function describeError(error: unknown): { tag?: string; message?: string; cause:
 }
 
 /**
- * Build a per-RPC error handler. Returns a function that closes over the
- * request context (for log correlation) and converts tagged errors into
- * user-facing messages, logging the full cause — never just the tag.
+ * Build an RPC error handler. Reads request context from AsyncLocalStorage
+ * (populated by server.ts) for log correlation. Converts tagged errors into
+ * user-facing messages while logging the full cause.
  */
 export function createErrorHandler(errorMap: Record<string, string>) {
-  return (ctx: RequestContext) => (error: unknown): never => {
+  return (error: unknown): never => {
+    const ctx = getRequestContext();
     const { tag, message, cause } = describeError(error);
     logJson("error", "rpc.error", { requestId: ctx.requestId, path: ctx.path, email: ctx.email, tag, message, cause });
     const userMessage = (tag && errorMap[tag]) || DEFAULT_MESSAGE;

@@ -22,7 +22,7 @@ import {
 import { Suggestion, Suggestions } from "~/components/ai-elements/suggestion";
 import { PlusIcon } from "lucide-react";
 import { useThreads } from "~/features/workspace/hooks/use-threads";
-import { pendingMessageRef } from "./pending-message";
+import { setPendingMessage } from "./pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
 import { Button } from "~/components/ui/button";
 import { SettingsDialog } from "~/features/settings/components/global-settings-dialog";
@@ -51,7 +51,7 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
         {
           onSuccess: (thread) => {
             if (message?.text.trim()) {
-              pendingMessageRef.current = message;
+              setPendingMessage(message);
             }
             refetch();
             navigate({

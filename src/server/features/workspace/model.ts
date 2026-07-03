@@ -9,12 +9,7 @@ export interface ModelConfig {
 }
 
 export function createModel(config: ModelConfig) {
-  switch (config.provider) {
-    case "opencode-go":
-      return createOpenCodeGo(config.model, config.apiKeys["opencode-go"]);
-    default:
-      return createOpenCodeGo(config.model, config.apiKeys["opencode-go"]);
-  }
+  return createOpenCodeGo(config.model, config.apiKeys["opencode-go"]);
 }
 
 function createOpenCodeGo(model: string, apiKey?: string) {

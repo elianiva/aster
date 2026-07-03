@@ -3,8 +3,10 @@ import { FetchHttpClient } from "effect/unstable/http";
 import { SettingsService } from "./features/settings/service";
 import { WorkspaceService } from "./features/workspace/service";
 import { ThreadService } from "./features/thread/service";
+import { ArtifactService } from "./features/artifact/service";
 import { KvLayer } from "./kv-service";
 import { Database } from "./db/client";
+import { R2 } from "./r2-service";
 import { LoggerLayer } from "./logger";
 
 const BaseLayer = Layer.mergeAll(
@@ -12,12 +14,14 @@ const BaseLayer = Layer.mergeAll(
   FetchHttpClient.layer,
   KvLayer,
   Database.layer,
+  R2.layer,
 );
 
 const ServicesLayer = Layer.mergeAll(
   SettingsService.layer,
   WorkspaceService.layer,
-  ThreadService.layer.pipe(Layer.provide(WorkspaceService.layer)),
+  ThreadService.layer,
+  ArtifactService.layer,
 );
 
 // Services consume BaseLayer internally; re-expose BaseLayer (Database, KV, …)

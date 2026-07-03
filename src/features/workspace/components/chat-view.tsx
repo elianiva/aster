@@ -29,7 +29,7 @@ import { useThreads } from "~/features/workspace/hooks/use-threads";
 import { ThreadRpc } from "~/server/rpc/thread";
 import type { Thread } from "~/server/features/thread/service";
 import { MessageParts } from "./message-parts";
-import { pendingMessageRef } from "./pending-message";
+import { consumePendingMessage } from "./pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
 
 // ============================================================================
@@ -103,7 +103,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
   sendMessageRef.current = sendMessage;
 
   useEffect(() => {
-    const pending = pendingMessageRef.current;
+    const pending = consumePendingMessage();
     if (!pending) return;
 
     let cancelled = false;
@@ -112,15 +112,12 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
       try {
         await agent.ready;
         if (cancelled) return;
-        pendingMessageRef.current = null;
         await sendMessageRef.current({
           text: pending.text,
           files: pending.files,
         });
       } catch (error) {
         console.error("Failed to send pending message:", error);
-        // Restore pending message so user can retry
-        if (!cancelled) pendingMessageRef.current = pending;
       }
     };
 
