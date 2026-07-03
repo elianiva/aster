@@ -8,7 +8,6 @@ import {
   RenameThreadInput,
   SetTeachingModeInput,
 } from "../features/thread/service";
-import { WorkspaceService } from "../features/workspace/service";
 import { AppRuntime } from "../app-runtime";
 import { createErrorHandler } from "./errors";
 
@@ -71,11 +70,9 @@ export const deleteThread = createServerFn({ method: "POST" })
       Effect.gen(function* () {
         const { env } = yield* Effect.tryPromise(() => import("cloudflare:workers"));
         const threads = yield* ThreadService;
-        const workspaces = yield* WorkspaceService;
         const existing = yield* threads.get(data.id);
         if (Option.isSome(existing)) {
           yield* threads.delete(data.id);
-          yield* workspaces.incrementThreadCount(existing.value.workspaceId, -1);
           yield* Effect.tryPromise({
             try: async () => {
               const ns = env.Teacher as DurableObjectNamespace;

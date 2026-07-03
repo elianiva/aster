@@ -111,30 +111,6 @@ export const deleteWorkspace = createServerFn({ method: "POST" })
     ).catch(onError);
   });
 
-export const incrementThreadCount = createServerFn({ method: "POST" })
-  .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String, delta: Schema.Number }))(data))
-  .handler(({ data }) => {
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        yield* Effect.log("incrementThreadCount");
-        const service = yield* WorkspaceService;
-        yield* service.incrementThreadCount(data.id, data.delta);
-      }).pipe(Effect.withSpan("incrementThreadCount"), Effect.annotateLogs({ id: data.id, delta: data.delta })),
-    ).catch(onError);
-  });
-
-export const incrementLessonCount = createServerFn({ method: "POST" })
-  .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String, delta: Schema.Number }))(data))
-  .handler(({ data }) => {
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        yield* Effect.log("incrementLessonCount");
-        const service = yield* WorkspaceService;
-        yield* service.incrementLessonCount(data.id, data.delta);
-      }).pipe(Effect.withSpan("incrementLessonCount"), Effect.annotateLogs({ id: data.id, delta: data.delta })),
-    ).catch(onError);
-  });
-
 export const WorkspaceRpc = {
   workspace: () => ["workspace"],
   listWorkspaces: () =>
@@ -161,15 +137,5 @@ export const WorkspaceRpc = {
     mutationOptions({
       mutationKey: [...WorkspaceRpc.workspace()],
       mutationFn: (input: { id: string }) => deleteWorkspace({ data: input }),
-    }),
-  incrementThreadCount: () =>
-    mutationOptions({
-      mutationKey: [...WorkspaceRpc.workspace()],
-      mutationFn: (input: { id: string; delta: number }) => incrementThreadCount({ data: input }),
-    }),
-  incrementLessonCount: () =>
-    mutationOptions({
-      mutationKey: [...WorkspaceRpc.workspace()],
-      mutationFn: (input: { id: string; delta: number }) => incrementLessonCount({ data: input }),
     }),
 };
