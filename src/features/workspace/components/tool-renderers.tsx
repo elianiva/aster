@@ -30,7 +30,35 @@ export function renderToolOutput(
 ): ReactNode {
   const render = renderers[toolName];
   if (render) return render(output, ctx);
-  return null;
+  return <FallbackOutput output={output} toolName={toolName} />;
+}
+
+function FallbackOutput({ output, toolName }: { output: unknown; toolName: string }) {
+  const label = prettyToolName(toolName);
+  if (output == null || output === false) {
+    return <SimpleLine icon={Task01Icon} label={`${label} complete`} />;
+  }
+  if (typeof output === "string") {
+    return <SimpleLine icon={Task01Icon} label={output} />;
+  }
+  const text = safeStringify(output);
+  return <SimpleLine icon={Task01Icon} label={text} />;
+}
+
+function prettyToolName(name: string) {
+  return name
+    .replace(/[-_]+/g, " ")
+    .replace(/[-_]+/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
 }
 
 function SimpleLine({ icon, label }: { icon: IconSvgElement; label: string }) {

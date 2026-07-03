@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import type { ChatStatus } from "ai";
 import {
@@ -21,10 +22,12 @@ import { Spinner } from "~/components/ui/spinner";
 import { Button } from "~/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Key02Icon } from "@hugeicons/core-free-icons";
+import { Key02Icon, SchoolIcon } from "@hugeicons/core-free-icons";
 import { SettingsDialog } from "~/features/settings/components/global-settings-dialog";
 import { useTeacherAgent } from "~/features/workspace/hooks/use-teacher-agent";
 import { useThreads } from "~/features/workspace/hooks/use-threads";
+import { ThreadRpc } from "~/server/rpc/thread";
+import type { Thread } from "~/server/features/thread/service";
 import { MessageParts } from "./message-parts";
 import { pendingMessageRef } from "./pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
@@ -46,6 +49,32 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
   const { refetch } = useThreads(workspaceId);
   const agent = useTeacherAgent(`${workspaceId}::${threadId}`);
   const { hasKey, providerName, isLoading: apiKeyLoading } = useApiKeyStatus();
+  const queryClient = useQueryClient();
+
+  const { data: threadData } = useQuery({
+    ...ThreadRpc.getThread(threadId),
+  });
+  const teachingMode = threadData?.teachingMode ?? true;
+
+  const setTeachingMode = useMutation({
+    ...ThreadRpc.setTeachingMode(),
+    onMutate: async ({ enabled }) => {
+      await queryClient.cancelQueries({ queryKey: ["thread", threadId] });
+      const prev = queryClient.getQueryData<Thread | null>(["thread", threadId]);
+      if (prev) {
+        queryClient.setQueryData(["thread", threadId], (old: Thread | null | undefined) =>
+          old ? { ...old, teachingMode: enabled } : old,
+        );
+      }
+      return { prev };
+    },
+    onError: (_e, _input, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["thread", threadId], ctx.prev);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["thread", threadId] });
+    },
+  });
 
   const {
     messages,
@@ -164,6 +193,9 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
           onRegenerate={() => regenerate()}
           canRegenerate={messages.length > 0 && !isBusy}
           disabled={!hasKey}
+          teachingMode={teachingMode}
+          teachingModePending={setTeachingMode.isPending}
+          onToggleTeachingMode={() => setTeachingMode.mutate({ id: threadId, enabled: !teachingMode })}
         />
         <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-muted-foreground">
           Your teacher agent may make mistakes. Verify important information.
@@ -185,6 +217,9 @@ interface ChatPromptInputProps {
   onRegenerate: () => void;
   canRegenerate: boolean;
   disabled?: boolean;
+  teachingMode: boolean;
+  teachingModePending: boolean;
+  onToggleTeachingMode: () => void;
 }
 
 function ChatPromptInput({
@@ -195,6 +230,9 @@ function ChatPromptInput({
   onRegenerate,
   canRegenerate,
   disabled,
+  teachingMode,
+  teachingModePending,
+  onToggleTeachingMode,
 }: ChatPromptInputProps) {
   const { textInput } = usePromptInputController();
   const attachments = usePromptInputAttachments();
@@ -212,6 +250,15 @@ function ChatPromptInput({
         <PlusIcon className="size-5" />
       </PromptInputButton>
       <PromptInputTextarea placeholder={disabled ? "Set an API key in Settings to continue…" : "Ask your teacher…"} disabled={disabled} />
+      <PromptInputButton
+        aria-label={teachingMode ? "Disable teaching mode" : "Enable teaching mode"}
+        onClick={onToggleTeachingMode}
+        disabled={disabled || teachingModePending}
+        data-active={teachingMode}
+        className="data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+      >
+        <HugeiconsIcon icon={SchoolIcon} className="size-5" />
+      </PromptInputButton>
       {canRegenerate && (
         <PromptInputButton aria-label="Regenerate" onClick={onRegenerate}>
           <span className="text-xs">Retry</span>

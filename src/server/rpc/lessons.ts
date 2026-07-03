@@ -61,10 +61,11 @@ export const getLessonContent = createServerFn({ method: "GET" })
 					catch: fail("Failed to fetch lesson content"),
 				});
 				if (!obj) return null;
-				return yield* Effect.tryPromise({
+				const content = yield* Effect.tryPromise({
 					try: () => obj.text(),
 					catch: fail("Failed to read lesson content"),
 				});
+				return { content };
 			}).pipe(Effect.withSpan("getLessonContent"))
 		).catch(onError);
 	});
