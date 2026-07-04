@@ -1,5 +1,5 @@
-import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Renderer } from "@openuidev/react-lang";
 import { asterLibrary } from "~/components/openui/library";
 import {
@@ -22,10 +22,6 @@ export interface ArtifactContent {
 	content: string | null;
 }
 
-// The queryOptions() return type from TanStack Query v5 doesn't structurally
-// unify with UseQueryOptions due to DataTag/OmitKeyof wrappers. We accept the
-// raw queryOptions() return and cast at the useQuery call site.
-
 export interface ArtifactConfig {
 	icon: IconSvgElement;
 	label: string;
@@ -44,9 +40,9 @@ interface ArtifactTabProps {
 
 export function ArtifactTab({ workspaceId, config }: ArtifactTabProps) {
 	const [selectedId, setSelectedId] = useState<string | null>(null);
-	const { data: items = [], isLoading } = useQuery(
-		config.listQuery(workspaceId) as UseQueryOptions<ArtifactItem[]>,
-	);
+	const resp = useQuery(config.listQuery(workspaceId) as never);
+	const items = (resp.data ?? []) as ArtifactItem[];
+	const isLoading = resp.isLoading;
 
 	if (isLoading) {
 		return (
@@ -129,16 +125,16 @@ interface ArtifactDetailViewProps {
 }
 
 function ArtifactDetailView({
-	workspaceId,
-	itemId,
-	title,
-	onBack,
-	contentQuery,
-	errorText,
+  workspaceId,
+  itemId,
+  title,
+  onBack,
+  contentQuery,
+  errorText,
 }: ArtifactDetailViewProps) {
-	const { data: content, isLoading } = useQuery(
-		contentQuery(workspaceId, itemId) as UseQueryOptions<ArtifactContent | null>,
-	);
+	const resp = useQuery(contentQuery(workspaceId, itemId) as never);
+	const content = (resp.data ?? null) as ArtifactContent | null;
+	const isLoading = resp.isLoading;
 
 	return (
 		<div className="flex h-full flex-col p-4">

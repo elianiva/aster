@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 import { queryOptions } from "@tanstack/react-query";
 import { AppRuntime } from "../app-runtime";
-import { ArtifactService } from "../features/artifact/service";
+import { NoteService } from "../features/note/service";
 import { createErrorHandler } from "../errors";
 
 const onError = createErrorHandler({
@@ -16,7 +16,7 @@ export const getNote = createServerFn({ method: "GET" })
   .handler(({ data }) => {
     return AppRuntime.runPromise(
       Effect.gen(function* () {
-        const service = yield* ArtifactService;
+        const service = yield* NoteService;
         return yield* service.getNote(data.workspaceId);
       }).pipe(Effect.withSpan("getNote"))
     ).catch(onError);

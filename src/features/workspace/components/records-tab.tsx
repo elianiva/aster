@@ -1,6 +1,6 @@
 import { Brain02Icon } from "@hugeicons/core-free-icons";
 import { ArtifactTab } from "./artifact-tab";
-import { RecordRpc } from "~/server/rpc/records";
+import { RecordRpc } from "~/server/rpc/titled-artifact-rpc"
 
 export function RecordsTab({ workspaceId }: { workspaceId: string }) {
 	return (

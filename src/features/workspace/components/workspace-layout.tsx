@@ -61,8 +61,6 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
   const currentPath = router.location.pathname;
 
   const countsFor = (key: CountKey): number => {
-    if (key === "threads") return workspace?.threadCount ?? 0;
-    if (key === "lessons") return workspace?.lessonCount ?? 0;
     if (!counts) return 0;
     return counts[key] ?? 0;
   };

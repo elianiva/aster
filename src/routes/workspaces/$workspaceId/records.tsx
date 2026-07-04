@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useMatch, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { RecordRpc } from "~/server/rpc/records";
+import { RecordRpc } from "~/server/rpc/titled-artifact-rpc"
 import { Skeleton } from "~/components/ui/skeleton";
 import {
   Empty,

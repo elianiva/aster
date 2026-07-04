@@ -1,6 +1,6 @@
 import { Notebook01Icon } from "@hugeicons/core-free-icons";
 import { ArtifactTab } from "./artifact-tab";
-import { LessonRpc } from "~/server/rpc/lessons";
+import { LessonRpc } from "~/server/rpc/titled-artifact-rpc"
 
 export function LessonsTab({ workspaceId }: { workspaceId: string }) {
 	return (

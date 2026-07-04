@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Renderer } from "@openuidev/react-lang";
 import { asterLibrary } from "~/components/openui/library";
-import { ReferenceRpc } from "~/server/rpc/references";
+import { ReferenceRpc } from "~/server/rpc/titled-artifact-rpc"
 import { Skeleton } from "~/components/ui/skeleton";
 
 export const Route = createFileRoute(

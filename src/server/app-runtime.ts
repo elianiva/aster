@@ -4,6 +4,9 @@ import { SettingsService } from "./features/settings/service";
 import { WorkspaceService } from "./features/workspace/service";
 import { ThreadService } from "./features/thread/service";
 import { ArtifactService } from "./features/artifact/service";
+import { NoteService } from "./features/note/service";
+import { GlossaryService } from "./features/glossary/service";
+import { ResourceService } from "./features/resource/service";
 import { KvLayer } from "./kv-service";
 import { Database } from "./db/client";
 import { R2 } from "./r2-service";
@@ -22,11 +25,11 @@ const ServicesLayer = Layer.mergeAll(
   WorkspaceService.layer,
   ThreadService.layer,
   ArtifactService.layer,
+  NoteService.layer,
+  GlossaryService.layer,
+  ResourceService.layer,
 );
 
-// Services consume BaseLayer internally; re-expose BaseLayer (Database, KV, …)
-// alongside the services so RPCs that read directly from D1/R2 can access the
-// shared client without re-instantiating drizzle per call.
 export const AppLayer = Layer.mergeAll(ServicesLayer, BaseLayer).pipe(
   Layer.provide(BaseLayer),
 );

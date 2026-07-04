@@ -18,8 +18,11 @@ export interface AccessIdentity {
   email: string;
 }
 
-let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
-let cachedIssuer: string | null = null;
+/** Lazily constructed JWKS fetcher for a given issuer — not cached since Workers isolates share nothing. */
+function jwksFor(issuer: string) {
+  return createRemoteJWKSet(new URL(`${issuer}/cdn-cgi/access/certs`));
+}  
+
 
 class AccessDenied {
   readonly _tag = "AccessDenied" as const;
@@ -36,22 +39,16 @@ export const verifyAccess = (
 
   const token = request.headers.get("Cf-Access-Jwt-Assertion");
   const issuer = `https://${config.teamDomain}`;
-  if (jwks === null || cachedIssuer !== issuer) {
-    jwks = createRemoteJWKSet(new URL(`${issuer}/cdn-cgi/access/certs`));
-    cachedIssuer = issuer;
-  }
+  const jwks = jwksFor(issuer);
 
   if (!token) {
     logJson("warn", "auth.denied", { reason: "missing-token" });
     return Promise.resolve(null);
   }
 
-  // Expired vs invalid-signature vs wrong-audience are very different signals —
-  // log the reason here so denials are debuggable. The message is never
-  // returned to the client.
   return Effect.runPromise(
     Effect.tryPromise({
-      try: () => jwtVerify(token, jwks!, { issuer, audience: config.aud }),
+      try: () => jwtVerify(token, jwks, { issuer, audience: config.aud }),
       catch: (cause) => new AccessDenied("invalid-token", cause),
     }).pipe(
       Effect.map(({ payload }) => ({

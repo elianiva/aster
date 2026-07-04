@@ -1,16 +1,13 @@
 import { Context, Effect, Layer, Option, Schema } from "effect";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Database } from "../../db/client";
 import { WorkspaceNotFound, WorkspacePersistenceFailed } from "../../errors";
 import { workspaces, threads, lessons, records, references, glossary, resources, notes } from "../../db/schema";
-
 export interface Workspace {
   id: string;
   topic: string;
   mission: string;
   currentKnowledge: string;
-  threadCount: number;
-  lessonCount: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,14 +27,12 @@ export const UpdateWorkspaceInput = Schema.Struct({
 export type CreateWorkspaceInput = typeof CreateWorkspaceInput.Type;
 export type UpdateWorkspaceInput = typeof UpdateWorkspaceInput.Type;
 
-function toWorkspace(row: { id: string; topic: string; mission: string; currentKnowledge: string; threadCount: number; lessonCount: number; createdAt: Date; updatedAt: Date }): Workspace {
+function toWorkspace(row: { id: string; topic: string; mission: string; currentKnowledge: string; createdAt: Date; updatedAt: Date }): Workspace {
   return {
     id: row.id,
     topic: row.topic,
     mission: row.mission,
     currentKnowledge: row.currentKnowledge,
-    threadCount: row.threadCount,
-    lessonCount: row.lessonCount,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -77,32 +72,7 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
           try: () => client.select(workspaceCols).from(workspaces).orderBy(workspaces.createdAt),
           catch: fail("list workspaces"),
         }).pipe(Effect.withSpan("db.listWorkspaces"));
-
-        const counts = yield* Effect.tryPromise({
-          try: () => client.all<{ workspace_id: string; thread_count: number; lesson_count: number }>(sql`
-            SELECT
-              id as workspace_id,
-              (SELECT COUNT(*) FROM threads WHERE workspace_id = workspaces.id) as thread_count,
-              (SELECT COUNT(*) FROM lessons WHERE workspace_id = workspaces.id) as lesson_count
-            FROM workspaces
-          `),
-          catch: fail("count workspace artifacts"),
-        }).pipe(Effect.withSpan("db.workspaceCounts"));
-
-        const countMap = new Map(counts.map((c) => [c.workspace_id, c]));
-        return rows.map((row) => {
-          const c = countMap.get(row.id);
-          return toWorkspace({
-            id: row.id,
-            topic: row.topic,
-            mission: row.mission,
-            currentKnowledge: row.currentKnowledge,
-            createdAt: row.createdAt,
-            updatedAt: row.updatedAt,
-            threadCount: c?.thread_count ?? 0,
-            lessonCount: c?.lesson_count ?? 0,
-          });
-        });
+        return rows.map(toWorkspace);
       });
 
       const get = Effect.fn("WorkspaceService.get")(function* (id: string) {
@@ -111,25 +81,7 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
           catch: fail("get workspace"),
         }).pipe(Effect.withSpan("db.getWorkspace"), Effect.annotateLogs({ id }));
         if (!rows[0]) return Option.none();
-        const row = rows[0];
-        const [counts] = yield* Effect.tryPromise({
-          try: () => client.all<{ thread_count: number; lesson_count: number }>(sql`
-            SELECT
-              (SELECT COUNT(*) FROM threads WHERE workspace_id = ${id}) as thread_count,
-              (SELECT COUNT(*) FROM lessons WHERE workspace_id = ${id}) as lesson_count
-          `),
-          catch: fail("count workspace artifacts"),
-        }).pipe(Effect.withSpan("db.workspaceCounts"));
-        return Option.some(toWorkspace({
-          id: row.id,
-          topic: row.topic,
-          mission: row.mission,
-          currentKnowledge: row.currentKnowledge,
-          createdAt: row.createdAt,
-          updatedAt: row.updatedAt,
-          threadCount: counts?.thread_count ?? 0,
-          lessonCount: counts?.lesson_count ?? 0,
-        }));
+        return Option.some(toWorkspace(rows[0]));
       });
 
       const create = Effect.fn("WorkspaceService.create")(function* (input: CreateWorkspaceInput) {
@@ -140,8 +92,6 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
           topic: input.topic,
           mission: input.mission,
           currentKnowledge: input.currentKnowledge,
-          threadCount: 0,
-          lessonCount: 0,
           createdAt: now.toISOString(),
           updatedAt: now.toISOString(),
         };
@@ -214,12 +164,15 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
         }
 
         const childTables = [threads, lessons, records, references, glossary, resources, notes] as const;
-        for (const table of childTables) {
-          yield* Effect.tryPromise({
-            try: () => client.delete(table).where(eq(table.workspaceId, id)),
-            catch: fail("delete child rows"),
-          });
-        }
+        yield* Effect.all(
+          childTables.map((table) =>
+            Effect.tryPromise({
+              try: () => client.delete(table).where(eq(table.workspaceId, id)),
+              catch: fail("delete child rows"),
+            }),
+          ),
+          { concurrency: "unbounded" },
+        );
 
         yield* Effect.tryPromise({
           try: () => client.delete(workspaces).where(eq(workspaces.id, id)),
