@@ -232,6 +232,42 @@ export function createTeacherTools(
           }),
         ),
     }),
+    listLessons: tool({
+      description:
+        "List all lessons in this workspace. Use to check what you've already taught, avoid repeating topics, or find a lesson to reference.",
+      inputSchema: z.object({}),
+      execute: () =>
+        runWithServices(
+          Effect.gen(function* () {
+            const service = yield* ArtifactService;
+            return yield* service.listTitled("lesson")(workspaceId);
+          }),
+        ),
+    }),
+    listRecords: tool({
+      description:
+        "List all learning records in this workspace. Use to understand what the user has already learned, gauge their level, or check before creating a new record.",
+      inputSchema: z.object({}),
+      execute: () =>
+        runWithServices(
+          Effect.gen(function* () {
+            const service = yield* ArtifactService;
+            return yield* service.listTitled("record")(workspaceId);
+          }),
+        ),
+    }),
+    readNote: tool({
+      description:
+        "Read the workspace notes — your scratchpad with user preferences, working notes, and teaching observations. Read this at the start of a conversation to recall preferences.",
+      inputSchema: z.object({}),
+      execute: () =>
+        runWithServices(
+          Effect.gen(function* () {
+            const service = yield* NoteService;
+            return yield* service.getNote(workspaceId);
+          }),
+        ),
+    }),
     deleteGlossary: tool({
       description:
         "Delete a glossary term. Use when a term is stale, redundant, or the user's understanding has moved past it.",

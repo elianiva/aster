@@ -29,8 +29,12 @@ type Env = Cloudflare.Env & {
 };
 
 type ServiceUnion =
-  | ThreadService | WorkspaceService | ArtifactService
-  | NoteService | GlossaryService | ResourceService;
+  | ThreadService
+  | WorkspaceService
+  | ArtifactService
+  | NoteService
+  | GlossaryService
+  | ResourceService;
 
 function getDefaultConfig(): ModelConfig {
   return { provider: "opencode-go", model: DEFAULT_MODEL, apiKeys: {} };
@@ -121,9 +125,10 @@ export class TeacherAgent extends Think<Env> {
         ),
       ),
     ).then((config) => {
-      const isFallback = config.provider === getDefaultConfig().provider
-        && config.model === getDefaultConfig().model
-        && Object.keys(config.apiKeys).length === 0;
+      const isFallback =
+        config.provider === getDefaultConfig().provider &&
+        config.model === getDefaultConfig().model &&
+        Object.keys(config.apiKeys).length === 0;
       if (!isFallback) {
         this._cachedConfig = config;
       }
@@ -143,32 +148,32 @@ export class TeacherAgent extends Think<Env> {
     const db = this.db();
     const { workspaceId, threadId } = this.threadKey;
 
-    const [workspace, thread] = await Effect.runPromise(
-      Effect.all(
-        [
-          Effect.tryPromise({
-            try: () =>
-              db
-                .select()
-                .from(schema.workspaces)
-                .where(eq(schema.workspaces.id, workspaceId))
-                .limit(1)
-                .then((r) => r[0]),
-            catch: (cause) => new ContextLoadFailed({ cause }),
-          }),
-          Effect.tryPromise({
-            try: () =>
-              db
-                .select()
-                .from(schema.threads)
-                .where(eq(schema.threads.id, threadId))
-                .limit(1)
-                .then((r) => r[0]),
-            catch: (cause) => new ContextLoadFailed({ cause }),
-          }),
-        ],
-        { concurrency: "unbounded" },
-      ).pipe(
+    const [workspace, thread] = await Effect.all(
+      [
+        Effect.tryPromise({
+          try: () =>
+            db
+              .select()
+              .from(schema.workspaces)
+              .where(eq(schema.workspaces.id, workspaceId))
+              .limit(1)
+              .then((r) => r[0]),
+          catch: (cause) => new ContextLoadFailed({ cause }),
+        }),
+        Effect.tryPromise({
+          try: () =>
+            db
+              .select()
+              .from(schema.threads)
+              .where(eq(schema.threads.id, threadId))
+              .limit(1)
+              .then((r) => r[0]),
+          catch: (cause) => new ContextLoadFailed({ cause }),
+        }),
+      ],
+      { concurrency: "unbounded" },
+    )
+      .pipe(
         Effect.tapError((err) =>
           Effect.sync(() =>
             logJson("error", "agent.beforeTurn.context", {
@@ -179,11 +184,11 @@ export class TeacherAgent extends Think<Env> {
             }),
           ),
         ),
-      ),
-    ).catch((err) => {
-      throw (err as { cause?: unknown })?.cause ?? err;
-    });
-
+        Effect.runPromise,
+      )
+      .catch((err) => {
+        throw (err as { cause?: unknown })?.cause ?? err;
+      });
     const workspaceBlock = workspace
       ? `\n## Current Workspace\nTopic: ${workspace.topic}\nMission: ${workspace.mission}\nCurrent knowledge: ${workspace.currentKnowledge}`
       : "";
@@ -194,7 +199,12 @@ export class TeacherAgent extends Think<Env> {
     return {
       model,
       system: `${SYSTEM_PROMPT}${workspaceBlock}${formatsBlock}\n\n${OPENUI_PROMPT}`,
-      tools: createTeacherTools(workspaceId, threadId, this.runWithServices.bind(this), teachingMode),
+      tools: createTeacherTools(
+        workspaceId,
+        threadId,
+        this.runWithServices.bind(this),
+        teachingMode,
+      ),
     };
   }
 
@@ -295,3 +305,4 @@ export class TeacherAgent extends Think<Env> {
     );
   }
 }
+

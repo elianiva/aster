@@ -20,6 +20,8 @@ export function HomePage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const { data: workspaces } = useSuspenseQuery(WorkspaceRpc.listWorkspaces());
+  const { data: recentThreads } = useSuspenseQuery(WorkspaceRpc.recentThreads());
+  const recentByWorkspace = new Map(recentThreads.map((rt) => [rt.workspaceId, { id: rt.threadId, name: rt.threadName }]));
 
   return (
     <div className="min-h-screen bg-background flex items-center">
@@ -58,7 +60,7 @@ export function HomePage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {workspaces.map((workspace) => (
-              <WorkspaceCard key={workspace.id} workspace={workspace} />
+              <WorkspaceCard key={workspace.id} workspace={workspace} recentThread={recentByWorkspace.get(workspace.id)} />
             ))}
           </div>
         )}
