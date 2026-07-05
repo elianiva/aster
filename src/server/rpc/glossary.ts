@@ -1,9 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 import { queryOptions } from "@tanstack/react-query";
-import { AppRuntime } from "../app-runtime";
-import { GlossaryService } from "../features/glossary/service";
-import { createErrorHandler } from "../errors";
+import { createErrorHandler } from "../error-handler";
 
 const onError = createErrorHandler({
   ArtifactError: "Failed to load glossary. Please try again.",
@@ -13,7 +11,11 @@ export const listGlossary = createServerFn({ method: "GET" })
   .validator((data: unknown) =>
     Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data)
   )
-  .handler(({ data }) => {
+  .handler(async ({ data }) => {
+    // Dynamic import: AppRuntime/GlossaryService transitively pull in cloudflare:workers,
+    // which doesn't exist in the browser. Lazy-loading keeps this module client-safe.
+    const { AppRuntime } = await import("../app-runtime");
+    const { GlossaryService } = await import("../features/glossary/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* GlossaryService;

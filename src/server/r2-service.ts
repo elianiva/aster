@@ -1,17 +1,9 @@
+import { env } from "cloudflare:workers";
 import { Context, Effect, Layer } from "effect";
 import { ArtifactError } from "./errors";
 
 export class R2 extends Context.Service<R2, { bucket: R2Bucket }>()("R2") {
-  static readonly layer = Layer.effect(
-    this,
-    Effect.gen(function* () {
-      const { env } = yield* Effect.tryPromise({
-        try: () => import("cloudflare:workers"),
-        catch: () => new Error("Failed to import cloudflare:workers"),
-      });
-      return { bucket: env.ASTER_R2 };
-    }),
-  );
+  static readonly layer = Layer.succeed(this, { bucket: env.ASTER_R2 });
 }
 
 const fail = (op: string) => (cause: unknown) =>

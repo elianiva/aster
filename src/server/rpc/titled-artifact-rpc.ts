@@ -1,9 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 import { queryOptions } from "@tanstack/react-query";
-import { AppRuntime } from "../app-runtime";
-import { ArtifactService, type ArtifactKind } from "../features/artifact/service";
-import { createErrorHandler } from "../errors";
+import type { ArtifactKind } from "../features/artifact/service";
+import { createErrorHandler } from "../error-handler";
 
 /**
  * Generate list + getContent server functions and TanStack Query options
@@ -16,7 +15,10 @@ function createTitledArtifactApi(kind: ArtifactKind, errorMsg: string) {
     .validator((data: unknown) =>
       Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data),
     )
-    .handler(({ data }) => {
+    .handler(async ({ data }) => {
+      // Lazy import: cloudflare:workers is server-only (platform exception)
+      const { AppRuntime } = await import("../app-runtime");
+      const { ArtifactService } = await import("../features/artifact/service");
       return AppRuntime.runPromise(
         Effect.gen(function* () {
           const service = yield* ArtifactService;
@@ -32,7 +34,10 @@ function createTitledArtifactApi(kind: ArtifactKind, errorMsg: string) {
         Schema.Struct({ workspaceId: Schema.String, [idKey]: Schema.String }),
       )(data);
     })
-    .handler(({ data }) => {
+    .handler(async ({ data }) => {
+      // Lazy import: cloudflare:workers is server-only (platform exception)
+      const { AppRuntime } = await import("../app-runtime");
+      const { ArtifactService } = await import("../features/artifact/service");
       return AppRuntime.runPromise(
         Effect.gen(function* () {
           const service = yield* ArtifactService;

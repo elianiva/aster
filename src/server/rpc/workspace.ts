@@ -2,19 +2,18 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Option, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { sql } from "drizzle-orm";
-import { WorkspaceService, CreateWorkspaceInput, UpdateWorkspaceInput } from "../features/workspace/service";
-import { AppRuntime } from "../app-runtime";
-import { Database } from "../db/client";
-import { createErrorHandler } from "../errors";
-import { deleteDOStorage } from "../durable-object-helpers";
-import { deleteR2Content } from "../r2-service";
+import type { CreateWorkspaceInput, UpdateWorkspaceInput } from "../features/workspace/service";
+import { createErrorHandler } from "../error-handler";
 
 const onError = createErrorHandler({
   WorkspaceNotFound: "Workspace not found. It may have been deleted.",
   WorkspacePersistenceFailed: "Failed to complete operation. Please try again.",
 });
 
-export const listWorkspaces = createServerFn({ method: "GET" }).handler(() => {
+export const listWorkspaces = createServerFn({ method: "GET" }).handler(async () => {
+  // Lazy import: cloudflare:workers is server-only (platform exception)
+  const { AppRuntime } = await import("../app-runtime");
+  const { WorkspaceService } = await import("../features/workspace/service");
   return AppRuntime.runPromise(
     Effect.gen(function* () {
       yield* Effect.log("listWorkspaces");
@@ -26,7 +25,10 @@ export const listWorkspaces = createServerFn({ method: "GET" }).handler(() => {
 
 export const getWorkspace = createServerFn({ method: "GET" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(data))
-  .handler(({ data }) => {
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { WorkspaceService } = await import("../features/workspace/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         yield* Effect.log("getWorkspace");
@@ -38,8 +40,15 @@ export const getWorkspace = createServerFn({ method: "GET" })
   });
 
 export const createWorkspace = createServerFn({ method: "POST" })
-  .validator((data: unknown) => Schema.decodeUnknownSync(CreateWorkspaceInput)(data))
-  .handler(({ data }) => {
+  .validator(async (data: unknown) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { CreateWorkspaceInput } = await import("../features/workspace/service");
+    return Schema.decodeUnknownSync(CreateWorkspaceInput)(data);
+  })
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { WorkspaceService } = await import("../features/workspace/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         yield* Effect.log("createWorkspace");
@@ -50,12 +59,17 @@ export const createWorkspace = createServerFn({ method: "POST" })
   });
 
 export const updateWorkspace = createServerFn({ method: "POST" })
-  .validator((data: unknown) =>
-    Schema.decodeUnknownSync(
+  .validator(async (data: unknown) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { UpdateWorkspaceInput } = await import("../features/workspace/service");
+    return Schema.decodeUnknownSync(
       Schema.Struct({ id: Schema.String, ...UpdateWorkspaceInput.fields }),
-    )(data),
-  )
-  .handler(({ data }) => {
+    )(data);
+  })
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { WorkspaceService } = await import("../features/workspace/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         yield* Effect.log("updateWorkspace");
@@ -68,7 +82,12 @@ export const updateWorkspace = createServerFn({ method: "POST" })
 
 export const deleteWorkspace = createServerFn({ method: "POST" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(data))
-  .handler(({ data }) => {
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { WorkspaceService } = await import("../features/workspace/service");
+    const { deleteDOStorage } = await import("../durable-object-helpers");
+    const { deleteR2Content } = await import("../r2-service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         yield* Effect.log("deleteWorkspace");
@@ -102,7 +121,10 @@ export interface RecentThread {
   threadName: string;
 }
 
-export const getRecentThreads = createServerFn({ method: "GET" }).handler(() => {
+export const getRecentThreads = createServerFn({ method: "GET" }).handler(async () => {
+  // Lazy import: cloudflare:workers is server-only (platform exception)
+  const { AppRuntime } = await import("../app-runtime");
+  const { Database } = await import("../db/client");
   return AppRuntime.runPromise(
     Effect.gen(function* () {
       yield* Effect.log("getRecentThreads");

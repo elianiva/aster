@@ -2,7 +2,6 @@ import handler from "@tanstack/react-start/server-entry";
 import type { ThinkAppContext } from "@cloudflare/think/server-entry";
 import { verifyAccess, type AccessConfig } from "./server/cloudflare-access";
 import { logJson } from "./server/logger";
-import { runRequestContext, type RequestContext } from "./server/request-context";
 
 function levelFor(status: number): "info" | "warn" | "error" {
   if (status >= 500) return "error";
@@ -46,18 +45,12 @@ export default {
     headers.set("x-access-email", identity.email);
     headers.set("x-access-sub", identity.sub);
     headers.set("x-request-id", requestId);
+    headers.set("x-path", url.pathname);
     const authedRequest = new Request(request.url, {
       method: request.method,
       headers,
       body: request.body,
     });
-
-    const reqCtx: RequestContext = {
-      requestId,
-      method: request.method,
-      path: url.pathname,
-      email: identity.email,
-    };
 
     const finish = (res: Response): Response => {
       logJson(levelFor(res.status), "request", {
@@ -75,32 +68,13 @@ export default {
     // fall through to Think without our authed headers, and forwarding to the
     // TanStack handler would 404 the DO/WebSocket upgrade.
     if (isAgentRoute) {
-      return runRequestContext(reqCtx, async () => {
-        try {
-          const res =
-            (await think?.router.route(authedRequest, env, ctx)) ??
-            new Response("Not found", { status: 404 });
-          return finish(res);
-        } catch (cause) {
-          logJson("error", "agent.unhandled", {
-            requestId,
-            method: request.method,
-            path: url.pathname,
-            email: identity.email,
-            cause: String(cause),
-            stack: cause instanceof Error ? cause.stack : undefined,
-          });
-          return finish(new Response("Internal Server Error", { status: 500 }));
-        }
-      });
-    }
-
-    return runRequestContext(reqCtx, async () => {
       try {
-        const res = await handler.fetch(authedRequest);
+        const res =
+          (await think?.router.route(authedRequest, env, ctx)) ??
+          new Response("Not found", { status: 404 });
         return finish(res);
       } catch (cause) {
-        logJson("error", "request.unhandled", {
+        logJson("error", "agent.unhandled", {
           requestId,
           method: request.method,
           path: url.pathname,
@@ -110,6 +84,20 @@ export default {
         });
         return finish(new Response("Internal Server Error", { status: 500 }));
       }
-    });
+    }
+    try {
+      const res = await handler.fetch(authedRequest);
+      return finish(res);
+    } catch (cause) {
+      logJson("error", "request.unhandled", {
+        requestId,
+        method: request.method,
+        path: url.pathname,
+        email: identity.email,
+        cause: String(cause),
+        stack: cause instanceof Error ? cause.stack : undefined,
+      });
+      return finish(new Response("Internal Server Error", { status: 500 }));
+    }
   },
 };

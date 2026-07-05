@@ -2,9 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { Effect, Option, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { Settings, DEFAULT_SETTINGS } from "~/features/settings/lib/schema";
-import { SettingsService } from "../features/settings/service";
-import { AppRuntime } from "../app-runtime";
-import { createErrorHandler } from "../errors";
+import { createErrorHandler } from "../error-handler";
 
 const onError = createErrorHandler({
   ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
@@ -12,7 +10,10 @@ const onError = createErrorHandler({
   ArtifactError: "Failed to load. Please try again.",
 });
 
-export const getSettings = createServerFn({ method: "GET" }).handler(() => {
+export const getSettings = createServerFn({ method: "GET" }).handler(async () => {
+  // Lazy-import: transitive dep on cloudflare:workers — must not load on client
+  const { AppRuntime } = await import("../app-runtime");
+  const { SettingsService } = await import("../features/settings/service");
   return AppRuntime.runPromise(
     Effect.gen(function*() {
       yield* Effect.log("getSettings");
@@ -25,7 +26,10 @@ export const getSettings = createServerFn({ method: "GET" }).handler(() => {
 
 export const updateSettings = createServerFn({ method: "POST" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Settings)(data))
-  .handler(({ data }) => {
+  .handler(async ({ data }) => {
+    // Lazy-import: transitive dep on cloudflare:workers — must not load on client
+    const { AppRuntime } = await import("../app-runtime");
+    const { SettingsService } = await import("../features/settings/service");
     return AppRuntime.runPromise(
       Effect.gen(function*() {
         yield* Effect.log("updateSettings");
@@ -35,7 +39,10 @@ export const updateSettings = createServerFn({ method: "POST" })
     ).catch(onError);
   });
 
-export const fetchProviders = createServerFn({ method: "GET" }).handler(() => {
+export const fetchProviders = createServerFn({ method: "GET" }).handler(async () => {
+  // Lazy-import: transitive dep on cloudflare:workers — must not load on client
+  const { AppRuntime } = await import("../app-runtime");
+  const { SettingsService } = await import("../features/settings/service");
   return AppRuntime.runPromise(
     Effect.gen(function*() {
       yield* Effect.log("fetchProviders");

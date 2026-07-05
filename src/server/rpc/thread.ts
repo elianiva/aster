@@ -1,15 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Option, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
-import {
-  ThreadService,
+import type {
   CreateThreadInput,
   RenameThreadInput,
   SetTeachingModeInput,
 } from "../features/thread/service";
-import { AppRuntime } from "../app-runtime";
-import { createErrorHandler } from "../errors";
-import { deleteDOStorage } from "../durable-object-helpers";
+import { createErrorHandler } from "../error-handler";
 
 const onError = createErrorHandler({
   ThreadNotFound: "Thread not found. It may have been deleted.",
@@ -17,8 +14,15 @@ const onError = createErrorHandler({
 });
 
 export const setTeachingMode = createServerFn({ method: "POST" })
-  .validator((data: unknown) => Schema.decodeUnknownSync(SetTeachingModeInput)(data))
-  .handler(({ data }) => {
+  .validator((data: unknown) =>
+    Schema.decodeUnknownSync(
+      Schema.Struct({ id: Schema.String, enabled: Schema.Boolean }),
+    )(data),
+  )
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { ThreadService } = await import("../features/thread/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* ThreadService;
@@ -29,7 +33,10 @@ export const setTeachingMode = createServerFn({ method: "POST" })
 
 export const listThreads = createServerFn({ method: "GET" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data))
-  .handler(({ data }) => {
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { ThreadService } = await import("../features/thread/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* ThreadService;
@@ -39,8 +46,18 @@ export const listThreads = createServerFn({ method: "GET" })
   });
 
 export const createThread = createServerFn({ method: "POST" })
-  .validator((data: unknown) => Schema.decodeUnknownSync(CreateThreadInput)(data))
-  .handler(({ data }) => {
+  .validator((data: unknown) =>
+    Schema.decodeUnknownSync(
+      Schema.Struct({
+        workspaceId: Schema.String,
+        name: Schema.optional(Schema.String),
+      }),
+    )(data),
+  )
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { ThreadService } = await import("../features/thread/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* ThreadService;
@@ -50,8 +67,15 @@ export const createThread = createServerFn({ method: "POST" })
   });
 
 export const renameThread = createServerFn({ method: "POST" })
-  .validator((data: unknown) => Schema.decodeUnknownSync(RenameThreadInput)(data))
-  .handler(({ data }) => {
+  .validator((data: unknown) =>
+    Schema.decodeUnknownSync(
+      Schema.Struct({ id: Schema.String, name: Schema.String }),
+    )(data),
+  )
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { ThreadService } = await import("../features/thread/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* ThreadService;
@@ -62,7 +86,11 @@ export const renameThread = createServerFn({ method: "POST" })
 
 export const deleteThread = createServerFn({ method: "POST" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(data))
-  .handler(({ data }) => {
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { ThreadService } = await import("../features/thread/service");
+    const { deleteDOStorage } = await import("../durable-object-helpers");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         const threads = yield* ThreadService;
@@ -81,7 +109,10 @@ export const deleteThread = createServerFn({ method: "POST" })
 
 export const getThread = createServerFn({ method: "GET" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(data))
-  .handler(({ data }) => {
+  .handler(async ({ data }) => {
+    // Lazy import: cloudflare:workers is server-only (platform exception)
+    const { AppRuntime } = await import("../app-runtime");
+    const { ThreadService } = await import("../features/thread/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* ThreadService;

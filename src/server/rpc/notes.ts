@@ -1,9 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 import { queryOptions } from "@tanstack/react-query";
-import { AppRuntime } from "../app-runtime";
-import { NoteService } from "../features/note/service";
-import { createErrorHandler } from "../errors";
+import { createErrorHandler } from "../error-handler";
 
 const onError = createErrorHandler({
   ArtifactError: "Failed to load notes. Please try again.",
@@ -13,7 +11,11 @@ export const getNote = createServerFn({ method: "GET" })
   .validator((data: unknown) =>
     Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data)
   )
-  .handler(({ data }) => {
+  .handler(async ({ data }) => {
+    // Static import impossible: AppRuntime/NoteService transitively import
+    // "cloudflare:workers", which doesn't exist on the client bundle.
+    const { AppRuntime } = await import("../app-runtime");
+    const { NoteService } = await import("../features/note/service");
     return AppRuntime.runPromise(
       Effect.gen(function* () {
         const service = yield* NoteService;

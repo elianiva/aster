@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { Effect } from "effect";
 
 interface DeletableStub {
@@ -13,9 +14,6 @@ export function deleteDOStorage(
 ): Effect.Effect<void, Error> {
   return Effect.tryPromise({
     try: async () => {
-      // Dynamic import: cloudflare:workers is a platform-specific virtual module
-      // unavailable at static-import time during Vite dev server startup.
-      const { env } = await import("cloudflare:workers");
       const stub = env.Teacher.get(env.Teacher.idFromName(name));
       await (stub as unknown as DeletableStub).deleteStorage();
     },
