@@ -1,5 +1,5 @@
 import { Context, Effect, Layer, Option, Schema } from "effect";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { Database } from "../../db/client";
 import { ThreadNotFound, ThreadPersistenceFailed } from "../../errors";
 import { threads } from "../../db/schema";
@@ -11,6 +11,12 @@ export interface Thread {
   teachingMode: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RecentThread {
+  workspaceId: string;
+  threadId: string;
+  threadName: string;
 }
 
 export const SetTeachingModeInput = Schema.Struct({
@@ -53,6 +59,7 @@ export class ThreadService extends Context.Service<ThreadService, {
   readonly rename: (id: string, name: string) => Effect.Effect<Thread, ThreadNotFound | ThreadPersistenceFailed>;
   readonly delete: (id: string) => Effect.Effect<void, ThreadPersistenceFailed>;
   readonly setTeachingMode: (id: string, enabled: boolean) => Effect.Effect<Thread, ThreadNotFound | ThreadPersistenceFailed>;
+  readonly getRecent: () => Effect.Effect<RecentThread[], ThreadPersistenceFailed>;
 }>()("@aster/features/thread/ThreadService") {
   static readonly layer = Layer.effect(
     this,
@@ -141,6 +148,32 @@ export class ThreadService extends Context.Service<ThreadService, {
         return updated;
       });
 
+      const getRecent = Effect.fn("ThreadService.getRecent")(function* () {
+        const rows = yield* Effect.tryPromise({
+          try: () =>
+            client.all<{
+              workspace_id: string;
+              thread_id: string;
+              thread_name: string;
+            }>(sql`
+              SELECT t.workspace_id, t.id as thread_id, t.name as thread_name
+              FROM threads t
+              INNER JOIN (
+                SELECT workspace_id, MAX(updated_at) as max_updated
+                FROM threads
+                GROUP BY workspace_id
+              ) latest ON t.workspace_id = latest.workspace_id AND t.updated_at = latest.max_updated
+            `),
+          catch: fail("get recent threads"),
+        }).pipe(Effect.withSpan("db.getRecentThreads"));
+        return rows.map((row) => ({
+          workspaceId: row.workspace_id,
+          threadId: row.thread_id,
+          threadName: row.thread_name,
+        }));
+      });
+
+
       return ThreadService.of({
         list,
         get,
@@ -148,6 +181,7 @@ export class ThreadService extends Context.Service<ThreadService, {
         rename,
         delete: delete_,
         setTeachingMode,
+        getRecent,
       });
     }),
   );

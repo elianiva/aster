@@ -1,4 +1,5 @@
 import { Layer, ManagedRuntime } from "effect";
+import { env } from "cloudflare:workers";
 import { FetchHttpClient } from "effect/unstable/http";
 import { SettingsService } from "./features/settings/service";
 import { WorkspaceService } from "./features/workspace/service";
@@ -17,7 +18,7 @@ const BaseLayer = Layer.mergeAll(
   FetchHttpClient.layer,
   KvLayer,
   Database.layer,
-  R2.layer,
+  R2.layer(env.ASTER_R2),
 );
 
 const ServicesLayer = Layer.mergeAll(
@@ -30,8 +31,17 @@ const ServicesLayer = Layer.mergeAll(
   ResourceService.layer,
 );
 
-export const AppLayer = Layer.mergeAll(ServicesLayer, BaseLayer).pipe(
-  Layer.provide(BaseLayer),
+export type AllServices = Layer.Success<typeof ServicesLayer> | R2;
+
+export const AppLayer: Layer.Layer<AllServices, never, never> = Layer.mergeAll(
+  ServicesLayer.pipe(Layer.provide(BaseLayer)),
+  R2.layer(env.ASTER_R2),
 );
 
-export const AppRuntime = ManagedRuntime.make(AppLayer);
+// Deferred — cloudflare:workers bindings only available at runtime
+let managed: ManagedRuntime.ManagedRuntime<AllServices, never> | null = null;
+
+export function appRuntime() {
+  if (!managed) managed = ManagedRuntime.make(AppLayer);
+  return managed;
+}

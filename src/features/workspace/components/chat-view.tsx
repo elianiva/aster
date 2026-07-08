@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import type { ChatStatus } from "ai";
 import {
@@ -21,7 +22,7 @@ import {
 import { Spinner } from "~/components/ui/spinner";
 import { PlusIcon } from "lucide-react";
 import { useTeacherAgent } from "~/features/workspace/hooks/use-teacher-agent";
-import { useThreads } from "~/features/workspace/hooks/use-threads";
+import { queryKeys } from "~/server/rpc/query-keys";
 import { MessageParts } from "./message-parts";
 import { consumePendingMessage } from "./pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
@@ -40,9 +41,9 @@ interface ChatViewProps {
 // ============================================================================
 
 export function ChatView({ workspaceId, threadId }: ChatViewProps) {
-  const { refetch } = useThreads(workspaceId);
+  const queryClient = useQueryClient();
   const agent = useTeacherAgent(`${workspaceId}::${threadId}`);
-  const { hasKey, providerName, isLoading: apiKeyLoading } = useApiKeyStatus();
+  const { hasKey, providerName } = useApiKeyStatus();
 
   const { messages, sendMessage, status, stop, isRecovering, addToolApprovalResponse } =
     useAgentChat({ agent, id: threadId });
@@ -50,12 +51,10 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
   const prevStatus = useRef<ChatStatus>(status);
   useEffect(() => {
     if (prevStatus.current !== "ready" && status === "ready") {
-      refetch();
-      const timer = setTimeout(() => refetch(), 2000);
-      return () => clearTimeout(timer);
+      queryClient.invalidateQueries({ queryKey: queryKeys.threads.all(workspaceId) });
     }
     prevStatus.current = status;
-  }, [status, refetch]);
+  }, [status, workspaceId, queryClient]);
 
   // Send pending first message from EmptyState
   const agentRef = useRef(agent);
@@ -139,7 +138,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
       </Conversation>
 
       <div className="pt-1">
-        {!apiKeyLoading && !hasKey && <ApiKeyBanner providerName={providerName} />}
+        {!hasKey && <ApiKeyBanner providerName={providerName} />}
         <ChatPromptInput
           status={status}
           isBusy={isBusy}

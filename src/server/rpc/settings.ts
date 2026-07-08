@@ -1,72 +1,75 @@
+import { appRuntime } from "../app-runtime";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Option, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
-import { Settings, DEFAULT_SETTINGS } from "~/features/settings/lib/schema";
-import { createErrorHandler } from "../error-handler";
-
-const onError = createErrorHandler({
-  ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
-  KeyValueStoreError: "Failed to save settings. Please try again.",
-  ArtifactError: "Failed to load. Please try again.",
-});
+import { SettingsService } from "../features/settings/service";
+import {
+  Settings,
+  DEFAULT_SETTINGS,
+  type ProviderWithModels,
+} from "~/features/settings/lib/schema";
+import { rpcErrorPipe } from "../error-handler";
+import { queryKeys } from "./query-keys";
 
 export const getSettings = createServerFn({ method: "GET" }).handler(async () => {
-  // Lazy-import: transitive dep on cloudflare:workers — must not load on client
-  const { AppRuntime } = await import("../app-runtime");
-  const { SettingsService } = await import("../features/settings/service");
-  return AppRuntime.runPromise(
-    Effect.gen(function*() {
-      yield* Effect.log("getSettings");
-      const service = yield* SettingsService;
-      const settings = yield* service.get();
-      return Option.getOrElse(settings, () => DEFAULT_SETTINGS);
-    }).pipe(Effect.withSpan("getSettings")),
-  ).catch(onError);
+  return Effect.gen(function*() {
+    const settings = yield* SettingsService.use((svc) => svc.get());
+    return Option.getOrElse(settings, () => DEFAULT_SETTINGS);
+  }).pipe(
+    Effect.withSpan("getSettings"),
+    rpcErrorPipe({
+      ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
+      KeyValueStoreError: "Failed to save settings. Please try again.",
+      ArtifactError: "Failed to load. Please try again.",
+    }),
+    appRuntime().runPromise,
+  );
 });
 
 export const updateSettings = createServerFn({ method: "POST" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Settings)(data))
   .handler(async ({ data }) => {
-    // Lazy-import: transitive dep on cloudflare:workers — must not load on client
-    const { AppRuntime } = await import("../app-runtime");
-    const { SettingsService } = await import("../features/settings/service");
-    return AppRuntime.runPromise(
-      Effect.gen(function*() {
-        yield* Effect.log("updateSettings");
-        const service = yield* SettingsService;
-        yield* service.update(data);
-      }).pipe(Effect.withSpan("updateSettings")),
-    ).catch(onError);
+    return Effect.gen(function*() {
+      yield* SettingsService.use((svc) => svc.update(data));
+    }).pipe(
+      Effect.withSpan("updateSettings"),
+      rpcErrorPipe({
+        ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
+        KeyValueStoreError: "Failed to save settings. Please try again.",
+        ArtifactError: "Failed to load. Please try again.",
+      }),
+      appRuntime().runPromise,
+    );
   });
 
 export const fetchProviders = createServerFn({ method: "GET" }).handler(async () => {
-  // Lazy-import: transitive dep on cloudflare:workers — must not load on client
-  const { AppRuntime } = await import("../app-runtime");
-  const { SettingsService } = await import("../features/settings/service");
-  return AppRuntime.runPromise(
-    Effect.gen(function*() {
-      yield* Effect.log("fetchProviders");
-      const service = yield* SettingsService;
-      return yield* service.fetchProviders();
-    }).pipe(Effect.withSpan("fetchProviders")),
-  ).catch(onError);
+  return Effect.gen(function*() {
+    return yield* SettingsService.use((svc) => svc.fetchProviders());
+  }).pipe(
+    Effect.withSpan("fetchProviders"),
+    rpcErrorPipe({
+      ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
+      KeyValueStoreError: "Failed to save settings. Please try again.",
+      ArtifactError: "Failed to load. Please try again.",
+    }),
+    appRuntime().runPromise,
+  );
 });
 
 export const SettingsRpc = {
-  settings: () => ["settings"],
   getSettings: () =>
     queryOptions({
-      queryKey: [...SettingsRpc.settings()],
-      queryFn: () => getSettings(),
+      queryKey: queryKeys.settings.all,
+      queryFn: (): Promise<Settings> => getSettings(),
     }),
   updateSettings: () =>
     mutationOptions({
-      mutationKey: [...SettingsRpc.settings()],
+      mutationKey: queryKeys.settings.all,
       mutationFn: (input: Settings) => updateSettings({ data: input }),
     }),
   providers: () =>
     queryOptions({
-      queryKey: [...SettingsRpc.settings(), "providers"],
-      queryFn: () => fetchProviders(),
+      queryKey: queryKeys.settings.providers(),
+      queryFn: (): Promise<ProviderWithModels[]> => fetchProviders(),
     }),
 };

@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, useMatch, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { ReferenceRpc } from "~/server/rpc/titled-artifact-rpc"
 import { Skeleton } from "~/components/ui/skeleton";
 import {
@@ -20,9 +20,9 @@ export const Route = createFileRoute("/workspaces/$workspaceId/reference-docs")(
 function RouteReferenceDocs() {
   const { workspaceId } = Route.useParams();
   const navigate = useNavigate();
-  const { data: references = [], isLoading } = useQuery(
-    ReferenceRpc.listReferences(workspaceId),
-  );
+	const { data: references = [] } = useSuspenseQuery(
+		ReferenceRpc.listReferences(workspaceId),
+	);
 
   const match = useMatch({ strict: false });
   const referenceId =
@@ -35,13 +35,7 @@ function RouteReferenceDocs() {
       </div>
       <div className="flex w-64 shrink-0 flex-col border-l bg-card p-3">
         <h2 className="mb-3 px-2 text-sm font-semibold">Reference Docs</h2>
-        {isLoading ? (
-          <div className="flex flex-col gap-2">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-8 w-full" />
-            ))}
-          </div>
-        ) : references.length === 0 ? (
+        {references.length === 0 ? (
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">

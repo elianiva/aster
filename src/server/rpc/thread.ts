@@ -1,17 +1,12 @@
+import { appRuntime } from "../app-runtime";
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Option, Schema } from "effect";
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
-import type {
-  CreateThreadInput,
-  RenameThreadInput,
-  SetTeachingModeInput,
-} from "../features/thread/service";
-import { createErrorHandler } from "../error-handler";
-
-const onError = createErrorHandler({
-  ThreadNotFound: "Thread not found. It may have been deleted.",
-  ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
-});
+import { ThreadService, type Thread } from "../features/thread/service";
+import type { CreateThreadInput, RenameThreadInput, SetTeachingModeInput } from "../features/thread/service";
+import { deleteDOStorage } from "../durable-object-helpers";
+import { rpcErrorPipe } from "../error-handler";
+import { queryKeys } from "./query-keys";
 
 export const setTeachingMode = createServerFn({ method: "POST" })
   .validator((data: unknown) =>
@@ -20,29 +15,31 @@ export const setTeachingMode = createServerFn({ method: "POST" })
     )(data),
   )
   .handler(async ({ data }) => {
-    // Lazy import: cloudflare:workers is server-only (platform exception)
-    const { AppRuntime } = await import("../app-runtime");
-    const { ThreadService } = await import("../features/thread/service");
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        const service = yield* ThreadService;
-        return yield* service.setTeachingMode(data.id, data.enabled);
-      }).pipe(Effect.withSpan("setTeachingMode")),
-    ).catch(onError);
+    return Effect.gen(function* () {
+      return yield* ThreadService.use((svc) => svc.setTeachingMode(data.id, data.enabled));
+    }).pipe(
+      Effect.withSpan("setTeachingMode"),
+      rpcErrorPipe({
+        ThreadNotFound: "Thread not found. It may have been deleted.",
+        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+      }),
+      appRuntime().runPromise,
+    );
   });
 
 export const listThreads = createServerFn({ method: "GET" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ workspaceId: Schema.String }))(data))
   .handler(async ({ data }) => {
-    // Lazy import: cloudflare:workers is server-only (platform exception)
-    const { AppRuntime } = await import("../app-runtime");
-    const { ThreadService } = await import("../features/thread/service");
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        const service = yield* ThreadService;
-        return yield* service.list(data.workspaceId);
-      }).pipe(Effect.withSpan("listThreads")),
-    ).catch(onError);
+    return Effect.gen(function* () {
+      return yield* ThreadService.use((svc) => svc.list(data.workspaceId));
+    }).pipe(
+      Effect.withSpan("listThreads"),
+      rpcErrorPipe({
+        ThreadNotFound: "Thread not found. It may have been deleted.",
+        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+      }),
+      appRuntime().runPromise,
+    );
   });
 
 export const createThread = createServerFn({ method: "POST" })
@@ -55,15 +52,16 @@ export const createThread = createServerFn({ method: "POST" })
     )(data),
   )
   .handler(async ({ data }) => {
-    // Lazy import: cloudflare:workers is server-only (platform exception)
-    const { AppRuntime } = await import("../app-runtime");
-    const { ThreadService } = await import("../features/thread/service");
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        const service = yield* ThreadService;
-        return yield* service.create(data);
-      }).pipe(Effect.withSpan("createThread")),
-    ).catch(onError);
+    return Effect.gen(function* () {
+      return yield* ThreadService.use((svc) => svc.create(data));
+    }).pipe(
+      Effect.withSpan("createThread"),
+      rpcErrorPipe({
+        ThreadNotFound: "Thread not found. It may have been deleted.",
+        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+      }),
+      appRuntime().runPromise,
+    );
   });
 
 export const renameThread = createServerFn({ method: "POST" })
@@ -73,66 +71,68 @@ export const renameThread = createServerFn({ method: "POST" })
     )(data),
   )
   .handler(async ({ data }) => {
-    // Lazy import: cloudflare:workers is server-only (platform exception)
-    const { AppRuntime } = await import("../app-runtime");
-    const { ThreadService } = await import("../features/thread/service");
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        const service = yield* ThreadService;
-        return yield* service.rename(data.id, data.name);
-      }).pipe(Effect.withSpan("renameThread")),
-    ).catch(onError);
+    return Effect.gen(function* () {
+      return yield* ThreadService.use((svc) => svc.rename(data.id, data.name));
+    }).pipe(
+      Effect.withSpan("renameThread"),
+      rpcErrorPipe({
+        ThreadNotFound: "Thread not found. It may have been deleted.",
+        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+      }),
+      appRuntime().runPromise,
+    );
   });
 
 export const deleteThread = createServerFn({ method: "POST" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(data))
   .handler(async ({ data }) => {
-    // Lazy import: cloudflare:workers is server-only (platform exception)
-    const { AppRuntime } = await import("../app-runtime");
-    const { ThreadService } = await import("../features/thread/service");
-    const { deleteDOStorage } = await import("../durable-object-helpers");
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        const threads = yield* ThreadService;
-        const existing = yield* threads.get(data.id);
-        if (Option.isSome(existing)) {
-          yield* threads.delete(data.id);
-          yield* deleteDOStorage(`${existing.value.workspaceId}::${data.id}`).pipe(
-            Effect.catch((error) =>
-              Effect.log(`DO cleanup failed for thread ${data.id}: ${error.message}`),
-            ),
-          );
-        }
-      }).pipe(Effect.withSpan("deleteThread")),
-    ).catch(onError);
+    return Effect.gen(function* () {
+      const threads = yield* ThreadService;
+      const existing = yield* threads.get(data.id);
+      if (Option.isSome(existing)) {
+        yield* threads.delete(data.id);
+        yield* deleteDOStorage(`${existing.value.workspaceId}::${data.id}`).pipe(
+          Effect.catch((error) =>
+            Effect.log(`DO cleanup failed for thread ${data.id}: ${error.message}`),
+          ),
+        );
+      }
+    }).pipe(
+      Effect.withSpan("deleteThread"),
+      rpcErrorPipe({
+        ThreadNotFound: "Thread not found. It may have been deleted.",
+        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+      }),
+      appRuntime().runPromise,
+    );
   });
 
 export const getThread = createServerFn({ method: "GET" })
   .validator((data: unknown) => Schema.decodeUnknownSync(Schema.Struct({ id: Schema.String }))(data))
   .handler(async ({ data }) => {
-    // Lazy import: cloudflare:workers is server-only (platform exception)
-    const { AppRuntime } = await import("../app-runtime");
-    const { ThreadService } = await import("../features/thread/service");
-    return AppRuntime.runPromise(
-      Effect.gen(function* () {
-        const service = yield* ThreadService;
-        const result = yield* service.get(data.id);
-        return Option.getOrNull(result);
-      }).pipe(Effect.withSpan("getThread")),
-    ).catch(onError);
+    return Effect.gen(function* () {
+      const result = yield* ThreadService.use((svc) => svc.get(data.id));
+      return Option.getOrNull(result);
+    }).pipe(
+      Effect.withSpan("getThread"),
+      rpcErrorPipe({
+        ThreadNotFound: "Thread not found. It may have been deleted.",
+        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+      }),
+      appRuntime().runPromise,
+    );
   });
 
 export const ThreadRpc = {
-  thread: (workspaceId: string) => ["thread", workspaceId] as const,
   listThreads: (workspaceId: string) =>
     queryOptions({
-      queryKey: [...ThreadRpc.thread(workspaceId), "list"],
-      queryFn: () => listThreads({ data: { workspaceId } }),
+      queryKey: queryKeys.threads.list(workspaceId),
+      queryFn: (): Promise<Thread[]> => listThreads({ data: { workspaceId } }),
     }),
   getThread: (threadId: string) =>
     queryOptions({
-      queryKey: ["thread", threadId],
-      queryFn: () => getThread({ data: { id: threadId } }),
+      queryKey: queryKeys.threads.detail(threadId),
+      queryFn: (): Promise<Thread | null> => getThread({ data: { id: threadId } }),
     }),
   createThread: () =>
     mutationOptions({

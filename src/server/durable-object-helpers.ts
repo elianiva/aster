@@ -1,10 +1,6 @@
 import { env } from "cloudflare:workers";
 import { Effect } from "effect";
 
-interface DeletableStub {
-  deleteStorage(): Promise<void>;
-}
-
 /**
  * Delete a Teacher DO's hibernated storage by name.
  * The name format is `${workspaceId}::${threadId}`.
@@ -15,7 +11,7 @@ export function deleteDOStorage(
   return Effect.tryPromise({
     try: async () => {
       const stub = env.Teacher.get(env.Teacher.idFromName(name));
-      await (stub as unknown as DeletableStub).deleteStorage();
+      await (stub as unknown as { deleteStorage(): Promise<void> }).deleteStorage();
     },
     catch: (cause) => new Error(`DO cleanup failed for ${name}: ${cause}`),
   });

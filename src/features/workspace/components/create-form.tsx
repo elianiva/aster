@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { WorkspaceRpc } from "~/server/rpc/workspace";
+import { queryKeys } from "~/server/rpc/query-keys";
 import { useNavigate } from "@tanstack/react-router";
 
 interface CreateWorkspaceFormProps {
@@ -30,7 +31,7 @@ export function CreateWorkspaceForm({ open, onOpenChange }: CreateWorkspaceFormP
   const createMutation = useMutation({
     ...WorkspaceRpc.createWorkspace(),
     onSuccess: (workspace) => {
-      queryClient.invalidateQueries({ queryKey: WorkspaceRpc.workspace() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all });
       onOpenChange(false);
       setTopic("");
       setMission("");

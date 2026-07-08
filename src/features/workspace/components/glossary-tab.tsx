@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState, useDeferredValue, useMemo } from "react";
 import { GlossaryRpc } from "~/server/rpc/glossary";
 import {
@@ -12,14 +12,13 @@ import { Input } from "~/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Book02Icon } from "@hugeicons/core-free-icons";
 import { Search02Icon } from "@hugeicons/core-free-icons";
-import { Skeleton } from "~/components/ui/skeleton";
 
 interface GlossaryTabProps {
 	workspaceId: string;
 }
 
 export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
-	const { data: terms = [], isLoading } = useQuery(GlossaryRpc.listGlossary(workspaceId));
+	const { data: terms = [] } = useSuspenseQuery(GlossaryRpc.listGlossary(workspaceId));
 	const [query, setQuery] = useState("");
 	const deferredQuery = useDeferredValue(query);
 
@@ -33,18 +32,6 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 		);
 	}, [terms, deferredQuery]);
 
-	if (isLoading) {
-		return (
-			<div className="flex h-full flex-col p-4">
-				<Skeleton className="mb-4 h-9 w-full" />
-				<div className="flex flex-col gap-2">
-					{Array.from({ length: 4 }).map((_, i) => (
-						<Skeleton key={i} className="h-20 w-full rounded-lg" />
-					))}
-				</div>
-			</div>
-		);
-	}
 
 	if (terms.length === 0) {
 		return (

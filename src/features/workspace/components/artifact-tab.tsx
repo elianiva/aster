@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, type UseSuspenseQueryOptions } from "@tanstack/react-query";
 import { Renderer } from "@openuidev/react-lang";
 import { asterLibrary } from "~/components/openui/library";
 import {
@@ -10,7 +10,6 @@ import {
 	EmptyTitle,
 } from "~/components/ui/empty";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import { Skeleton } from "~/components/ui/skeleton";
 
 export interface ArtifactItem {
 	id: string;
@@ -40,28 +39,10 @@ interface ArtifactTabProps {
 
 export function ArtifactTab({ workspaceId, config }: ArtifactTabProps) {
 	const [selectedId, setSelectedId] = useState<string | null>(null);
-	const resp = useQuery(config.listQuery(workspaceId) as never);
+	const options = config.listQuery(workspaceId) as UseSuspenseQueryOptions;
+	const resp = useSuspenseQuery(options);
 	const items = (resp.data ?? []) as ArtifactItem[];
-	const isLoading = resp.isLoading;
 
-	if (isLoading) {
-		return (
-			<div className="flex h-full flex-col p-4">
-				<Skeleton className="mb-4 h-6 w-32" />
-				<div className="flex flex-col gap-2">
-					{Array.from({ length: 4 }).map((_, i) => (
-						<div
-							key={i}
-							className="flex items-center justify-between rounded-lg border bg-card p-3"
-						>
-							<Skeleton className="h-4 w-36" />
-							<Skeleton className="h-3 w-16" />
-						</div>
-					))}
-				</div>
-			</div>
-		);
-	}
 
 	if (items.length === 0) {
 		return (
@@ -132,9 +113,9 @@ function ArtifactDetailView({
   contentQuery,
   errorText,
 }: ArtifactDetailViewProps) {
-	const resp = useQuery(contentQuery(workspaceId, itemId) as never);
-	const content = (resp.data ?? null) as ArtifactContent | null;
-	const isLoading = resp.isLoading;
+	const options = contentQuery(workspaceId, itemId) as UseSuspenseQueryOptions;
+	const resp = useSuspenseQuery(options);
+	const content: ArtifactContent | null = (resp.data ?? null) as ArtifactContent | null;
 
 	return (
 		<div className="flex h-full flex-col p-4">
@@ -149,14 +130,7 @@ function ArtifactDetailView({
 				<h2 className="text-lg font-semibold">{title}</h2>
 			</div>
 			<div className="flex-1 overflow-y-auto">
-				{isLoading ? (
-					<div className="flex flex-col gap-3">
-						<Skeleton className="h-4 w-48" />
-						<Skeleton className="h-4 w-full" />
-						<Skeleton className="h-4 w-full" />
-						<Skeleton className="h-4 w-3/4" />
-					</div>
-				) : content ? (
+				{content ? (
 					<Renderer
 						library={asterLibrary}
 						response={content.content}

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { ResourceRpc } from "~/server/rpc/resources";
 import {
 	Empty,
@@ -9,27 +9,14 @@ import {
 } from "~/components/ui/empty";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link04Icon } from "@hugeicons/core-free-icons";
-import { Skeleton } from "~/components/ui/skeleton";
 
 interface ResourcesTabProps {
 	workspaceId: string;
 }
 
 export function ResourcesTab({ workspaceId }: ResourcesTabProps) {
-	const { data: resources = [], isLoading } = useQuery(ResourceRpc.listResources(workspaceId));
+	const { data: resources = [] } = useSuspenseQuery(ResourceRpc.listResources(workspaceId));
 
-	if (isLoading) {
-		return (
-			<div className="flex h-full flex-col p-4">
-				<Skeleton className="mb-4 h-6 w-28" />
-				<div className="flex flex-col gap-2">
-					{Array.from({ length: 4 }).map((_, i) => (
-						<Skeleton key={i} className="h-16 w-full rounded-lg" />
-					))}
-				</div>
-			</div>
-		);
-	}
 
 	if (resources.length === 0) {
 		return (

@@ -22,6 +22,7 @@ import {
   Key02Icon,
 } from "@hugeicons/core-free-icons";
 import { SettingsRpc } from "~/server/rpc/settings";
+import { queryKeys } from "~/server/rpc/query-keys";
 
 interface ModelItem {
   id: string;
@@ -75,21 +76,21 @@ export function GlobalSettingsPanel() {
   const mutation = useMutation({
     ...SettingsRpc.updateSettings(),
     onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey: SettingsRpc.settings() });
-      const previous = queryClient.getQueryData(SettingsRpc.settings());
-      queryClient.setQueryData(SettingsRpc.settings(), (old: typeof settings) => ({
+      await queryClient.cancelQueries({ queryKey: queryKeys.settings.all });
+      const previous = queryClient.getQueryData(queryKeys.settings.all);
+      queryClient.setQueryData(queryKeys.settings.all, (old: typeof settings) => ({
         ...old,
         ...variables,
       }));
       return { previous };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: SettingsRpc.settings() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.settings.all });
       setStatus('saved');
     },
     onError: (_err, _variables, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(SettingsRpc.settings(), context.previous);
+        queryClient.setQueryData(queryKeys.settings.all, context.previous);
       }
       setStatus('error');
     },

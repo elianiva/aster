@@ -20,6 +20,7 @@ import { Settings02Icon, SlidersHorizontalIcon } from "@hugeicons/core-free-icon
 import { WorkspaceRpc } from "~/server/rpc/workspace";
 import { GlobalSettingsPanel } from "~/features/settings/components/global-settings-panel";
 import type { Workspace } from "~/server/features/workspace/service";
+import { queryKeys } from "~/server/rpc/query-keys";
 
 interface WorkspaceSettingsModalProps {
   workspace: Workspace;
@@ -45,7 +46,7 @@ export function WorkspaceSettingsModal({
   const updateMutation = useMutation({
     ...WorkspaceRpc.updateWorkspace(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: WorkspaceRpc.workspace() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all });
       onOpenChange(false);
     },
   });
@@ -53,7 +54,7 @@ export function WorkspaceSettingsModal({
   const deleteMutation = useMutation({
     ...WorkspaceRpc.deleteWorkspace(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: WorkspaceRpc.workspace() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all });
       navigate({ to: "/" });
     },
   });

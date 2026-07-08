@@ -18,7 +18,7 @@ import {
   type ModelConfig,
   DEFAULT_MODEL,
 } from "../src/server/features/workspace/model";
-import { createTeacherTools } from "../src/lib/teacher-tools";
+import { createTeacherTools } from "../src/lib/teacher-tools/index";
 import SYSTEM_PROMPT from "./prompts/teacher.md?raw";
 import TEACH_FORMATS from "./prompts/teach-formats.md?raw";
 import OPENUI_PROMPT from "../src/lib/openui/component-prompt.txt?raw";
@@ -27,14 +27,6 @@ import TITLE_PROMPT from "./prompts/title-generation.md?raw";
 type Env = Cloudflare.Env & {
   ASTER_KV: KVNamespace;
 };
-
-type ServiceUnion =
-  | ThreadService
-  | WorkspaceService
-  | ArtifactService
-  | NoteService
-  | GlossaryService
-  | ResourceService;
 
 function getDefaultConfig(): ModelConfig {
   return { provider: "opencode-go", model: DEFAULT_MODEL, apiKeys: {} };
@@ -68,24 +60,21 @@ export class TeacherAgent extends Think<Env> {
     return drizzle(this.env.aster_db, { schema });
   }
 
-  private runWithServices<A>(
-    program: Effect.Effect<A, unknown, ServiceUnion | Database | R2>,
-  ): Promise<A> {
-    const dbLayer = Layer.succeed(Database, { client: this.db() });
-    const r2Layer = Layer.succeed(R2, { bucket: this.env.ASTER_R2 });
-    const layer = Layer.mergeAll(
-      dbLayer,
-      r2Layer,
-      ThreadService.layer.pipe(Layer.provide(dbLayer)),
-      WorkspaceService.layer.pipe(Layer.provide(dbLayer)),
-      ArtifactService.layer.pipe(Layer.provide(dbLayer)),
-      NoteService.layer.pipe(Layer.provide(dbLayer)),
-      GlossaryService.layer.pipe(Layer.provide(dbLayer)),
-      ResourceService.layer.pipe(Layer.provide(dbLayer)),
+  private get layer() {
+    const base = Layer.mergeAll(
+      Layer.succeed(Database, { client: this.db() }),
+      R2.layer(this.env.ASTER_R2),
     );
-    return Effect.runPromise(program.pipe(Effect.provide(layer)));
+    return Layer.mergeAll(
+      base,
+      ThreadService.layer.pipe(Layer.provide(base)),
+      WorkspaceService.layer.pipe(Layer.provide(base)),
+      ArtifactService.layer.pipe(Layer.provide(base)),
+      NoteService.layer.pipe(Layer.provide(base)),
+      GlossaryService.layer.pipe(Layer.provide(base)),
+      ResourceService.layer.pipe(Layer.provide(base)),
+    );
   }
-
   private loadModelConfig(): Promise<ModelConfig> {
     if (this._cachedConfig) return Promise.resolve(this._cachedConfig);
     const kv = this.env.ASTER_KV;
@@ -199,12 +188,7 @@ export class TeacherAgent extends Think<Env> {
     return {
       model,
       system: `${SYSTEM_PROMPT}${workspaceBlock}${formatsBlock}\n\n${OPENUI_PROMPT}`,
-      tools: createTeacherTools(
-        workspaceId,
-        threadId,
-        this.runWithServices.bind(this),
-        teachingMode,
-      ),
+      tools: createTeacherTools(workspaceId, threadId, teachingMode),
     };
   }
 
@@ -285,11 +269,11 @@ export class TeacherAgent extends Think<Env> {
             });
             const title = result.text.trim().slice(0, 80);
             if (title.length > 0) {
-              await self.runWithServices(
+              await Effect.runPromise(
                 Effect.gen(function*() {
                   const service = yield* ThreadService;
                   yield* service.rename(threadId, title);
-                }),
+                }).pipe(Effect.provide(self.layer)),
               );
             }
           },
@@ -305,4 +289,3 @@ export class TeacherAgent extends Think<Env> {
     );
   }
 }
-

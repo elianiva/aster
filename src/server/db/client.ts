@@ -5,9 +5,11 @@ import * as schema from "./schema";
 
 export type DrizzleClient = DrizzleD1Database<typeof schema>;
 
-export class Database extends Context.Service<Database, {
+interface DatabaseShape {
   client: DrizzleClient;
-}>()("Database") {
+}
+
+export class Database extends Context.Service<Database, DatabaseShape>()("Database") {
   static readonly layer = Layer.succeed(this, {
     client: drizzle(env.aster_db, { schema }),
   });

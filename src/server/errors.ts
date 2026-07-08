@@ -24,3 +24,14 @@ export class ThreadNotFound extends Schema.TaggedErrorClass<ThreadNotFound>()("T
 export class ThreadPersistenceFailed extends Schema.TaggedErrorClass<ThreadPersistenceFailed>()("ThreadPersistenceFailed", {
   message: Schema.String,
 }) {}
+export class GlossaryPersistenceFailed extends Schema.TaggedErrorClass<GlossaryPersistenceFailed>()("GlossaryPersistenceFailed", {
+  message: Schema.String,
+}) {}
+
+export class ResourcePersistenceFailed extends Schema.TaggedErrorClass<ResourcePersistenceFailed>()("ResourcePersistenceFailed", {
+  message: Schema.String,
+}) {}
+
+export class NotePersistenceFailed extends Schema.TaggedErrorClass<NotePersistenceFailed>()("NotePersistenceFailed", {
+  message: Schema.String,
+}) {}

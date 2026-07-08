@@ -1,15 +1,18 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { SettingsRpc } from "~/server/rpc/settings";
 
-export function useApiKeyStatus() {
-  const { data: settings, isLoading: settingsLoading } = useQuery(SettingsRpc.getSettings());
-  const { data: providers = [], isLoading: providersLoading } = useQuery(SettingsRpc.providers());
+interface ApiKeyStatus {
+  hasKey: boolean;
+  requiredEnv: string | undefined;
+  providerName: string;
+}
 
-  const status = useMemo(() => {
-    if (!settings) {
-      return { hasKey: false, requiredEnv: undefined as string | undefined, providerName: "", isLoading: true };
-    }
+export function useApiKeyStatus(): ApiKeyStatus {
+  const { data: settings } = useSuspenseQuery(SettingsRpc.getSettings());
+  const { data: providers = [] } = useSuspenseQuery(SettingsRpc.providers());
+
+  return useMemo(() => {
     const provider = providers.find(
       (p) => p.provider.id === settings.selectedProvider,
     );
@@ -23,9 +26,6 @@ export function useApiKeyStatus() {
       hasKey,
       requiredEnv,
       providerName: provider?.provider.name ?? settings.selectedProvider,
-      isLoading: settingsLoading || providersLoading,
     };
-  }, [settings, providers, settingsLoading, providersLoading]);
-
-  return status;
+  }, [settings, providers]);
 }

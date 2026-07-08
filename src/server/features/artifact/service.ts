@@ -1,7 +1,7 @@
 import { Context, Effect, Layer } from "effect";
 import { eq, and, sql } from "drizzle-orm";
 import { Database } from "../../db/client";
-import { fetchR2Content, putR2Content, deleteR2Content } from "../../r2-service";
+import { R2 } from "../../r2-service";
 import { ArtifactError } from "../../errors";
 import * as schema from "../../db/schema";
 
@@ -32,20 +32,20 @@ interface ArtifactRow {
 
 // ── Errors ─────────────────────────────────────────────────────────────────
 
-const fail = (op: string) => (cause: unknown) =>
-  new ArtifactError({ message: `${op}: ${cause}` });
+const fail = (op: string) => (cause: unknown) => new ArtifactError({ message: `${op}: ${cause}` });
 
 // ── Service ────────────────────────────────────────────────────────────────
 
 export class ArtifactService extends Context.Service<ArtifactService>()(
   "@aster/features/artifact/ArtifactService",
   {
-    make: Effect.gen(function* () {
+    make: Effect.gen(function*() {
       const db = yield* Database;
       const client = db.client;
+      const r2 = yield* R2;
 
       const listTitled = (kind: ArtifactKind) =>
-        Effect.fn(`ArtifactService.list.${kind}`)(function* (workspaceId: string) {
+        Effect.fn(`ArtifactService.list.${kind}`)(function*(workspaceId: string) {
           const table = titledTable(kind);
           const rows = yield* Effect.tryPromise({
             try: () =>
@@ -63,10 +63,7 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
         });
 
       const getTitled = (kind: ArtifactKind) =>
-        Effect.fn(`ArtifactService.get.${kind}`)(function* (
-          id: string,
-          workspaceId: string,
-        ) {
+        Effect.fn(`ArtifactService.get.${kind}`)(function*(id: string, workspaceId: string) {
           const table = titledTable(kind);
           const rows = yield* Effect.tryPromise({
             try: () =>
@@ -82,17 +79,17 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
         });
 
       const getContent = (kind: ArtifactKind) =>
-        Effect.fn(`ArtifactService.getContent.${kind}`)(function* (
+        Effect.fn(`ArtifactService.getContent.${kind}`)(function*(
           id: string,
           workspaceId: string,
         ) {
           const row = yield* getTitled(kind)(id, workspaceId);
           if (!row) return null;
-          return yield* fetchR2Content(row.r2Key);
+          return yield* r2.fetch(row.r2Key);
         });
 
       const createTitled = (kind: ArtifactKind) =>
-        Effect.fn(`ArtifactService.create.${kind}`)(function* (input: {
+        Effect.fn(`ArtifactService.create.${kind}`)(function*(input: {
           workspaceId: string;
           title: string;
           content: string;
@@ -103,7 +100,7 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
           const r2Key = `${r2Prefix}/${id}.openui`;
           const now = new Date();
 
-          yield* putR2Content(r2Key, input.content);
+          yield* r2.put(r2Key, input.content);
           yield* Effect.tryPromise({
             try: () =>
               client.insert(table).values({
@@ -120,10 +117,7 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
         });
 
       const deleteTitled = (kind: ArtifactKind) =>
-        Effect.fn(`ArtifactService.delete.${kind}`)(function* (
-          id: string,
-          workspaceId: string,
-        ) {
+        Effect.fn(`ArtifactService.delete.${kind}`)(function*(id: string, workspaceId: string) {
           const row = yield* getTitled(kind)(id, workspaceId);
           if (!row) return false;
           const table = titledTable(kind);
@@ -131,13 +125,13 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
             try: () => client.delete(table).where(eq(table.id, id)),
             catch: fail(`delete ${kind}`),
           });
-          yield* deleteR2Content(row.r2Key);
+          yield* r2.delete(row.r2Key);
           return true;
         });
 
       // ── Counts ───────────────────────────────────────────────────────
 
-      const getArtifactCounts = Effect.fn("ArtifactService.getArtifactCounts")(function* (
+      const getArtifactCounts = Effect.fn("ArtifactService.getArtifactCounts")(function*(
         workspaceId: string,
       ) {
         const [row] = yield* Effect.tryPromise({
@@ -183,8 +177,11 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
 
 function titledTable(kind: ArtifactKind) {
   switch (kind) {
-    case "lesson": return schema.lessons;
-    case "record": return schema.records;
-    case "reference": return schema.references;
+    case "lesson":
+      return schema.lessons;
+    case "record":
+      return schema.records;
+    case "reference":
+      return schema.references;
   }
 }

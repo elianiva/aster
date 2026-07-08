@@ -20,8 +20,7 @@ export const Route = createFileRoute("/workspaces/$workspaceId/threads")({
 function RouteThreads() {
   const { workspaceId } = Route.useParams();
   const navigate = useNavigate();
-  const { query, rename, remove } = useThreads(workspaceId);
-  const threads = query.data ?? [];
+  const { threads, rename, remove } = useThreads(workspaceId);
   const [threadError, setThreadError] = useState<string | null>(null);
 
   const match = useMatch({ strict: false });

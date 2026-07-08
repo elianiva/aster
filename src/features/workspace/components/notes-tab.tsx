@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Renderer } from "@openuidev/react-lang";
 import { asterLibrary } from "~/components/openui/library";
 import { NoteRpc } from "~/server/rpc/notes";
@@ -11,27 +11,14 @@ import {
 } from "~/components/ui/empty";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { StickyNote01Icon } from "@hugeicons/core-free-icons";
-import { Skeleton } from "~/components/ui/skeleton";
 
 interface NotesTabProps {
 	workspaceId: string;
 }
 
 export function NotesTab({ workspaceId }: NotesTabProps) {
-	const { data: note, isLoading } = useQuery(NoteRpc.getNote(workspaceId));
+	const { data: note } = useSuspenseQuery(NoteRpc.getNote(workspaceId));
 
-	if (isLoading) {
-		return (
-			<div className="flex h-full flex-col p-4">
-				<Skeleton className="mb-4 h-4 w-40" />
-				<div className="flex flex-col gap-3">
-					<Skeleton className="h-4 w-full" />
-					<Skeleton className="h-4 w-full" />
-					<Skeleton className="h-4 w-3/4" />
-				</div>
-			</div>
-		);
-	}
 
 	if (!note) {
 		return (

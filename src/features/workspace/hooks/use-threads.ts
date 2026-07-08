@@ -1,16 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ThreadRpc } from "~/server/rpc/thread";
-import { WorkspaceRpc } from "~/server/rpc/workspace";
 import type { Thread } from "~/server/features/thread/service";
+import { queryKeys } from "~/server/rpc/query-keys";
 
 export function useThreads(workspaceId: string) {
   const queryClient = useQueryClient();
-  const listKey = ThreadRpc.thread(workspaceId);
+  const listKey = queryKeys.threads.all(workspaceId);
 
-  const query = useQuery({
-    ...ThreadRpc.listThreads(workspaceId),
-    refetchOnWindowFocus: true,
-  });
+	const { data: threads } = useSuspenseQuery({
+		...ThreadRpc.listThreads(workspaceId),
+		refetchOnWindowFocus: true,
+	});
 
   const create = useMutation({
     ...ThreadRpc.createThread(),
@@ -33,10 +33,16 @@ export function useThreads(workspaceId: string) {
     onError: (_e, _input, ctx) => {
       if (ctx?.prev) queryClient.setQueryData([...listKey, "list"], ctx.prev);
     },
-    onSuccess: (_thread, _input, _ctx) => {
-      // Invalidate rather than patch — the server-generated ID differs from
-      // the client's optimistic UUID, so a map-swap can't find the entry.
-      queryClient.invalidateQueries({ queryKey: [...listKey, "list"] });
+    onSuccess: (thread) => {
+      // Replace the optimistic entry (matched by name) with the server response
+      queryClient.setQueryData<Thread[]>([...listKey, "list"], (cur) => {
+        if (!cur) return [thread];
+        const idx = cur.findIndex((t) => t.id !== thread.id && t.name === thread.name);
+        if (idx === -1) return [thread, ...cur];
+        const next = [...cur];
+        next[idx] = thread;
+        return next;
+      });
     },
   });
 
@@ -69,11 +75,11 @@ export function useThreads(workspaceId: string) {
       if (ctx?.prev) queryClient.setQueryData([...listKey, "list"], ctx.prev);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: WorkspaceRpc.workspace() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all });
     },
   });
 
   const refetch = () => queryClient.invalidateQueries({ queryKey: [...listKey, "list"] });
 
-  return { query, create, rename, remove, refetch };
+	return { threads, create, rename, remove, refetch };
 }

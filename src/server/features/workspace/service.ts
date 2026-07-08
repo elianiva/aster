@@ -154,14 +154,15 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
         const threadIds = threadRows.map((r) => r.id);
 
         const r2Tables = [lessons, records, references, notes] as const;
-        const r2Keys: string[] = [];
-        for (const table of r2Tables) {
-          const rows = yield* Effect.tryPromise({
-            try: () => client.select({ r2Key: table.r2Key }).from(table).where(eq(table.workspaceId, id)),
-            catch: fail("list R2 keys for cascade"),
-          });
-          for (const row of rows) r2Keys.push(row.r2Key);
-        }
+        const r2KeyArrays = yield* Effect.all(
+          r2Tables.map((table) =>
+            Effect.tryPromise({
+              try: () => client.select({ r2Key: table.r2Key }).from(table).where(eq(table.workspaceId, id)),
+              catch: fail("list R2 keys for cascade"),
+            })
+          ),
+        );
+        const r2Keys = r2KeyArrays.flat().map((r) => r.r2Key);
 
         const childTables = [threads, lessons, records, references, glossary, resources, notes] as const;
         yield* Effect.all(
