@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+import { Label } from "~/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -66,9 +67,9 @@ export function CreateWorkspaceForm({ open, onOpenChange }: CreateWorkspaceFormP
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <label htmlFor="topic" className="text-sm font-medium">
+              <Label htmlFor="topic">
                 Topic <span className="text-muted-foreground">*</span>
-              </label>
+              </Label>
               <Input
                 id="topic"
                 value={topic}
@@ -80,9 +81,9 @@ export function CreateWorkspaceForm({ open, onOpenChange }: CreateWorkspaceFormP
               </p>
             </div>
             <div className="grid gap-2">
-              <label htmlFor="mission" className="text-sm font-medium">
+              <Label htmlFor="mission">
                 Mission <span className="text-muted-foreground">*</span>
-              </label>
+              </Label>
               <Textarea
                 id="mission"
                 value={mission}
@@ -95,9 +96,9 @@ export function CreateWorkspaceForm({ open, onOpenChange }: CreateWorkspaceFormP
               </p>
             </div>
             <div className="grid gap-2">
-              <label htmlFor="currentKnowledge" className="text-sm font-medium">
+              <Label htmlFor="currentKnowledge">
                 Current Knowledge
-              </label>
+              </Label>
               <Textarea
                 id="currentKnowledge"
                 value={currentKnowledge}

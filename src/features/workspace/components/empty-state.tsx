@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Message02Icon, Key02Icon } from "@hugeicons/core-free-icons";
+import { Message02Icon } from "@hugeicons/core-free-icons";
 import {
   PromptInput,
   type PromptInputMessage,
@@ -24,8 +24,7 @@ import { PlusIcon } from "lucide-react";
 import { useThreads } from "~/features/workspace/hooks/use-threads";
 import { setPendingMessage } from "./pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
-import { Button } from "~/components/ui/button";
-import { SettingsDialog } from "~/features/settings/components/global-settings-dialog";
+import { ApiKeyBanner } from "~/components/ai-elements/api-key-banner";
 
 const STARTER_SUGGESTIONS = [
   "What should I learn first?",
@@ -133,34 +132,22 @@ function EmptyStateInput({
   return (
     <PromptInput accept="image/*" multiple onSubmit={submit} aria-disabled={disabled}>
       <PromptInputAttachments />
-      <PromptInputButton
-        aria-label="Add attachment"
-        onClick={() => attachments.openFileDialog()}
-        disabled={disabled}
-      >
-        <PlusIcon className="size-5" />
-      </PromptInputButton>
+      <AttachmentButton disabled={disabled} />
       <PromptInputTextarea placeholder={disabled ? "Set an API key in Settings to start…" : "Ask your teacher…"} disabled={disabled} />
       <PromptInputSubmit status="ready" disabled={!hasContent || disabled} />
     </PromptInput>
   );
 }
 
-function ApiKeyBanner({ providerName }: { providerName: string }) {
-  const [open, setOpen] = useState(false);
-
+function AttachmentButton({ disabled }: { disabled?: boolean }) {
+  const { openFileDialog } = usePromptInputController();
   return (
-    <div className="mx-auto mb-3 max-w-3xl rounded-xl border border-dashed border-muted-foreground/30 bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
-      <div className="flex items-center justify-center gap-2">
-        <HugeiconsIcon icon={Key02Icon} className="size-4" />
-        <span>
-          No API key configured for <strong>{providerName}</strong>.
-        </span>
-        <Button variant="link" size="sm" className="h-auto p-0" onClick={() => setOpen(true)}>
-          Open Settings
-        </Button>
-      </div>
-      <SettingsDialog open={open} onOpenChange={setOpen} />
-    </div>
+    <PromptInputButton
+      aria-label="Add attachment"
+      onClick={openFileDialog}
+      disabled={disabled}
+    >
+      <PlusIcon className="size-5" />
+    </PromptInputButton>
   );
 }

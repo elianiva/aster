@@ -3,16 +3,11 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { Spinner } from "~/components/ui/spinner";
 import { cn } from "~/lib/utils";
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
-import { math } from "@streamdown/math";
-import { mermaid } from "@streamdown/mermaid";
+import { streamdownPlugins } from "~/lib/streamdown-plugins";
 import { BrainIcon, ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Streamdown } from "streamdown";
-
-const streamdownPlugins = { cjk, code, math, mermaid };
 
 interface ReasoningContextValue {
   isStreaming: boolean;
@@ -29,7 +24,10 @@ function useReasoning() {
   return ctx;
 }
 
-export type ReasoningProps = Omit<React.ComponentProps<typeof Collapsible>, "open" | "defaultOpen" | "onOpenChange"> & {
+export type ReasoningProps = Omit<
+  React.ComponentProps<typeof Collapsible>,
+  "open" | "defaultOpen" | "onOpenChange"
+> & {
   isStreaming?: boolean;
   duration?: number;
 };
@@ -43,7 +41,11 @@ export const Reasoning = ({
   className,
   children,
   ...props
-}: ReasoningProps & { defaultOpen?: boolean; open?: boolean; onOpenChange?: (open: boolean) => void }) => {
+}: ReasoningProps & {
+  defaultOpen?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) => {
   const [internalOpen, setInternalOpen] = useState(defaultOpen ?? true);
   const isOpen = open ?? internalOpen;
   const setIsOpen = (next: boolean) => {
@@ -64,7 +66,7 @@ export const Reasoning = ({
     <ReasoningContext.Provider value={value}>
       <Collapsible
         data-slot="reasoning"
-        className={cn("w-full rounded-lg border bg-muted/30 text-sm", className)}
+        className={cn("w-full text-sm", className)}
         open={isOpen}
         onOpenChange={setIsOpen}
         {...props}
@@ -100,10 +102,7 @@ export const ReasoningTrigger = ({
   return (
     <CollapsibleTrigger
       data-slot="reasoning-trigger"
-      className={cn(
-        "flex w-full items-center gap-2 px-3 py-2 text-muted-foreground",
-        className,
-      )}
+      className={cn("flex w-full items-center gap-2 text-muted-foreground", className)}
       onClick={() => setIsOpen(!isOpen)}
       {...props}
     >
@@ -116,7 +115,10 @@ export const ReasoningTrigger = ({
   );
 };
 
-export type ReasoningContentProps = Omit<React.ComponentProps<typeof CollapsibleContent>, "children"> & {
+export type ReasoningContentProps = Omit<
+  React.ComponentProps<typeof CollapsibleContent>,
+  "children"
+> & {
   children: string;
 };
 
@@ -126,10 +128,7 @@ export const ReasoningContent = ({ className, children, ...props }: ReasoningCon
     className={cn("px-3 pb-3 text-muted-foreground", className)}
     {...props}
   >
-    <Streamdown
-      className={cn("[&>*:first-child]:mt-0 [&>*:last-child]:mb-0", className)}
-      plugins={streamdownPlugins}
-    >
+    <Streamdown className={cn("prose-sm leading-tight mt-3", className)} plugins={streamdownPlugins}>
       {children}
     </Streamdown>
   </CollapsibleContent>

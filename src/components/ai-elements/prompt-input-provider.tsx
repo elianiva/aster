@@ -21,7 +21,6 @@ export interface AttachmentsContext {
   add: (files: File[] | FileList) => void;
   remove: (id: string) => void;
   clear: () => void;
-  openFileDialog: () => void;
 }
 
 export interface TextInputContext {
@@ -33,19 +32,11 @@ export interface TextInputContext {
 export interface PromptInputControllerProps {
   textInput: TextInputContext;
   attachments: AttachmentsContext;
+  openFileDialog?: () => void;
 }
+export const ControllerContext = createContext<PromptInputControllerProps | null>(null);
 
-// ============================================================================
-// Contexts
-// ============================================================================
-
-const ControllerContext = createContext<PromptInputControllerProps | null>(null);
 const AttachmentsCtx = createContext<AttachmentsContext | null>(null);
-
-// Registration context: PromptInput registers its open callback here
-const RegistrationCtx = createContext<{
-  setOpenCallback: (cb: () => void) => void;
-} | null>(null);
 
 // ============================================================================
 // Hooks
@@ -71,17 +62,6 @@ export const usePromptInputAttachments = () => {
   return ctx;
 };
 
-/**
- * Register PromptInput's file dialog opener with the provider.
- * Call once from PromptInput so attachments.openFileDialog() works.
- */
-export function useConnectFileInput(open: () => void) {
-  const reg = useContext(RegistrationCtx);
-  useEffect(() => {
-    reg?.setOpenCallback(open);
-  }, [reg, open]);
-}
-
 // ============================================================================
 // Provider
 // ============================================================================
@@ -99,13 +79,6 @@ export const PromptInputProvider = ({
   const clearInput = useCallback(() => setTextInput(""), []);
 
   const [attachmentFiles, setAttachmentFiles] = useState<(FileUIPart & { id: string })[]>([]);
-
-  // Open callback: PromptInput registers via useConnectFileInput
-  const openCallbackRef = useRef<() => void>(() => {});
-
-  const setOpenCallback = useCallback((cb: () => void) => {
-    openCallbackRef.current = cb;
-  }, []);
 
   const add = useCallback((files: File[] | FileList) => {
     const incoming = [...files];
@@ -139,10 +112,6 @@ export const PromptInputProvider = ({
     });
   }, []);
 
-  const openFileDialog = useCallback(() => {
-    openCallbackRef.current();
-  }, []);
-
   // Cleanup on unmount
   const attachmentsRef = useRef(attachmentFiles);
   useEffect(() => {
@@ -163,10 +132,9 @@ export const PromptInputProvider = ({
       add,
       clear,
       files: attachmentFiles,
-      openFileDialog,
       remove,
     }),
-    [attachmentFiles, add, remove, clear, openFileDialog],
+    [attachmentFiles, add, remove, clear],
   );
 
   const controller = useMemo<PromptInputControllerProps>(
@@ -181,15 +149,11 @@ export const PromptInputProvider = ({
     [textInput, clearInput, attachments],
   );
 
-  const registration = useMemo(() => ({ setOpenCallback }), [setOpenCallback]);
-
   return (
-    <RegistrationCtx.Provider value={registration}>
-      <ControllerContext.Provider value={controller}>
-        <AttachmentsCtx.Provider value={attachments}>
-          {children}
-        </AttachmentsCtx.Provider>
-      </ControllerContext.Provider>
-    </RegistrationCtx.Provider>
+    <ControllerContext.Provider value={controller}>
+      <AttachmentsCtx.Provider value={attachments}>
+        {children}
+      </AttachmentsCtx.Provider>
+    </ControllerContext.Provider>
   );
 };

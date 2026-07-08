@@ -12,11 +12,12 @@ export function WorkspaceCard({
   const navigate = useNavigate();
 
   return (
-    <div
-      className="group block border border-mauve-100 rounded-xl bg-card p-5 transition-colors hover:bg-accent/50 cursor-pointer"
+    <button
+      type="button"
+      className="group border border-border rounded-xl bg-card p-5 transition-colors hover-fine:bg-accent/50 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring text-left w-full"
       onClick={() => navigate({ to: "/workspaces/$workspaceId", params: { workspaceId: workspace.id } })}
     >
-      <h3 className="font-semibold group-hover:text-accent-foreground transition-colors">
+      <h3 className="font-semibold group-hover-fine:text-accent-foreground transition-colors">
         {workspace.topic}
       </h3>
       <p className="text-sm text-muted-foreground line-clamp-2 mt-2">{workspace.mission}</p>
@@ -35,6 +36,6 @@ export function WorkspaceCard({
           {formatDistanceToNow(new Date(workspace.updatedAt), { addSuffix: true })}
         </span>
       </div>
-    </div>
+    </button>
   );
 }

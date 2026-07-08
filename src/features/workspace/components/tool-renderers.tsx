@@ -2,6 +2,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { Link02Icon, Task01Icon } from "@hugeicons/core-free-icons";
 import { useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { prettyName } from "~/lib/utils";
 
 export interface ToolRenderContext {
   workspaceId: string;
@@ -42,7 +43,7 @@ export function renderToolOutput(
 }
 
 function FallbackOutput({ output, toolName }: { output: unknown; toolName: string }) {
-  const label = prettyToolName(toolName);
+  const label = prettyName(toolName);
   if (output == null || output === false) {
     return <SimpleLine icon={Task01Icon} label={`${label} complete`} />;
   }
@@ -51,13 +52,6 @@ function FallbackOutput({ output, toolName }: { output: unknown; toolName: strin
   }
   const text = safeStringify(output);
   return <SimpleLine icon={Task01Icon} label={text} />;
-}
-
-function prettyToolName(name: string) {
-  return name
-    .replace(/[-_]+/g, " ")
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function safeStringify(value: unknown): string {

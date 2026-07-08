@@ -37,7 +37,7 @@ export interface BentoCardProps extends ComponentProps<"div"> {
 }
 
 export function BentoCard({ children, span, className, ...props }: BentoCardProps) {
-  const spanClass = span ? `col-span-${span}` : "";
+  const spanClass = span ? `col-span-${Math.min(Math.max(span, 1), 12)}` : "";
 
   return (
     <div className={`rounded-lg bg-secondary/70 p-4 ${spanClass} ${className ?? ""}`} {...props}>

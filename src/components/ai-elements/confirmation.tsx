@@ -62,7 +62,7 @@ export const ConfirmationAccepted = ({ children }: { children: ReactNode }) => {
     return null;
   if (!approval.approved) return null;
   return (
-    <div data-slot="confirmation-accepted" className="flex items-center gap-2 text-emerald-600">
+    <div data-slot="confirmation-accepted" className="flex items-center gap-2 text-success">
       <CheckIcon className="size-4" />
       <span>{children}</span>
     </div>

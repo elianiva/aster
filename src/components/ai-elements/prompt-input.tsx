@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  InputGroup,
-  InputGroupButton,
-  InputGroupTextarea,
-} from "~/components/ui/input-group";
+import { InputGroup, InputGroupButton, InputGroupTextarea } from "~/components/ui/input-group";
 import { Spinner } from "~/components/ui/spinner";
 import { cn } from "~/lib/utils";
 import {
@@ -23,17 +19,13 @@ import type {
   KeyboardEventHandler,
   ClipboardEventHandler,
 } from "react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Effect } from "effect";
+import { convertFilesForSubmission, matchesAcceptFilter } from "./prompt-input-helpers";
 import {
-  convertFilesForSubmission,
-  matchesAcceptFilter,
-} from "./prompt-input-helpers";
-import {
+  ControllerContext,
   usePromptInputController,
   usePromptInputAttachments,
-  useConnectFileInput,
 } from "./prompt-input-provider";
 
 // Re-export provider and hooks for consumers
@@ -64,10 +56,7 @@ export type PromptInputProps = Omit<
   multiple?: boolean;
   maxFiles?: number;
   maxFileSize?: number;
-  onError?: (err: {
-    code: "max_files" | "max_file_size" | "accept";
-    message: string;
-  }) => void;
+  onError?: (err: { code: "max_files" | "max_file_size" | "accept"; message: string }) => void;
   onSubmit: (
     message: PromptInputMessage,
     event: FormEvent<HTMLFormElement>,
@@ -85,15 +74,19 @@ export const PromptInput = ({
   children,
   ...props
 }: PromptInputProps) => {
-  const { textInput, attachments } = usePromptInputController();
+  const controller = usePromptInputController();
+  const { textInput, attachments } = controller;
   const inputRef = useRef<HTMLInputElement | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
 
-  // Connect hidden file input to provider so openFileDialog works
-  const openFileDialogLocal = useCallback(() => {
+  const openFileDialog = useCallback(() => {
     inputRef.current?.click();
   }, []);
-  useConnectFileInput(openFileDialogLocal);
+
+  const enhancedController = useMemo(
+    () => ({ ...controller, openFileDialog }),
+    [controller, openFileDialog],
+  );
 
   // Validate and add files
   const addFiles = useCallback(
@@ -122,11 +115,8 @@ export const PromptInput = ({
 
       const currentCount = attachments.files.length;
       const capacity =
-        typeof maxFiles === "number"
-          ? Math.max(0, maxFiles - currentCount)
-          : undefined;
-      const capped =
-        typeof capacity === "number" ? sized.slice(0, capacity) : sized;
+        typeof maxFiles === "number" ? Math.max(0, maxFiles - currentCount) : undefined;
+      const capped = typeof capacity === "number" ? sized.slice(0, capacity) : sized;
 
       if (typeof capacity === "number" && sized.length > capacity) {
         onError?.({
@@ -182,61 +172,47 @@ export const PromptInput = ({
 
   // Submit
   const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
-    (event) => {
+    async (event) => {
       event.preventDefault();
       const text = textInput.value;
-
-      Effect.gen(function* () {
-        const convertedFiles = yield* Effect.tryPromise({
-          try: () => convertFilesForSubmission(attachments.files),
-          catch: (error) => new Error(`File conversion failed: ${String(error)}`),
-        });
-
+      try {
+        const convertedFiles = await convertFilesForSubmission(attachments.files);
         const result = onSubmit({ files: convertedFiles, text }, event);
-
-        if (result instanceof Promise) {
-          yield* Effect.tryPromise({
-            try: () => result,
-            catch: (error) => new Error(`Submit failed: ${String(error)}`),
-          });
-        }
-
+        if (result instanceof Promise) await result;
         textInput.clear();
         attachments.clear();
-      }).pipe(
-        Effect.catchDefect((defect) => Effect.logError(String(defect))),
-        Effect.runPromise,
-      );
+      } catch (error) {
+        console.error("Submit failed:", error);
+      }
     },
     [textInput, attachments, onSubmit],
   );
 
   return (
-    <>
-      <input
-        accept={accept}
-        aria-label="Upload files"
-        className="hidden"
-        multiple={multiple}
-        onChange={handleChange}
-        ref={inputRef}
-        title="Upload files"
-        type="file"
-      />
-      <form
-        className={cn(
-          "mx-auto flex w-full max-w-3xl flex-col gap-2",
-          className,
-        )}
-        onSubmit={handleSubmit}
-        ref={formRef}
-        {...props}
-      >
-        <InputGroup className="flex-wrap border border-border bg-card px-3 py-2 transition-shadow focus-within:ring-2 focus-within:ring-ring/30 rounded-[2rem]!">
-          {children}
-        </InputGroup>
-      </form>
-    </>
+    <ControllerContext.Provider value={enhancedController}>
+      <>
+        <input
+          accept={accept}
+          aria-label="Upload files"
+          className="hidden"
+          multiple={multiple}
+          onChange={handleChange}
+          ref={inputRef}
+          title="Upload files"
+          type="file"
+        />
+        <form
+          className={cn("mx-auto flex w-full max-w-3xl flex-col gap-2", className)}
+          onSubmit={handleSubmit}
+          ref={formRef}
+          {...props}
+        >
+          <InputGroup className="flex-wrap border border-border bg-card p-2 transition-shadow focus-within:ring-2 focus-within:ring-ring/30 rounded-[2rem]!">
+            {children}
+          </InputGroup>
+        </form>
+      </>
+    </ControllerContext.Provider>
   );
 };
 
@@ -246,17 +222,14 @@ export const PromptInput = ({
 
 export type PromptInputAttachmentsProps = React.HTMLAttributes<HTMLDivElement>;
 
-export const PromptInputAttachments = ({
-  className,
-  ...props
-}: PromptInputAttachmentsProps) => {
+export const PromptInputAttachments = ({ className, ...props }: PromptInputAttachmentsProps) => {
   const { files, remove } = usePromptInputAttachments();
 
   if (files.length === 0) return null;
 
   return (
     <div className={cn("order-first w-full pb-2", className)} {...props}>
-      <Attachments variant="grid">
+      <Attachments>
         {files.map((file) => (
           <Attachment
             key={file.id}
@@ -277,7 +250,9 @@ export const PromptInputAttachments = ({
 // PromptInputTextarea
 // ============================================================================
 
-export type PromptInputTextareaProps = ComponentProps<typeof InputGroupTextarea> & { disabled?: boolean };
+export type PromptInputTextareaProps = ComponentProps<typeof InputGroupTextarea> & {
+  disabled?: boolean;
+};
 
 export const PromptInputTextarea = ({
   onChange,
@@ -309,11 +284,7 @@ export const PromptInputTextarea = ({
         e.currentTarget.form?.requestSubmit();
       }
 
-      if (
-        e.key === "Backspace" &&
-        e.currentTarget.value === "" &&
-        attachments.files.length > 0
-      ) {
+      if (e.key === "Backspace" && e.currentTarget.value === "" && attachments.files.length > 0) {
         e.preventDefault();
         const last = attachments.files.at(-1);
         if (last) attachments.remove(last.id);
@@ -345,7 +316,11 @@ export const PromptInputTextarea = ({
 
   return (
     <InputGroupTextarea
-      className={cn("field-sizing-content max-h-48 min-h-0", disabled && "opacity-50 cursor-not-allowed", className)}
+      className={cn(
+        "field-sizing-content max-h-48 min-h-0",
+        disabled && "opacity-50 cursor-not-allowed",
+        className,
+      )}
       name="message"
       onCompositionEnd={() => setIsComposing(false)}
       onCompositionStart={() => setIsComposing(true)}
@@ -378,8 +353,7 @@ export const PromptInputButton = ({
   size,
   ...props
 }: PromptInputButtonProps) => {
-  const newSize =
-    size ?? (React.Children.count(props.children) > 1 ? "sm" : "icon-sm");
+  const newSize = size ?? (React.Children.count(props.children) > 1 ? "sm" : "icon-sm");
 
   return (
     <InputGroupButton
@@ -413,13 +387,13 @@ export const PromptInputSubmit = ({
 }: PromptInputSubmitProps) => {
   const isGenerating = status === "submitted" || status === "streaming";
 
-  let Icon = <SendIcon className="size-4" />;
+  let Icon = <SendIcon className="size-5" />;
   if (status === "submitted") {
     Icon = <Spinner />;
   } else if (status === "streaming") {
-    Icon = <SquareIcon className="size-4" />;
+    Icon = <SquareIcon className="size-5" />;
   } else if (status === "error") {
-    Icon = <XIcon className="size-4" />;
+    Icon = <XIcon className="size-5" />;
   }
 
   const handleClick = useCallback(
@@ -429,8 +403,7 @@ export const PromptInputSubmit = ({
         onStop();
         return;
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onClick?.(e as any);
+      onClick?.(e as React.MouseEvent<HTMLButtonElement> & { preventBaseUIHandler: () => void });
     },
     [isGenerating, onStop, onClick],
   );
@@ -439,7 +412,7 @@ export const PromptInputSubmit = ({
     <InputGroupButton
       aria-label={isGenerating ? "Stop" : "Submit"}
       className={cn(
-        "rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50",
+        "size-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50",
         className,
       )}
       onClick={handleClick}

@@ -4,10 +4,7 @@ import { Button } from "~/components/ui/button";
 import { ButtonGroup, ButtonGroupText } from "~/components/ui/button-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { cn } from "~/lib/utils";
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
-import { math } from "@streamdown/math";
-import { mermaid } from "@streamdown/mermaid";
+import { streamdownPlugins } from "~/lib/streamdown-plugins";
 import type { UIMessage } from "ai";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
@@ -21,7 +18,7 @@ export type MessageProps = HTMLAttributes<HTMLDivElement> & {
 export const Message = ({ className, from, ...props }: MessageProps) => (
   <div
     className={cn(
-      "group flex w-full max-w-[90%] flex-col gap-2",
+      "group flex w-full flex-col gap-2",
       from === "user" ? "is-user ml-auto justify-end" : "is-assistant",
       className,
     )}
@@ -269,8 +266,6 @@ export const MessageBranchPage = ({ className, ...props }: MessageBranchPageProp
 };
 
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
-
-const streamdownPlugins = { cjk, code, math, mermaid };
 
 export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (

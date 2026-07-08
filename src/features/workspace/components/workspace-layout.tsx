@@ -51,9 +51,10 @@ type CountKey = "threads" | "lessons" | "records" | "references" | "glossary" | 
 
 interface WorkspaceLayoutProps {
   workspaceId: string;
+  loading?: boolean;
 }
 
-export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
+export function WorkspaceLayout({ workspaceId, loading }: WorkspaceLayoutProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { data: workspace, isLoading: workspaceLoading, error } = useQuery(WorkspaceRpc.getWorkspace(workspaceId));
   const { data: counts } = useQuery(CountRpc.getArtifactCounts(workspaceId));
@@ -65,7 +66,7 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
     return counts[key] ?? 0;
   };
 
-  if (workspaceLoading) {
+  if (loading || workspaceLoading) {
     return <WorkspaceSidebarSkeleton />;
   }
 
@@ -154,7 +155,7 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
       </Sidebar>
 
       <SidebarInset className="p-0 md:p-2 md:pl-0 bg-sidebar">
-        <main className="flex h-dvh md:h-full md:max-h-[calc(100svh-16px)] flex-col overflow-hidden rounded-2xl bg-white inset-shadow-sm border border-border/50">
+        <main className="flex h-dvh md:h-full md:max-h-[calc(100svh-16px)] flex-col overflow-hidden rounded-2xl bg-card inset-shadow-sm border border-border/50">
           <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             <Suspense fallback={<div className="flex-1" />}>
               <Outlet />
@@ -230,7 +231,7 @@ function WorkspaceSidebarSkeleton() {
       </Sidebar>
 
       <SidebarInset className="p-0 md:p-2 md:pl-0 bg-sidebar">
-        <main className="flex h-dvh md:h-full md:max-h-[calc(100svh-16px)] flex-col overflow-hidden rounded-2xl bg-white inset-shadow-sm border border-border/50">
+        <main className="flex h-dvh md:h-full md:max-h-[calc(100svh-16px)] flex-col overflow-hidden rounded-2xl bg-card inset-shadow-sm border border-border/50">
           <div className="flex-1" />
         </main>
       </SidebarInset>

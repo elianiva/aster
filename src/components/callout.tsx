@@ -16,21 +16,21 @@ export interface CalloutProps extends ComponentProps<"div"> {
 
 const variantStyles: Record<CalloutVariant, { border: string; bg: string; badge: string; label: string }> = {
   info: {
-    border: "border-l-blue-500",
-    bg: "bg-blue-500/5",
-    badge: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+    border: "border-l-primary",
+    bg: "bg-primary/5",
+    badge: "bg-primary/10 text-primary",
     label: "Info",
   },
   warning: {
-    border: "border-l-amber-500",
-    bg: "bg-amber-500/5",
-    badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    border: "border-l-warning",
+    bg: "bg-warning/5",
+    badge: "bg-warning/10 text-warning",
     label: "Warning",
   },
   tip: {
-    border: "border-l-green-500",
-    bg: "bg-green-500/5",
-    badge: "bg-green-500/10 text-green-700 dark:text-green-400",
+    border: "border-l-success",
+    bg: "bg-success/5",
+    badge: "bg-success/10 text-success",
     label: "Tip",
   },
   key: {

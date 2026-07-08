@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import {
   Dialog,
@@ -98,15 +99,15 @@ export function WorkspaceSettingsModal({
               <form onSubmit={handleSubmit}>
                 <div className="grid gap-4 py-2">
                   <div className="grid gap-2">
-                    <label htmlFor="topic" className="text-sm font-medium">
+                    <Label htmlFor="topic">
                       Topic <span className="text-muted-foreground">*</span>
-                    </label>
+                    </Label>
                     <Input id="topic" value={topic} onChange={(e) => setTopic(e.target.value)} />
                   </div>
                   <div className="grid gap-2">
-                    <label htmlFor="mission" className="text-sm font-medium">
+                    <Label htmlFor="mission">
                       Mission <span className="text-muted-foreground">*</span>
-                    </label>
+                    </Label>
                     <Textarea
                       id="mission"
                       value={mission}
@@ -115,9 +116,9 @@ export function WorkspaceSettingsModal({
                     />
                   </div>
                   <div className="grid gap-2">
-                    <label htmlFor="currentKnowledge" className="text-sm font-medium">
+                    <Label htmlFor="currentKnowledge">
                       Current Knowledge
-                    </label>
+                    </Label>
                     <Textarea
                       id="currentKnowledge"
                       value={currentKnowledge}

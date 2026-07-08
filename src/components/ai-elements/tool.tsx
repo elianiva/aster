@@ -2,7 +2,7 @@
 
 import { Badge } from "~/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
-import { cn } from "~/lib/utils";
+import { cn, prettyName } from "~/lib/utils";
 import { getToolPartState } from "@cloudflare/ai-chat/react";
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import {
@@ -44,18 +44,15 @@ const toolLabel = (type: string, toolName?: string): string => {
   return prettyName(type);
 };
 
-const prettyName = (s: string) =>
-  s.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-
 function StateIcon({ state }: { state: string }) {
   switch (state) {
     case "input-streaming":
     case "input-available":
       return <Loader2Icon className="size-3.5 animate-spin" />;
     case "approval-requested":
-      return <TriangleAlertIcon className="size-3.5 text-amber-500" />;
+      return <TriangleAlertIcon className="size-3.5 text-warning" />;
     case "output-available":
-      return <CheckIcon className="size-3.5 text-emerald-500" />;
+      return <CheckIcon className="size-3.5 text-success" />;
     case "output-error":
     case "output-denied":
       return <XIcon className="size-3.5 text-destructive" />;

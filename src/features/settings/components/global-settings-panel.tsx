@@ -33,6 +33,8 @@ interface ProviderGroup {
   value: string;
   items: ModelItem[];
 }
+const DEFAULT_PROVIDER = "opencode-go";
+const DEFAULT_MODEL = "kimi-k2.7-code";
 
 export function GlobalSettingsPanel() {
   const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle');
@@ -81,21 +83,22 @@ export function GlobalSettingsPanel() {
       }));
       return { previous };
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SettingsRpc.settings() });
+      setStatus('saved');
+    },
     onError: (_err, _variables, context) => {
       if (context?.previous) {
         queryClient.setQueryData(SettingsRpc.settings(), context.previous);
       }
       setStatus('error');
-      setTimeout(() => setStatus('idle'), 3000);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: SettingsRpc.settings() });
-      if (!mutation.isError) {
-        setStatus('saved');
-        setTimeout(() => setStatus('idle'), 2000);
-      }
     },
   });
+  useEffect(() => {
+    if (status === 'idle') return;
+    const timer = setTimeout(() => setStatus('idle'), status === 'saved' ? 2000 : 3000);
+    return () => clearTimeout(timer);
+  }, [status]);
 
   const form = useForm({
     defaultValues: {
@@ -165,12 +168,12 @@ export function GlobalSettingsPanel() {
   };
 
   const handleResetDefaults = () => {
-    form.setFieldValue("selectedProvider", "opencode-go");
-    form.setFieldValue("selectedModel", "kimi-k2.7-code");
+    form.setFieldValue("selectedProvider", DEFAULT_PROVIDER);
+    form.setFieldValue("selectedModel", DEFAULT_MODEL);
     form.setFieldValue("apiKeys", {});
     mutation.mutate({
-      selectedProvider: "opencode-go",
-      selectedModel: "kimi-k2.7-code",
+      selectedProvider: DEFAULT_PROVIDER,
+      selectedModel: DEFAULT_MODEL,
       apiKeys: {},
     });
   };

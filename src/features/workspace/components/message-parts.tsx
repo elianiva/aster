@@ -1,5 +1,6 @@
 import {
-  isToolOrDynamicToolUIPart,
+  getToolName,
+  isToolUIPart,
   type DynamicToolUIPart,
   type FileUIPart,
   type ToolUIPart,
@@ -15,17 +16,8 @@ import {
   ConfirmationRejected,
   ConfirmationRequest,
 } from "~/components/ai-elements/confirmation";
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "~/components/ai-elements/reasoning";
-import {
-  Source,
-  Sources,
-  SourcesContent,
-  SourcesTrigger,
-} from "~/components/ai-elements/sources";
+import { Reasoning, ReasoningContent, ReasoningTrigger } from "~/components/ai-elements/reasoning";
+import { Source, Sources, SourcesContent, SourcesTrigger } from "~/components/ai-elements/sources";
 import {
   Tool,
   ToolContent,
@@ -116,12 +108,20 @@ function TextPart({
       library={asterLibrary}
       response={text}
       isStreaming={isStreaming}
-      onError={() => {}}
+      onError={() => { }}
     />
   );
 }
 
-function FilePart({ file, messageId, index }: { file: FileUIPart; messageId: string; index: number }) {
+function FilePart({
+  file,
+  messageId,
+  index,
+}: {
+  file: FileUIPart;
+  messageId: string;
+  index: number;
+}) {
   return (
     <a
       key={`${messageId}-file-${index}`}
@@ -148,26 +148,13 @@ function ToolPart({
   ctx: { workspaceId: string };
   onApprove: (id: string, approved: boolean) => void;
 }) {
-  const toolName =
-    part.type === "dynamic-tool"
-      ? (part as DynamicToolUIPart).toolName
-      : part.type.slice("tool-".length);
+  const toolName = getToolName(part);
 
-  const approval = (
-    part as { approval?: { id: string; approved?: boolean } }
-  ).approval;
+  const approval = "approval" in part ? part.approval : undefined;
 
   return (
-    <Tool
-      key={`${messageId}-tool-${index}`}
-      defaultOpen
-      className="mb-2"
-    >
-      <ToolHeader
-        type={part.type}
-        state={part.state}
-        toolName={toolName}
-      />
+    <Tool key={`${messageId}-tool-${index}`} defaultOpen className="mb-2">
+      <ToolHeader type={part.type} state={part.state} toolName={toolName} />
       <ToolContent>
         <ToolInput input={part.input} />
         <ToolOutput
@@ -176,7 +163,7 @@ function ToolPart({
         />
         {approval && part.state === "approval-requested" && (
           <Confirmation
-            approval={approval as ToolUIPart["approval"]}
+            approval={approval}
             state={part.state}
             className="mt-2"
           >
@@ -184,15 +171,10 @@ function ToolPart({
               The teacher wants to run <strong>{toolName}</strong>. Approve?
             </ConfirmationRequest>
             <ConfirmationActions>
-              <ConfirmationAction
-                variant="outline"
-                onClick={() => onApprove(approval.id, false)}
-              >
+              <ConfirmationAction variant="outline" onClick={() => onApprove(approval.id, false)}>
                 Reject
               </ConfirmationAction>
-              <ConfirmationAction
-                onClick={() => onApprove(approval.id, true)}
-              >
+              <ConfirmationAction onClick={() => onApprove(approval.id, true)}>
                 Approve
               </ConfirmationAction>
             </ConfirmationActions>
@@ -200,7 +182,7 @@ function ToolPart({
         )}
         {approval && part.state !== "approval-requested" && (
           <Confirmation
-            approval={approval as ToolUIPart["approval"]}
+            approval={approval}
             state={part.state}
             className="mt-2"
           >
@@ -217,13 +199,7 @@ function ToolPart({
 // Main component
 // ============================================================================
 
-export function MessageParts({
-  message,
-  isLast,
-  isStreaming,
-  ctx,
-  onApprove,
-}: MessagePartsProps) {
+export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessagePartsProps) {
   // Extract special parts
   const reasoningParts: { text?: string }[] = [];
   const sourceParts: { url?: string; title?: string }[] = [];
@@ -231,9 +207,9 @@ export function MessageParts({
 
   for (const part of message.parts) {
     if (part.type === "reasoning") {
-      reasoningParts.push(part as { text?: string });
+      reasoningParts.push({ text: part.text });
     } else if (part.type === "source-url" || part.type === "source-document") {
-      sourceParts.push(part as { url?: string; title?: string });
+      sourceParts.push({ url: "url" in part ? part.url : undefined, title: part.title });
     } else {
       contentParts.push(part);
     }
@@ -242,11 +218,7 @@ export function MessageParts({
   return (
     <>
       {reasoningParts.length > 0 && (
-        <ReasoningBlock
-          parts={reasoningParts}
-          isStreaming={isStreaming}
-          isLast={isLast}
-        />
+        <ReasoningBlock parts={reasoningParts} isStreaming={isStreaming} isLast={isLast} />
       )}
 
       {sourceParts.length > 0 && <SourcesBlock parts={sourceParts} />}
@@ -256,7 +228,7 @@ export function MessageParts({
           return (
             <TextPart
               key={`${message.id}-txt-${i}`}
-              text={(part as { text: string }).text}
+              text={part.text}
               role={message.role}
               isStreaming={isStreaming}
               messageId={message.id}
@@ -269,18 +241,18 @@ export function MessageParts({
           return (
             <FilePart
               key={`${message.id}-file-${i}`}
-              file={part as FileUIPart}
+              file={part}
               messageId={message.id}
               index={i}
             />
           );
         }
 
-        if (isToolOrDynamicToolUIPart(part)) {
+        if (isToolUIPart(part)) {
           return (
             <ToolPart
               key={`${message.id}-tool-${i}`}
-              part={part as ToolUIPart | DynamicToolUIPart}
+              part={part}
               messageId={message.id}
               index={i}
               ctx={ctx}
