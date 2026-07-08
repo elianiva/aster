@@ -69,3 +69,22 @@ _Avoid_: Cheatsheet, summary
 **Notes**:
 The agent's scratchpad for a workspace — user preferences, working notes, meta-observations about teaching. One per workspace, stored in R2 as OpenUI Lang. For steering, not for what was learned.
 _Avoid_: Memo, journal
+
+**Feature**:
+A self-contained domain module grouping related components, hooks, and server logic under one directory. Each feature owns its UI, data access, and business logic. Shared infrastructure (UI primitives, database, error handling) lives outside features.
+_Avoid_: Module, slice, domain
+
+## Features
+
+Each feature is a self-contained module at `src/features/{name}/` with `components/`, `hooks/`, `lib/`, and `server/` subdirectories as needed.
+
+| Feature | Owns |
+|---|---|
+| **workspace** | Creation, onboarding, settings modal, mission, workspace list |
+| **thread** | Chat, messages, streaming, teaching mode toggle |
+| **artifact** | Lessons, records, reference docs, notes — all R2-stored OpenUI Lang outputs |
+| **resource** | Curated knowledge/wisdom sources |
+| **glossary** | Workspace terminology entries |
+| **settings** | Global app settings (provider, model, API keys) |
+
+Shared infrastructure outside features: `components/ui/`, `components/ai-elements/`, `server/db/`, `server/errors.ts`, `server/logger.ts`, `hooks/`, `lib/`.

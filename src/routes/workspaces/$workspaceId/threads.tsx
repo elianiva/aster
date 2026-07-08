@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { createFileRoute, Outlet, redirect, useMatch, useNavigate } from "@tanstack/react-router";
 import { Skeleton } from "~/components/ui/skeleton";
-import { useThreads } from "~/features/workspace/hooks/use-threads";
-import { ThreadList } from "~/features/workspace/components/thread-list";
+import { useThreads } from "~/features/thread/hooks/use-threads"
+import { ThreadList } from "~/features/thread/components/thread-list"
 
 export const Route = createFileRoute("/workspaces/$workspaceId/threads")({
   component: RouteThreads,

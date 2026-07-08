@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { SettingsRpc } from "~/server/rpc/settings";
+import { SettingsRpc } from "~/features/settings/server/rpc"
 
 interface ApiKeyStatus {
   hasKey: boolean;

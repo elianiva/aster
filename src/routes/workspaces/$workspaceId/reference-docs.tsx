@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, useMatch, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { ReferenceRpc } from "~/server/rpc/titled-artifact-rpc"
+import { ReferenceRpc } from "~/features/artifact/server/references"
 import { Skeleton } from "~/components/ui/skeleton";
 import {
   Empty,

@@ -21,8 +21,8 @@ import {
   EyeOffIcon,
   Key02Icon,
 } from "@hugeicons/core-free-icons";
-import { SettingsRpc } from "~/server/rpc/settings";
-import { queryKeys } from "~/server/rpc/query-keys";
+import { SettingsRpc } from "~/features/settings/server/rpc"
+import { queryKeys } from "~/lib/query-keys"
 
 interface ModelItem {
   id: string;

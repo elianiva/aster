@@ -2,8 +2,8 @@ import { ErrorBoundary } from "~/components/error-boundary";
 import { Suspense, useState } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { WorkspaceRpc } from "~/server/rpc/workspace";
-import { CountRpc } from "~/server/rpc/counts";
+import { WorkspaceRpc } from "~/features/workspace/server/rpc"
+import { CountRpc } from "~/features/artifact/server/counts-rpc"
 import { Button } from "~/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Settings02Icon } from "@hugeicons/core-free-icons";

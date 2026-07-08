@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Renderer } from "@openuidev/react-lang";
-import { asterLibrary } from "~/components/openui/library";
-import { ReferenceRpc } from "~/server/rpc/titled-artifact-rpc"
+import { asterLibrary } from "~/features/artifact/components/library"
+import { ReferenceRpc } from "~/features/artifact/server/references"
 
 export const Route = createFileRoute(
   "/workspaces/$workspaceId/reference-docs/$referenceId",

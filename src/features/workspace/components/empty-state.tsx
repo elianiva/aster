@@ -21,8 +21,8 @@ import {
 } from "~/components/ui/empty";
 import { Suggestion, Suggestions } from "~/components/ai-elements/suggestion";
 import { PlusIcon } from "lucide-react";
-import { useThreads } from "~/features/workspace/hooks/use-threads";
-import { setPendingMessage } from "./pending-message";
+import { useThreads } from "~/features/thread/hooks/use-threads"
+import { setPendingMessage } from "~/features/thread/lib/pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
 import { ApiKeyBanner } from "~/components/ai-elements/api-key-banner";
 

@@ -17,10 +17,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Settings02Icon, SlidersHorizontalIcon } from "@hugeicons/core-free-icons";
 
-import { WorkspaceRpc } from "~/server/rpc/workspace";
+import { WorkspaceRpc } from "~/features/workspace/server/rpc"
 import { GlobalSettingsPanel } from "~/features/settings/components/global-settings-panel";
-import type { Workspace } from "~/server/features/workspace/service";
-import { queryKeys } from "~/server/rpc/query-keys";
+import type { Workspace } from "~/features/workspace/server/service"
+import { queryKeys } from "~/lib/query-keys"
 
 interface WorkspaceSettingsModalProps {
   workspace: Workspace;

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PromptInputProvider } from "~/components/ai-elements/prompt-input";
 import { EmptyState } from "~/features/workspace/components/empty-state";
-import { ChatView } from "~/features/workspace/components/chat-view";
+import { ChatView } from "~/features/thread/components/chat-view"
 
 export const Route = createFileRoute(
   "/workspaces/$workspaceId/threads/$threadId",

@@ -1,13 +1,13 @@
 import { Layer, ManagedRuntime } from "effect";
 import { env } from "cloudflare:workers";
 import { FetchHttpClient } from "effect/unstable/http";
-import { SettingsService } from "./features/settings/service";
-import { WorkspaceService } from "./features/workspace/service";
-import { ThreadService } from "./features/thread/service";
-import { ArtifactService } from "./features/artifact/service";
-import { NoteService } from "./features/note/service";
-import { GlossaryService } from "./features/glossary/service";
-import { ResourceService } from "./features/resource/service";
+import { SettingsService } from "~/features/settings/server/service"
+import { WorkspaceService } from "~/features/workspace/server/service"
+import { ThreadService } from "~/features/thread/server/service"
+import { ArtifactService } from "~/features/artifact/server/service"
+import { NoteService } from "~/features/artifact/server/note-service"
+import { GlossaryService } from "~/features/glossary/server/service"
+import { ResourceService } from "~/features/resource/server/service"
 import { KvLayer } from "./kv-service";
 import { Database } from "./db/client";
 import { R2 } from "./r2-service";

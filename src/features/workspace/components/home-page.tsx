@@ -11,7 +11,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BookOpen01Icon, Add01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { WorkspaceRpc } from "~/server/rpc/workspace";
+import { WorkspaceRpc } from "~/features/workspace/server/rpc"
 import { CreateWorkspaceForm } from "./create-form";
 import { WorkspaceCard } from "./workspace-card";
 import { SettingsDialog } from "~/features/settings/components/global-settings-dialog";

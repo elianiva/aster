@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
-import type { Workspace } from "~/server/features/workspace/service";
+import type { Workspace } from "~/features/workspace/server/service"
 
 export function WorkspaceCard({
   workspace,

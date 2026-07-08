@@ -7,18 +7,18 @@ import * as schema from "../src/server/db/schema";
 import { logJson } from "../src/server/logger";
 import { Database } from "../src/server/db/client";
 import { R2 } from "../src/server/r2-service";
-import { ThreadService } from "../src/server/features/thread/service";
-import { WorkspaceService } from "../src/server/features/workspace/service";
-import { ArtifactService } from "../src/server/features/artifact/service";
-import { NoteService } from "../src/server/features/note/service";
-import { GlossaryService } from "../src/server/features/glossary/service";
-import { ResourceService } from "../src/server/features/resource/service";
+import { ThreadService } from "../src/features/thread/server/service"
+import { WorkspaceService } from "../src/features/workspace/server/service"
+import { ArtifactService } from "../src/features/artifact/server/service"
+import { NoteService } from "../src/features/artifact/server/note-service"
+import { GlossaryService } from "../src/features/glossary/server/service"
+import { ResourceService } from "../src/features/resource/server/service"
 import {
   createModel,
   type ModelConfig,
   DEFAULT_MODEL,
-} from "../src/server/features/workspace/model";
-import { createTeacherTools } from "../src/lib/teacher-tools/index";
+} from "../src/features/workspace/server/model";
+import { createTeacherTools } from "../src/features/thread/server/tools"
 import SYSTEM_PROMPT from "./prompts/teacher.md?raw";
 import TEACH_FORMATS from "./prompts/teach-formats.md?raw";
 import OPENUI_PROMPT from "../src/lib/openui/component-prompt.txt?raw";

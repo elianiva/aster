@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { GlossaryTab } from '~/features/workspace/components/glossary-tab'
+import { GlossaryTab } from '~/features/glossary/components/glossary-tab'
 import { Skeleton } from '~/components/ui/skeleton'
 
 export const Route = createFileRoute('/workspaces/$workspaceId/glossary')({

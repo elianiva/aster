@@ -12,8 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { WorkspaceRpc } from "~/server/rpc/workspace";
-import { queryKeys } from "~/server/rpc/query-keys";
+import { WorkspaceRpc } from "~/features/workspace/server/rpc"
+import { queryKeys } from "~/lib/query-keys"
 import { useNavigate } from "@tanstack/react-router";
 
 interface CreateWorkspaceFormProps {
