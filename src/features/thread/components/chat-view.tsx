@@ -3,12 +3,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import type { ChatStatus } from "ai";
 import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
-} from "~/components/ai-elements/conversation";
-import { Message, MessageContent } from "~/components/ai-elements/message";
-import { ApiKeyBanner } from "~/components/ai-elements/api-key-banner";
+  MessageScrollerProvider,
+  MessageScroller,
+  MessageScrollerViewport,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerButton,
+} from "~/components/ui/message-scroller";
+import { Message } from "~/components/ui/message";
+import { Bubble, BubbleContent } from "~/components/ui/bubble";
+import { Marker, MarkerIcon, MarkerContent } from "~/components/ui/marker";
+import { ApiKeyBanner } from "./api-key-banner";
 import {
   PromptInput,
   type PromptInputMessage,
@@ -18,14 +23,14 @@ import {
   PromptInputTextarea,
   usePromptInputAttachments,
   usePromptInputController,
-} from "~/components/ai-elements/prompt-input";
+} from "./prompt-input";
 import { Spinner } from "~/components/ui/spinner";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTeacherAgent } from "~/features/workspace/hooks/use-teacher-agent";
-import { queryKeys } from "~/lib/query-keys"
+import { queryKeys } from "~/lib/query-keys";
 import { MessageParts } from "./message-parts";
-import { consumePendingMessage } from "~/features/thread/lib/pending-message"
+import { consumePendingMessage } from "~/features/thread/lib/pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
 
 // ============================================================================
@@ -57,7 +62,6 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
     prevStatus.current = status;
   }, [status, workspaceId, queryClient]);
 
-  // Send pending first message from EmptyState
   const agentRef = useRef(agent);
   const sendMessageRef = useRef(sendMessage);
   agentRef.current = agent;
@@ -86,7 +90,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
     return () => {
       cancelled = true;
     };
-  }, []); // Only on mount
+  }, []);
 
   const handleSubmit = useCallback(
     ({ text, files }: PromptInputMessage) => {
@@ -102,41 +106,63 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
 
   return (
     <>
-      <Conversation className="flex-1">
-        <ConversationContent className="mx-auto w-full max-w-3xl">
-          {messages.map((message, index) => (
-            <Message key={message.id} from={message.role === "user" ? "user" : "assistant"}>
-              <MessageContent>
-                <MessageParts
-                  message={message}
-                  isLast={index === messages.length - 1}
-                  isStreaming={status === "streaming"}
-                  ctx={ctx}
-                  onApprove={(id, approved) => addToolApprovalResponse({ id, approved })}
-                />
-              </MessageContent>
-            </Message>
-          ))}
-          {showThinking && (
-            <div className="flex items-center gap-2 px-1 text-sm text-muted-foreground">
-              <Spinner className="size-3.5" />
-              <span>Thinking…</span>
-            </div>
-          )}
-          {isRecovering && (
-            <div className="flex items-center gap-2 px-1 text-sm text-muted-foreground">
-              <Spinner className="size-3.5" />
-              <span>Recovering turn…</span>
-            </div>
-          )}
-          {status === "error" && !isRecovering && (
-            <div className="px-1 text-sm text-destructive">
-              Something went wrong. Try sending again.
-            </div>
-          )}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
+      <MessageScrollerProvider>
+        <MessageScroller className="flex-1">
+          <MessageScrollerViewport>
+            <MessageScrollerContent className="mx-auto w-full max-w-3xl">
+              {messages.map((message, index) => (
+                <MessageScrollerItem
+                  key={message.id}
+                  scrollAnchor={message.role === "user"}
+                >
+                  <Message align={message.role === "user" ? "end" : "start"}>
+                    <Bubble
+                      variant={message.role === "user" ? "secondary" : "ghost"}
+                      align={message.role === "user" ? "end" : "start"}
+                    >
+                      <BubbleContent>
+                        <MessageParts
+                          message={message}
+                          isLast={index === messages.length - 1}
+                          isStreaming={status === "streaming"}
+                          ctx={ctx}
+                          onApprove={(id, approved) => addToolApprovalResponse({ id, approved })}
+                        />
+                      </BubbleContent>
+                    </Bubble>
+                  </Message>
+                </MessageScrollerItem>
+              ))}
+              {showThinking && (
+                <Marker>
+                  <MarkerIcon>
+                    <Spinner className="size-3.5" />
+                  </MarkerIcon>
+                  <MarkerContent>
+                    <span className="shimmer">Thinking…</span>
+                  </MarkerContent>
+                </Marker>
+              )}
+              {isRecovering && (
+                <Marker>
+                  <MarkerIcon>
+                    <Spinner className="size-3.5" />
+                  </MarkerIcon>
+                  <MarkerContent>
+                    <span className="shimmer">Recovering turn…</span>
+                  </MarkerContent>
+                </Marker>
+              )}
+              {status === "error" && !isRecovering && (
+                <Marker className="text-destructive">
+                  <MarkerContent>Something went wrong. Try sending again.</MarkerContent>
+                </Marker>
+              )}
+            </MessageScrollerContent>
+          </MessageScrollerViewport>
+          <MessageScrollerButton />
+        </MessageScroller>
+      </MessageScrollerProvider>
 
       <div className="pt-1">
         {!hasKey && <ApiKeyBanner providerName={providerName} />}

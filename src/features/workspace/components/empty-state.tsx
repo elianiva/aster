@@ -11,7 +11,7 @@ import {
   PromptInputTextarea,
   usePromptInputController,
   usePromptInputAttachments,
-} from "~/components/ai-elements/prompt-input";
+} from "~/features/thread/components/prompt-input";
 import {
   Empty,
   EmptyDescription,
@@ -19,12 +19,12 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "~/components/ui/empty";
-import { Suggestion, Suggestions } from "~/components/ai-elements/suggestion";
+import { Suggestion, Suggestions } from "~/features/thread/components/suggestion";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { useThreads } from "~/features/thread/hooks/use-threads"
 import { setPendingMessage } from "~/features/thread/lib/pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
-import { ApiKeyBanner } from "~/components/ai-elements/api-key-banner";
+import { ApiKeyBanner } from "~/features/thread/components/api-key-banner";
 
 const STARTER_SUGGESTIONS = [
   "What should I learn first?",

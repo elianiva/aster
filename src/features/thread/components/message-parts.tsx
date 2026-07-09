@@ -15,16 +15,16 @@ import {
   ConfirmationActions,
   ConfirmationRejected,
   ConfirmationRequest,
-} from "~/components/ai-elements/confirmation";
-import { Reasoning, ReasoningContent, ReasoningTrigger } from "~/components/ai-elements/reasoning";
-import { Source, Sources, SourcesContent, SourcesTrigger } from "~/components/ai-elements/sources";
+} from "./confirmation";
+import { Reasoning, ReasoningContent, ReasoningTrigger } from "./reasoning";
+import { Source, Sources, SourcesContent, SourcesTrigger } from "./sources";
 import {
   Tool,
   ToolContent,
   ToolHeader,
   ToolInput,
   ToolOutput,
-} from "~/components/ai-elements/tool";
+} from "./tool";
 import { renderToolOutput } from "./tool-renderers";
 const SKIP_INPUT = new Set(["createLesson", "createRecord", "createReference"]);
 
@@ -201,7 +201,6 @@ function ToolPart({
 // ============================================================================
 
 export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessagePartsProps) {
-  // Extract special parts
   const reasoningParts: { text?: string }[] = [];
   const sourceParts: { url?: string; title?: string }[] = [];
   const contentParts: typeof message.parts = [];

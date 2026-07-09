@@ -1,14 +1,18 @@
 "use client";
 
-import { InputGroup, InputGroupButton, InputGroupTextarea } from "~/components/ui/input-group";
-import { Spinner } from "~/components/ui/spinner";
-import { cn } from "~/lib/utils";
+import {
+  InputGroup,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "~/components/ui/input-group";
 import {
   Attachment,
-  AttachmentPreview,
-  AttachmentRemove,
-  Attachments,
-} from "~/components/ai-elements/attachments";
+  AttachmentMedia,
+  AttachmentActions,
+  AttachmentAction,
+} from "~/components/ui/attachment";
+import { Spinner } from "~/components/ui/spinner";
+import { cn } from "~/lib/utils";
 import type { ChatStatus, FileUIPart } from "ai";
 import { SendingOrderIcon, SquareIcon, XVariableIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -29,7 +33,6 @@ import {
   usePromptInputAttachments,
 } from "./prompt-input-provider";
 
-// Re-export provider and hooks for consumers
 export {
   PromptInputProvider,
   usePromptInputController,
@@ -89,7 +92,6 @@ export const PromptInput = ({
     [controller, openFileDialog],
   );
 
-  // Validate and add files
   const addFiles = useCallback(
     (fileList: File[] | FileList) => {
       const incoming = [...fileList];
@@ -133,7 +135,6 @@ export const PromptInput = ({
     [accept, maxFileSize, maxFiles, onError, attachments],
   );
 
-  // Drag and drop
   useEffect(() => {
     const form = formRef.current;
     if (!form) return;
@@ -160,7 +161,6 @@ export const PromptInput = ({
     };
   }, [addFiles]);
 
-  // File input change
   const handleChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       if (event.currentTarget.files) {
@@ -171,7 +171,6 @@ export const PromptInput = ({
     [addFiles],
   );
 
-  // Submit
   const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
     async (event) => {
       event.preventDefault();
@@ -229,20 +228,32 @@ export const PromptInputAttachments = ({ className, ...props }: PromptInputAttac
   if (files.length === 0) return null;
 
   return (
-    <div className={cn("order-first w-full pb-2", className)} {...props}>
-      <Attachments>
-        {files.map((file) => (
-          <Attachment
-            key={file.id}
-            className="size-20"
-            data={file}
-            onRemove={() => remove(file.id)}
-          >
-            <AttachmentPreview />
-            <AttachmentRemove />
+    <div className={cn("order-first flex flex-wrap gap-2 w-full pb-2", className)} {...props}>
+      {files.map((file) => {
+        const isImage = file.mediaType?.startsWith("image/");
+        return (
+          <Attachment key={file.id} orientation="vertical" size="xs">
+            <AttachmentMedia variant={isImage ? "image" : "icon"}>
+              {isImage && file.url ? (
+                <img
+                  alt={file.filename || "Image"}
+                  className="size-full object-cover"
+                  src={file.url}
+                />
+              ) : (
+                <span className="text-xs font-medium uppercase">
+                  {file.mediaType?.split("/")[1] ?? "file"}
+                </span>
+              )}
+            </AttachmentMedia>
+            <AttachmentActions>
+              <AttachmentAction onClick={() => remove(file.id)} aria-label="Remove">
+                <HugeiconsIcon icon={XVariableIcon} className="size-3" />
+              </AttachmentAction>
+            </AttachmentActions>
           </Attachment>
-        ))}
-      </Attachments>
+        );
+      })}
     </div>
   );
 };

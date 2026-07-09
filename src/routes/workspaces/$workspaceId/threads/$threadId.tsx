@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PromptInputProvider } from "~/components/ai-elements/prompt-input";
+import { PromptInputProvider } from "~/features/thread/components/prompt-input";
 import { EmptyState } from "~/features/workspace/components/empty-state";
 import { ChatView } from "~/features/thread/components/chat-view"
 
