@@ -129,7 +129,7 @@ function ArtifactPreview({
         <HugeiconsIcon icon={CheckIcon} className="size-3.5" />
         <span>{label}</span>
       </div>
-      <div className="rounded-lg bg-background/60 border border-border/50 overflow-hidden">
+      <div className="rounded-lg bg-muted overflow-hidden">
         <div className="flex items-center justify-between px-3 py-2 border-b border-border/30">
           <span className="text-xs font-medium text-foreground">{title}</span>
           {to && params && (

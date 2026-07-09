@@ -1,22 +1,18 @@
 import { defineComponent, createLibrary } from "@openuidev/react-lang";
 import { z } from "zod/v4";
-import { TextContent } from "./text-content"
-import { Heading } from "./heading"
-import { List } from "./list"
-import { Quiz } from "./quiz"
-import { StatCard } from "./stat-card"
+import { TextContent } from "./text-content";
+import { Heading } from "./heading";
+import { List } from "./list";
+import { Quiz } from "./quiz";
+import { StatCard } from "./stat-card";
 import { Stack, BentoGrid, BentoCard } from "~/components/layout";
-import { Chart } from "./charts"
-import { Callout } from "./callout"
-import { CodeBlock } from "./code-block"
-import { Section } from "./section"
-import { Definition } from "./definition"
-import { Steps } from "./steps"
-import { AsterTabs } from "./tabs"
-
-// ============================================================================
-// Content components
-// ============================================================================
+import { Chart } from "./charts";
+import { Callout } from "./callout";
+import { CodeBlock } from "./code-block";
+import { Section } from "./section";
+import { Definition } from "./definition";
+import { Steps } from "./steps";
+import { AsterTabs } from "./tabs";
 
 export const TextContentComponent = defineComponent({
   name: "TextContent",
@@ -50,10 +46,6 @@ export const ListComponent = defineComponent({
   }),
   component: ({ props }) => <List items={props.items} ordered={props.ordered} />,
 });
-
-// ============================================================================
-// Educational components
-// ============================================================================
 
 export const QuizComponent = defineComponent({
   name: "Quiz",
@@ -152,21 +144,13 @@ export const TabsComponent = defineComponent({
   ),
 });
 
-// ============================================================================
-// Layout components
-// ============================================================================
-
 export const StackComponent = defineComponent({
   name: "Stack",
   description: "Vertical flex layout. Use as root container for non-grid responses.",
   props: z.object({
-    children: z
-      .array(z.string())
-      .describe("Array of component identifiers to render vertically"),
+    children: z.array(z.string()).describe("Array of component identifiers to render vertically"),
   }),
-  component: ({ props, renderNode }) => (
-    <Stack>{props.children.map((id) => renderNode(id))}</Stack>
-  ),
+  component: ({ props, renderNode }) => <Stack>{props.children.map((id) => renderNode(id))}</Stack>,
 });
 
 export const BentoGridComponent = defineComponent({
@@ -174,9 +158,7 @@ export const BentoGridComponent = defineComponent({
   description:
     "CSS grid layout for dashboard-style compositions. Use with StatCards, charts, and mixed content.",
   props: z.object({
-    children: z
-      .array(z.string())
-      .describe("Array of component identifiers to place in grid cells"),
+    children: z.array(z.string()).describe("Array of component identifiers to place in grid cells"),
     columns: z.enum(["2", "3", "4"]).optional(),
   }),
   component: ({ props, renderNode }) => (
@@ -214,10 +196,6 @@ export const SectionComponent = defineComponent({
     <Section title={props.title}>{props.children.map((id) => renderNode(id))}</Section>
   ),
 });
-
-// ============================================================================
-// Data visualization
-// ============================================================================
 
 export const StatCardComponent = defineComponent({
   name: "StatCard",
@@ -272,10 +250,6 @@ const ChartComponent = defineComponent({
     />
   ),
 });
-
-// ============================================================================
-// Library
-// ============================================================================
 
 export const asterLibrary = createLibrary({
   root: "Stack",

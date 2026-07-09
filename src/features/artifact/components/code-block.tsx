@@ -23,7 +23,7 @@ export function CodeBlock({ language, code, filename, className, ...props }: Cod
 
   return (
     <div
-      className={cn("artifact-code group rounded-lg bg-muted overflow-hidden", className)}
+      className={cn("artifact-code group rounded-lg bg-secondary/70 overflow-hidden", className)}
       {...props}
     >
       <div className="flex items-center justify-between px-3 py-3">

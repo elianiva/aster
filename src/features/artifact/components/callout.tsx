@@ -11,27 +11,30 @@ export interface CalloutProps extends ComponentProps<"div"> {
   children: ReactNode;
 }
 
-const variantStyles: Record<CalloutVariant, { border: string; bg: string; badge: string; label: string }> = {
+const variantStyles: Record<
+  CalloutVariant,
+  { border: string; bg: string; badge: string; label: string }
+> = {
   info: {
-    border: "border-l-primary",
+    border: "bg-primary",
     bg: "bg-primary/5",
     badge: "bg-primary/10 text-primary",
     label: "Info",
   },
   warning: {
-    border: "border-l-warning",
+    border: "bg-warning",
     bg: "bg-warning/5",
     badge: "bg-warning/10 text-warning",
     label: "Warning",
   },
   tip: {
-    border: "border-l-success",
+    border: "bg-success",
     bg: "bg-success/5",
     badge: "bg-success/10 text-success",
     label: "Tip",
   },
   key: {
-    border: "border-l-purple-500",
+    border: "bg-purple-500",
     bg: "bg-purple-500/5",
     badge: "bg-purple-500/10 text-purple-700 dark:text-purple-400",
     label: "Key",
@@ -42,28 +45,23 @@ export function Callout({ variant = "info", title, children, className, ...props
   const styles = variantStyles[variant];
 
   return (
-    <div
-      className={cn(
-        "rounded-r-lg border-l-4 p-4",
-        styles.border,
-        styles.bg,
-        className,
-      )}
-      {...props}
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", styles.badge)}>
-          {title ?? styles.label}
-        </span>
-      </div>
-      <div className="text-sm">
-        {typeof children === "string" ? (
-          <Streamdown className="prose prose-sm dark:prose-invert" plugins={streamdownPlugins}>
-            {children}
-          </Streamdown>
-        ) : (
-          children
-        )}
+    <div className={cn("flex rounded-lg p-3", styles.border, styles.bg, className)} {...props}>
+      <div className={cn("w-1.5 min-h-full rounded-full mr-2 opacity-60", styles.border)} />
+      <div>
+        <div className="flex items-center gap-2">
+          <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", styles.badge)}>
+            {title ?? styles.label}
+          </span>
+        </div>
+        <div className="text-sm">
+          {typeof children === "string" ? (
+            <Streamdown className="prose prose-sm max-w-full" plugins={streamdownPlugins}>
+              {children}
+            </Streamdown>
+          ) : (
+            children
+          )}
+        </div>
       </div>
     </div>
   );

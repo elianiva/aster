@@ -14,7 +14,7 @@ export function WorkspaceCard({
   return (
     <button
       type="button"
-      className="group border border-border rounded-xl bg-card p-5 transition-colors hover-fine:bg-accent/50 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring text-left w-full"
+      className="group rounded-xl bg-muted p-5 transition-colors hover-fine:bg-accent/50 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring text-left w-full"
       onClick={() => navigate({ to: "/workspaces/$workspaceId", params: { workspaceId: workspace.id } })}
     >
       <h3 className="font-semibold group-hover-fine:text-accent-foreground transition-colors">

@@ -75,7 +75,7 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 					filtered.map((term) => (
 						<div
 							key={term.id}
-							className="rounded-lg border bg-card p-4"
+							className="rounded-lg bg-muted p-4"
 						>
 							<h3 className="font-medium">{term.term}</h3>
 							<p className="mt-1 text-sm text-muted-foreground">{term.definition}</p>

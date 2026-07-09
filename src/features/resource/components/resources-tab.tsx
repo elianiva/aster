@@ -66,7 +66,7 @@ function ResourceSection({
 						href={resource.url}
 						target="_blank"
 						rel="noopener noreferrer"
-						className="flex items-start gap-3 rounded-lg border bg-card p-3 hover:bg-accent"
+						className="flex items-start gap-3 rounded-lg bg-muted p-3 hover:bg-accent"
 					>
 						<HugeiconsIcon
 							icon={Link04Icon}

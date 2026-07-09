@@ -142,7 +142,7 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
       </Sidebar>
 
       <SidebarInset className="p-0 md:p-2 md:pl-0 bg-sidebar">
-        <main className="flex h-dvh md:h-full md:max-h-[calc(100svh-16px)] flex-col overflow-hidden rounded-2xl bg-card inset-shadow-sm border border-border/50">
+        <main className="flex h-dvh md:h-full md:max-h-[calc(100svh-16px)] flex-col overflow-hidden rounded-2xl bg-card inset-shadow-sm">
           <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             <ErrorBoundary>
               <Suspense fallback={<div className="flex-1" />}>

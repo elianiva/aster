@@ -177,7 +177,7 @@ body {
 }
 
 [data-streamdown="code-block-body"] {
-  @apply border-none;
+  @apply border-none pt-2 p-0;
 }
 
 [data-streamdown="code-block"]:hover [data-streamdown="code-block-actions"] {

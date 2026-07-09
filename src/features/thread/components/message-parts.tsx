@@ -7,7 +7,7 @@ import {
   type UIMessage,
 } from "ai";
 import { Renderer } from "@openuidev/react-lang";
-import { asterLibrary } from "~/features/artifact/components/library"
+import { asterLibrary } from "~/features/artifact/components/library";
 import {
   Confirmation,
   ConfirmationAccepted,
@@ -18,19 +18,9 @@ import {
 } from "./confirmation";
 import { Reasoning, ReasoningContent, ReasoningTrigger } from "./reasoning";
 import { Source, Sources, SourcesContent, SourcesTrigger } from "./sources";
-import {
-  Tool,
-  ToolContent,
-  ToolHeader,
-  ToolInput,
-  ToolOutput,
-} from "./tool";
+import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "./tool";
 import { renderToolOutput } from "./tool-renderers";
 const SKIP_INPUT = new Set(["createLesson", "createRecord", "createReference"]);
-
-// ============================================================================
-// Types
-// ============================================================================
 
 interface MessagePartsProps {
   message: UIMessage;
@@ -39,10 +29,6 @@ interface MessagePartsProps {
   ctx: { workspaceId: string };
   onApprove: (id: string, approved: boolean) => void;
 }
-
-// ============================================================================
-// Part renderers
-// ============================================================================
 
 function ReasoningBlock({
   parts,
@@ -163,11 +149,7 @@ function ToolPart({
           errorText={part.errorText}
         />
         {approval && part.state === "approval-requested" && (
-          <Confirmation
-            approval={approval}
-            state={part.state}
-            className="mt-2"
-          >
+          <Confirmation approval={approval} state={part.state} className="mt-2">
             <ConfirmationRequest>
               The teacher wants to run <strong>{toolName}</strong>. Approve?
             </ConfirmationRequest>
@@ -182,11 +164,7 @@ function ToolPart({
           </Confirmation>
         )}
         {approval && part.state !== "approval-requested" && (
-          <Confirmation
-            approval={approval}
-            state={part.state}
-            className="mt-2"
-          >
+          <Confirmation approval={approval} state={part.state} className="mt-2">
             <ConfirmationAccepted>You approved this action</ConfirmationAccepted>
             <ConfirmationRejected>You rejected this action</ConfirmationRejected>
           </Confirmation>
@@ -195,10 +173,6 @@ function ToolPart({
     </Tool>
   );
 }
-
-// ============================================================================
-// Main component
-// ============================================================================
 
 export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessagePartsProps) {
   const reasoningParts: { text?: string }[] = [];

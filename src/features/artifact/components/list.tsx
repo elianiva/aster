@@ -16,7 +16,7 @@ export function List({ items, ordered = false, className }: ListProps) {
     <Tag className={cn(`${listStyle} pl-5 space-y-1`, className)}>
       {items.map((item, i) => (
         <li key={i} className="text-sm">
-          <Streamdown className="inline prose prose-sm dark:prose-invert" plugins={streamdownPlugins}>
+          <Streamdown className="inline prose" plugins={streamdownPlugins}>
             {item}
           </Streamdown>
         </li>

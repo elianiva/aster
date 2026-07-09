@@ -107,7 +107,11 @@ export const ReasoningTrigger = ({
       onClick={() => setIsOpen(!isOpen)}
       {...props}
     >
-      {isStreaming ? <Spinner className="size-3.5" /> : <HugeiconsIcon icon={BrainIcon} className="size-3.5" />}
+      {isStreaming ? (
+        <Spinner className="size-3.5" />
+      ) : (
+        <HugeiconsIcon icon={BrainIcon} className="size-3.5" />
+      )}
       <span className="flex-1 text-left">{label}</span>
       <HugeiconsIcon
         icon={ChevronDownIcon}
@@ -127,10 +131,13 @@ export type ReasoningContentProps = Omit<
 export const ReasoningContent = ({ className, children, ...props }: ReasoningContentProps) => (
   <CollapsibleContent
     data-slot="reasoning-content"
-    className={cn("px-3 pb-3 text-muted-foreground", className)}
+    className={cn("text-muted-foreground", className)}
     {...props}
   >
-    <Streamdown className="prose prose-sm dark:prose-invert leading-tight mt-3" plugins={streamdownPlugins}>
+    <Streamdown
+      className="prose prose-sm leading-tight mt-3 max-w-full opacity-90"
+      plugins={streamdownPlugins}
+    >
       {children}
     </Streamdown>
   </CollapsibleContent>

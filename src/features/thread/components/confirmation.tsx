@@ -36,7 +36,7 @@ export const Confirmation = ({ approval, state, className, children, ...props }:
       <div
         data-slot="confirmation"
         role="alert"
-        className={cn("rounded-lg border bg-card p-3 text-sm", className)}
+        className={cn("rounded-lg bg-muted p-3 text-sm", className)}
         {...props}
       >
         {children}

@@ -41,7 +41,7 @@ export function BentoCard({ children, span, className, ...props }: BentoCardProp
   const spanClass = span ? `col-span-${Math.min(Math.max(span, 1), 12)}` : "";
 
   return (
-    <div className={cn("rounded-lg bg-secondary/70 p-4", spanClass, className)} {...props}>
+    <div className={cn("rounded-lg bg-accent p-4", spanClass, className)} {...props}>
       {children}
     </div>
   );
