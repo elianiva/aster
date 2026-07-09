@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import type { ChatStatus } from "ai";
@@ -64,8 +64,10 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
 
   const agentRef = useRef(agent);
   const sendMessageRef = useRef(sendMessage);
-  agentRef.current = agent;
-  sendMessageRef.current = sendMessage;
+  useEffect(() => {
+    agentRef.current = agent;
+    sendMessageRef.current = sendMessage;
+  });
 
   useEffect(() => {
     const pending = consumePendingMessage();
@@ -92,13 +94,10 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
     };
   }, []);
 
-  const handleSubmit = useCallback(
-    ({ text, files }: PromptInputMessage) => {
-      if (!text.trim() && files.length === 0) return;
-      sendMessage({ text, files });
-    },
-    [sendMessage],
-  );
+  const handleSubmit = ({ text, files }: PromptInputMessage) => {
+    if (!text.trim() && files.length === 0) return;
+    sendMessage({ text, files });
+  };
 
   const ctx = { workspaceId };
   const isBusy = status === "submitted" || status === "streaming";

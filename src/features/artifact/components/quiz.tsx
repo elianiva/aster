@@ -40,6 +40,7 @@ export function Quiz({
 
           return (
             <button
+              type="button"
               key={i}
               onClick={() => !revealed && setSelected(i)}
               disabled={revealed}

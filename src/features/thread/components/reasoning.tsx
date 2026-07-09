@@ -7,7 +7,7 @@ import { streamdownPlugins } from "~/lib/streamdown-plugins";
 import { BrainIcon, ChevronDownIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, use, useState } from "react";
 import { Streamdown } from "streamdown";
 
 interface ReasoningContextValue {
@@ -20,7 +20,7 @@ interface ReasoningContextValue {
 const ReasoningContext = createContext<ReasoningContextValue | null>(null);
 
 function useReasoning() {
-  const ctx = useContext(ReasoningContext);
+  const ctx = use(ReasoningContext);
   if (!ctx) throw new Error("Reasoning components must be used within <Reasoning>");
   return ctx;
 }
@@ -48,20 +48,13 @@ export const Reasoning = ({
   onOpenChange?: (open: boolean) => void;
 }) => {
   const [internalOpen, setInternalOpen] = useState(defaultOpen ?? true);
-  const isOpen = open ?? internalOpen;
+  const isOpen = open ?? (isStreaming || internalOpen);
   const setIsOpen = (next: boolean) => {
     setInternalOpen(next);
     onOpenChange?.(next);
   };
 
-  useEffect(() => {
-    if (isStreaming) setInternalOpen(true);
-  }, [isStreaming]);
-
-  const value = useMemo<ReasoningContextValue>(
-    () => ({ isStreaming, isOpen, setIsOpen, duration }),
-    [isStreaming, isOpen, duration],
-  );
+  const value: ReasoningContextValue = { isStreaming, isOpen, setIsOpen, duration };
 
   return (
     <ReasoningContext.Provider value={value}>

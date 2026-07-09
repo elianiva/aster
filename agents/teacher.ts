@@ -1,3 +1,4 @@
+Warning: The working-copy commit is immutable; a new commit has been created on top of it.
 import { Think, type Session, type TurnContext, type TurnConfig } from "@cloudflare/think";
 import { Effect, Layer, Schema } from "effect";
 import { drizzle } from "drizzle-orm/d1";

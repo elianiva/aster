@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { createFileRoute, Outlet, redirect, useMatch, useNavigate } from "@tanstack/react-router";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useThreads } from "~/features/thread/hooks/use-threads"
@@ -26,38 +26,32 @@ function RouteThreads() {
   const match = useMatch({ strict: false });
   const threadId = (match?.params as { threadId?: string })?.threadId ?? null;
 
-  const handleRename = useCallback(
-    (id: string, name: string) => {
-      setThreadError(null);
-      rename.mutate(
-        { id, name },
-        {
-          onError: (error) =>
-            setThreadError(error instanceof Error ? error.message : "Failed to rename thread."),
-        },
-      );
-    },
-    [rename],
-  );
+  const handleRename = (id: string, name: string) => {
+    setThreadError(null);
+    rename.mutate(
+      { id, name },
+      {
+        onError: (error) =>
+          setThreadError(error instanceof Error ? error.message : "Failed to rename thread."),
+      },
+    );
+  };
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      setThreadError(null);
-      remove.mutate(
-        { id },
-        {
-          onSuccess: () => {
-            if (threadId === id) {
-              navigate({ to: `/workspaces/${workspaceId}/threads/new` });
-            }
-          },
-          onError: (error) =>
-            setThreadError(error instanceof Error ? error.message : "Failed to delete thread."),
+  const handleDelete = (id: string) => {
+    setThreadError(null);
+    remove.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          if (threadId === id) {
+            navigate({ to: `/workspaces/${workspaceId}/threads/new` });
+          }
         },
-      );
-    },
-    [remove, threadId, navigate, workspaceId],
-  );
+        onError: (error) =>
+          setThreadError(error instanceof Error ? error.message : "Failed to delete thread."),
+      },
+    );
+  };
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">

@@ -24,11 +24,11 @@ import type {
   KeyboardEventHandler,
   ClipboardEventHandler,
 } from "react";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 
 import { convertFilesForSubmission, matchesAcceptFilter } from "./prompt-input-helpers";
+import { ControllerContext } from "./prompt-input-types";
 import {
-  ControllerContext,
   usePromptInputController,
   usePromptInputAttachments,
 } from "./prompt-input-provider";
@@ -83,57 +83,54 @@ export const PromptInput = ({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
 
-  const openFileDialog = useCallback(() => {
+  const openFileDialog = () => {
     inputRef.current?.click();
-  }, []);
+  };
 
-  const enhancedController = useMemo(
-    () => ({ ...controller, openFileDialog }),
-    [controller, openFileDialog],
-  );
+  const enhancedController = { ...controller, openFileDialog };
 
-  const addFiles = useCallback(
-    (fileList: File[] | FileList) => {
-      const incoming = [...fileList];
-      const accepted = incoming.filter((f) => matchesAcceptFilter(f, accept));
+const addFiles = useCallback(
+      (fileList: File[] | FileList) => {
+        const incoming = [...fileList];
+        const accepted = incoming.filter((f) => matchesAcceptFilter(f, accept));
 
-      if (incoming.length && accepted.length === 0) {
-        onError?.({
-          code: "accept",
-          message: "No files match the accepted types.",
-        });
-        return;
-      }
+        if (incoming.length && accepted.length === 0) {
+          onError?.({
+            code: "accept",
+            message: "No files match the accepted types.",
+          });
+          return;
+        }
 
-      const withinSize = (f: File) => (maxFileSize ? f.size <= maxFileSize : true);
-      const sized = accepted.filter(withinSize);
+        const withinSize = (f: File) => (maxFileSize ? f.size <= maxFileSize : true);
+        const sized = accepted.filter(withinSize);
 
-      if (accepted.length > 0 && sized.length === 0) {
-        onError?.({
-          code: "max_file_size",
-          message: "All files exceed the maximum size.",
-        });
-        return;
-      }
+        if (accepted.length > 0 && sized.length === 0) {
+          onError?.({
+            code: "max_file_size",
+            message: "All files exceed the maximum size.",
+          });
+          return;
+        }
 
-      const currentCount = attachments.files.length;
-      const capacity =
-        typeof maxFiles === "number" ? Math.max(0, maxFiles - currentCount) : undefined;
-      const capped = typeof capacity === "number" ? sized.slice(0, capacity) : sized;
+        const currentCount = attachments.files.length;
+        const capacity =
+          typeof maxFiles === "number" ? Math.max(0, maxFiles - currentCount) : undefined;
+        const capped = typeof capacity === "number" ? sized.slice(0, capacity) : sized;
 
-      if (typeof capacity === "number" && sized.length > capacity) {
-        onError?.({
-          code: "max_files",
-          message: "Too many files. Some were not added.",
-        });
-      }
+        if (typeof capacity === "number" && sized.length > capacity) {
+          onError?.({
+            code: "max_files",
+            message: "Too many files. Some were not added.",
+          });
+        }
 
-      if (capped.length > 0) {
-        attachments.add(capped);
-      }
-    },
-    [accept, maxFileSize, maxFiles, onError, attachments],
-  );
+        if (capped.length > 0) {
+          attachments.add(capped);
+        }
+      },
+      [accept, onError, attachments],
+    );
 
   useEffect(() => {
     const form = formRef.current;
@@ -161,17 +158,15 @@ export const PromptInput = ({
     };
   }, [addFiles]);
 
-  const handleChange = useCallback(
+  const handleChange =
     (event: ChangeEvent<HTMLInputElement>) => {
       if (event.currentTarget.files) {
         addFiles(event.currentTarget.files);
       }
       event.currentTarget.value = "";
-    },
-    [addFiles],
-  );
+    };
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
+  const handleSubmit: FormEventHandler<HTMLFormElement> =
     async (event) => {
       event.preventDefault();
       const text = textInput.value;
@@ -184,9 +179,7 @@ export const PromptInput = ({
       } catch (error) {
         console.error("Submit failed:", error);
       }
-    },
-    [textInput, attachments, onSubmit],
-  );
+    };
 
   return (
     <ControllerContext.Provider value={enhancedController}>
@@ -276,15 +269,15 @@ export const PromptInputTextarea = ({
 }: PromptInputTextareaProps) => {
   const { textInput } = usePromptInputController();
   const attachments = usePromptInputAttachments();
-  const [isComposing, setIsComposing] = useState(false);
+  const isComposingRef = useRef(false);
 
-  const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = useCallback(
+  const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> =
     (e) => {
       onKeyDown?.(e);
       if (e.defaultPrevented) return;
 
       if (e.key === "Enter") {
-        if (isComposing || e.nativeEvent.isComposing) return;
+        if (isComposingRef.current || e.nativeEvent.isComposing) return;
         if (e.shiftKey) return;
         e.preventDefault();
 
@@ -301,11 +294,9 @@ export const PromptInputTextarea = ({
         const last = attachments.files.at(-1);
         if (last) attachments.remove(last.id);
       }
-    },
-    [onKeyDown, isComposing, attachments],
-  );
+    };
 
-  const handlePaste: ClipboardEventHandler<HTMLTextAreaElement> = useCallback(
+  const handlePaste: ClipboardEventHandler<HTMLTextAreaElement> =
     (event) => {
       const items = event.clipboardData?.items;
       if (!items) return;
@@ -322,9 +313,7 @@ export const PromptInputTextarea = ({
         event.preventDefault();
         attachments.add(files);
       }
-    },
-    [attachments],
-  );
+    };
 
   return (
     <InputGroupTextarea
@@ -334,8 +323,8 @@ export const PromptInputTextarea = ({
         className,
       )}
       name="message"
-      onCompositionEnd={() => setIsComposing(false)}
-      onCompositionStart={() => setIsComposing(true)}
+      onCompositionEnd={() => { isComposingRef.current = false; }}
+      onCompositionStart={() => { isComposingRef.current = true; }}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
       placeholder={placeholder}
@@ -407,7 +396,7 @@ export const PromptInputSubmit = ({
     Icon = <HugeiconsIcon icon={XVariableIcon} className="size-5" />;
   }
 
-  const handleClick = useCallback(
+  const handleClick =
     (e: React.MouseEvent<HTMLButtonElement>) => {
       if (isGenerating && onStop) {
         e.preventDefault();
@@ -415,9 +404,7 @@ export const PromptInputSubmit = ({
         return;
       }
       onClick?.(e as React.MouseEvent<HTMLButtonElement> & { preventBaseUIHandler: () => void });
-    },
-    [isGenerating, onStop, onClick],
-  );
+    };
 
   return (
     <InputGroupButton

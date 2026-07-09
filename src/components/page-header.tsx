@@ -51,7 +51,7 @@ export function PageHeader({ backUrl, breadcrumbs, actions, className }: PageHea
             {breadcrumbs.map((crumb, i) => {
               const isLast = i === breadcrumbs.length - 1;
               return (
-                <BreadcrumbItem key={i}>
+                <BreadcrumbItem key={crumb.label}>
                   {isLast || !crumb.to ? (
                     <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                   ) : (

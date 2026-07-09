@@ -10,7 +10,7 @@ export interface PendingMessage {
   files: FileUIPart[];
 }
 
-const STORAGE_KEY = "aster:pending-message";
+const STORAGE_KEY = "aster:pending-message:v1";
 
 export function setPendingMessage(msg: PendingMessage): void {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(msg));

@@ -8,7 +8,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "~/components/ui/empty";
-import { buttonVariants } from "~/components/ui/button";
+import { buttonVariants } from "~/components/ui/button-variants";
 import { cn } from "~/lib/utils";
 import { Cancel01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";

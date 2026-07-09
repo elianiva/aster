@@ -6,7 +6,7 @@ import type { ToolUIPart } from "ai";
 import { CheckIcon, XVariableIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps, ReactNode } from "react";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, use } from "react";
 
 interface ConfirmationContextValue {
   approval: NonNullable<ToolUIPart["approval"]>;
@@ -16,7 +16,7 @@ interface ConfirmationContextValue {
 const ConfirmationContext = createContext<ConfirmationContextValue | null>(null);
 
 function useConfirmation() {
-  const ctx = useContext(ConfirmationContext);
+  const ctx = use(ConfirmationContext);
   if (!ctx) throw new Error("Confirmation components must be used within <Confirmation>");
   return ctx;
 }
@@ -27,10 +27,10 @@ export type ConfirmationProps = ComponentProps<"div"> & {
 };
 
 export const Confirmation = ({ approval, state, className, children, ...props }: ConfirmationProps) => {
-  if (!approval) return null;
+  const value = approval ? { approval, state } : null;
+  if (!value) return null;
   if (state === "input-streaming" || state === "input-available") return null;
 
-  const value = useMemo(() => ({ approval, state }), [approval, state]);
   return (
     <ConfirmationContext.Provider value={value}>
       <div
@@ -44,12 +44,6 @@ export const Confirmation = ({ approval, state, className, children, ...props }:
     </ConfirmationContext.Provider>
   );
 };
-
-export const ConfirmationTitle = ({ className, children, ...props }: ComponentProps<"div">) => (
-  <div data-slot="confirmation-title" className={cn("mb-1 font-medium", className)} {...props}>
-    {children}
-  </div>
-);
 
 export const ConfirmationRequest = ({ children }: { children: ReactNode }) => {
   const { state } = useConfirmation();

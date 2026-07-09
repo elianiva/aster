@@ -82,7 +82,9 @@ export const CalloutComponent = defineComponent({
     content: z.string().describe("Content (supports markdown)"),
   }),
   component: ({ props }) => (
-    <Callout variant={props.variant} title={props.title} children={props.content} />
+    <Callout variant={props.variant} title={props.title}>
+      {props.content}
+    </Callout>
   ),
 });
 

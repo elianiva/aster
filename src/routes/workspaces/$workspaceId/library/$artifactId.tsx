@@ -27,7 +27,7 @@ function RouteArtifactDetail() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mx-auto w-full max-w-4xl">
+      <div className="mx-auto w-full max-w-3xl">
         <PageHeader
           backUrl="/workspaces/$workspaceId/library"
           breadcrumbs={[
@@ -37,7 +37,7 @@ function RouteArtifactDetail() {
         />
       </div>
       <div className="flex-1 overflow-y-auto py-6">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-3xl">
           <Renderer library={asterLibrary} response={artifact.content} isStreaming={false} />
         </div>
       </div>

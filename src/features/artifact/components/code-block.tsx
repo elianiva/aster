@@ -33,6 +33,7 @@ export function CodeBlock({ language, code, filename, className, ...props }: Cod
         </div>
         <button
           type="button"
+          aria-label="Copy code"
           onClick={handleCopy}
           className="text-xs text-muted-foreground transition-opacity bg-white p-1 rounded-md"
         >

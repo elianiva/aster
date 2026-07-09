@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Message02Icon } from "@hugeicons/core-free-icons";
@@ -42,29 +42,26 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
   const [createError, setCreateError] = useState<string | null>(null);
   const { hasKey, providerName } = useApiKeyStatus();
 
-  const handleSend = useCallback(
-    (message?: PromptInputMessage) => {
-      setCreateError(null);
-      create.mutate(
-        { workspaceId },
-        {
-          onSuccess: (thread) => {
-            if (message?.text.trim()) {
-              setPendingMessage(message);
-            }
-            refetch();
-            navigate({
-              to: "/workspaces/$workspaceId/threads/$threadId",
-              params: { workspaceId, threadId: thread.id },
-            });
-          },
-          onError: (error) =>
-            setCreateError(error instanceof Error ? error.message : "Failed to start thread."),
+  const handleSend = (message?: PromptInputMessage) => {
+    setCreateError(null);
+    create.mutate(
+      { workspaceId },
+      {
+        onSuccess: (thread) => {
+          if (message?.text.trim()) {
+            setPendingMessage(message);
+          }
+          refetch();
+          navigate({
+            to: "/workspaces/$workspaceId/threads/$threadId",
+            params: { workspaceId, threadId: thread.id },
+          });
         },
-      );
-    },
-    [create, workspaceId, navigate, refetch],
-  );
+        onError: (error) =>
+          setCreateError(error instanceof Error ? error.message : "Failed to start thread."),
+      },
+    );
+  };
 
   return (
     <div className="flex flex-1 flex-col">

@@ -20,6 +20,7 @@ import { Reasoning, ReasoningContent, ReasoningTrigger } from "./reasoning";
 import { Source, Sources, SourcesContent, SourcesTrigger } from "./sources";
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "./tool";
 import { renderToolOutput } from "./tool-renderers";
+import type { ToolRenderContext } from "./tool-renderer-types";
 const SKIP_INPUT = new Set(["createLesson", "createRecord", "createReference"]);
 
 interface MessagePartsProps {
@@ -57,7 +58,7 @@ function SourcesBlock({ parts }: { parts: { url?: string; title?: string }[] }) 
       <SourcesTrigger count={parts.length} />
       <SourcesContent>
         {parts.map((p, i) => (
-          <Source key={i} href={p.url ?? "#"} title={p.title}>
+          <Source key={p.url ?? `source-${i}`} href={p.url ?? "#"} title={p.title}>
             {p.title ?? p.url}
           </Source>
         ))}
@@ -122,6 +123,20 @@ function FilePart({
   );
 }
 
+function ToolOutputRenderer({
+  toolName,
+  output,
+  input,
+  ctx,
+}: {
+  toolName: string;
+  output: unknown;
+  input: unknown;
+  ctx: ToolRenderContext;
+}) {
+  return <>{renderToolOutput(toolName, output, input, ctx)}</>;
+}
+
 function ToolPart({
   part,
   messageId,
@@ -145,7 +160,14 @@ function ToolPart({
       <ToolContent>
         {toolName && !SKIP_INPUT.has(toolName) && <ToolInput input={part.input} />}
         <ToolOutput
-          output={renderToolOutput(toolName ?? "", part.output, part.input, ctx)}
+          output={
+            <ToolOutputRenderer
+              toolName={toolName ?? ""}
+              output={part.output}
+              input={part.input}
+              ctx={ctx}
+            />
+          }
           errorText={part.errorText}
         />
         {approval && part.state === "approval-requested" && (

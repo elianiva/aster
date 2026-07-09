@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState, useDeferredValue, useMemo } from "react";
+import { useState, useDeferredValue } from "react";
 import { GlossaryRpc } from "~/features/glossary/server/rpc"
 import {
 	Empty,
@@ -22,7 +22,7 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 	const [query, setQuery] = useState("");
 	const deferredQuery = useDeferredValue(query);
 
-	const filtered = useMemo(() => {
+	const filtered = (() => {
 		const q = deferredQuery.trim().toLowerCase();
 		if (!q) return terms;
 		return terms.filter(
@@ -30,7 +30,7 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 				t.term.toLowerCase().includes(q) ||
 				t.definition.toLowerCase().includes(q),
 		);
-	}, [terms, deferredQuery]);
+	})();
 
 
 	if (terms.length === 0) {

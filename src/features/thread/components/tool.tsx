@@ -2,7 +2,6 @@
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { cn, prettyName } from "~/lib/utils";
-import { getToolPartState } from "@cloudflare/ai-chat/react";
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import {
   CheckIcon,
@@ -213,5 +212,4 @@ function JsonBlock({ value }: { value: unknown }) {
   );
 }
 
-export { getToolPartState };
 export type ToolPart = ToolUIPart | DynamicToolUIPart;

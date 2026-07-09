@@ -12,3 +12,6 @@ minimumReleaseAgeExclude:
   - '@cloudflare/vite-plugin@1.42.0'
   - miniflare@4.20260617.0
   - wrangler@4.102.0
+  - react-doctor@0.7.2
+minimumReleaseAge: 10080
+trustPolicy: "off"

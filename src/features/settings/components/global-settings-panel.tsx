@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button } from "~/components/ui/button";
@@ -44,28 +44,24 @@ export function GlobalSettingsPanel() {
   const { data: providers = [] } = useSuspenseQuery(SettingsRpc.providers());
   const queryClient = useQueryClient();
 
-  const groups: ProviderGroup[] = useMemo(() => {
-    return providers.map((p) => ({
-      value: p.provider.name,
-      items: p.models.map((m) => ({
-        id: m.id,
-        name: m.name,
-        provider: p.provider.id,
-      })),
-    }));
-  }, [providers]);
+  const groups: ProviderGroup[] = providers.map((p) => ({
+    value: p.provider.name,
+    items: p.models.map((m) => ({
+      id: m.id,
+      name: m.name,
+      provider: p.provider.id,
+    })),
+  }));
 
-  const allModels = useMemo(() => {
-    return groups.flatMap((g) => g.items);
-  }, [groups]);
+  const allModels = groups.flatMap((g) => g.items);
 
-  const providerNameById = useMemo(() => {
+  const providerNameById = (() => {
     const map = new Map<string, string>();
     for (const p of providers) {
       map.set(p.provider.id, p.provider.name);
     }
     return map;
-  }, [providers]);
+  })();
 
   const getModelLabel = (item: ModelItem) => {
     const providerName = providerNameById.get(item.provider);
@@ -125,32 +121,23 @@ export function GlobalSettingsPanel() {
   const selectedProvider = providers.find((p) => p.provider.id === selectedProviderId);
   const apiKeyEnv = selectedProvider?.provider.env[0] ?? "";
 
-  const selectedGroupItem = useMemo(() => {
+  const selectedGroupItem = (() => {
     if (!selectedModelId) return null;
     for (const group of groups) {
       const found = group.items.find((m) => m.id === selectedModelId);
       if (found) return found;
     }
     return null;
-  }, [selectedModelId, groups]);
+  })();
 
-  const [inputValue, setInputValue] = useState(() => {
-    if (selectedGroupItem) {
-      return getModelLabel(selectedGroupItem);
-    }
-    return "";
-  });
+  const [userInput, setUserInput] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (selectedGroupItem) {
-      setInputValue(getModelLabel(selectedGroupItem));
-    }
-  }, [selectedGroupItem]);
+  const effectiveInputValue = userInput ?? (selectedGroupItem ? getModelLabel(selectedGroupItem) : "");
 
   const handleModelChange = (item: ModelItem | null) => {
     if (!item) return;
     form.setFieldValue("selectedModel", item.id);
-    setInputValue(getModelLabel(item));
+    setUserInput(getModelLabel(item));
     mutation.mutate({
       selectedProvider: item.provider,
       selectedModel: item.id,
@@ -191,8 +178,8 @@ export function GlobalSettingsPanel() {
           items={groups}
           value={selectedGroupItem}
           onValueChange={handleModelChange}
-          inputValue={inputValue}
-          onInputValueChange={setInputValue}
+          inputValue={effectiveInputValue}
+          onInputValueChange={setUserInput}
           itemToStringLabel={(item) => getModelLabel(item)}
           itemToStringValue={(item) => item.id}
           isItemEqualToValue={(item, value) => item.id === value.id}
