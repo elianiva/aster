@@ -20,7 +20,8 @@ import {
   usePromptInputController,
 } from "~/components/ai-elements/prompt-input";
 import { Spinner } from "~/components/ui/spinner";
-import { PlusIcon } from "lucide-react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useTeacherAgent } from "~/features/workspace/hooks/use-teacher-agent";
 import { queryKeys } from "~/lib/query-keys"
 import { MessageParts } from "./message-parts";
@@ -202,7 +203,7 @@ function AttachmentButton({ disabled }: { disabled?: boolean }) {
       onClick={openFileDialog}
       disabled={disabled}
     >
-      <PlusIcon className="size-5" />
+      <HugeiconsIcon icon={PlusSignIcon} className="size-5" />
     </PromptInputButton>
   );
 }

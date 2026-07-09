@@ -52,7 +52,7 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 	}
 
 	return (
-		<div className="flex h-full flex-col p-4">
+		<div className="flex h-full flex-col">
 			<h2 className="mb-4 text-lg font-semibold">Glossary</h2>
 			<div className="relative mb-4">
 				<HugeiconsIcon

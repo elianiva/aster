@@ -1,12 +1,9 @@
 import type { ComponentProps } from "react";
 import { useState } from "react";
 import { Streamdown } from "streamdown";
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
 import { cn } from "~/lib/utils";
 import { Badge } from "~/components/ui/badge";
-
-const plugins = { cjk, code };
+import { streamdownPlugins } from "~/lib/streamdown-plugins";
 
 export interface QuizProps extends ComponentProps<"div"> {
   question: string;
@@ -55,7 +52,7 @@ export function Quiz({ question, options, correctIndex, explanation, className, 
       {revealed && explanation && (
         <div className="rounded-md bg-muted p-3 text-sm">
           <span className="font-medium">{isCorrect ? "✓ Correct!" : "✗ Not quite."}</span>{" "}
-          <Streamdown className="inline prose prose-sm dark:prose-invert" plugins={plugins}>
+          <Streamdown className="inline prose prose-sm dark:prose-invert" plugins={streamdownPlugins}>
             {explanation}
           </Streamdown>
         </div>

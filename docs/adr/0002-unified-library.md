@@ -1,0 +1,7 @@
+# Unify lessons, records, and reference docs into a single Library page
+
+Lessons, records, and reference docs share identical DB schemas (`{ id, workspaceId, title, r2Key, createdAt }`), identical RPC patterns, and nearly copy-paste route code. The only user-facing difference is a semantic label. Separate sidebar entries create navigation overhead without proportional value.
+
+Replace the three sidebar entries (Lessons, Records, Reference Docs) with a single "Library" entry that lists all artifacts in one searchable page with type-based filtering. The sidebar also drops its group labels ("Learn", "Reference") in favor of a flat list — only 5 items remain, groups add noise.
+
+Considered: keeping separate tabs but unifying the backend. Rejected — if the data shape is identical, splitting the UI adds cognitive load for no benefit. A single list with filter chips lets users see everything at once or narrow by type as needed. Considered: keeping sidebar group labels after collapsing. Rejected — with 5 items total, flat is scannable without section headers. Detail views use a single route (`/library/$artifactId`) rather than type-prefixed sub-routes — the rendered output is identical regardless of type; the type only matters in the list badge. Filter chips and search use local component state (not URL params) — no bookmarking or sharing of filtered views needed in a personal workspace. Old routes (`/lessons`, `/records`, `/reference-docs`) deleted entirely — greenfield project, no migration needed.

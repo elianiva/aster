@@ -1,10 +1,7 @@
 import type { ComponentProps, ReactNode } from "react";
 import { Streamdown } from "streamdown";
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
 import { cn } from "~/lib/utils";
-
-const plugins = { cjk, code };
+import { streamdownPlugins } from "~/lib/streamdown-plugins";
 
 export type CalloutVariant = "info" | "warning" | "tip" | "key";
 
@@ -61,7 +58,7 @@ export function Callout({ variant = "info", title, children, className, ...props
       </div>
       <div className="text-sm">
         {typeof children === "string" ? (
-          <Streamdown className="prose prose-sm dark:prose-invert" plugins={plugins}>
+          <Streamdown className="prose prose-sm dark:prose-invert" plugins={streamdownPlugins}>
             {children}
           </Streamdown>
         ) : (

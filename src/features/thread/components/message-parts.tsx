@@ -26,6 +26,7 @@ import {
   ToolOutput,
 } from "~/components/ai-elements/tool";
 import { renderToolOutput } from "./tool-renderers";
+const SKIP_INPUT = new Set(["createLesson", "createRecord", "createReference"]);
 
 // ============================================================================
 // Types
@@ -156,9 +157,9 @@ function ToolPart({
     <Tool key={`${messageId}-tool-${index}`} defaultOpen className="mb-2">
       <ToolHeader type={part.type} state={part.state} toolName={toolName} />
       <ToolContent>
-        <ToolInput input={part.input} />
+        {toolName && !SKIP_INPUT.has(toolName) && <ToolInput input={part.input} />}
         <ToolOutput
-          output={renderToolOutput(toolName ?? "", part.output, ctx)}
+          output={renderToolOutput(toolName ?? "", part.output, part.input, ctx)}
           errorText={part.errorText}
         />
         {approval && part.state === "approval-requested" && (

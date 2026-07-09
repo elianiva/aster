@@ -68,7 +68,10 @@ _Avoid_: Cheatsheet, summary
 
 **Notes**:
 The agent's scratchpad for a workspace — user preferences, working notes, meta-observations about teaching. One per workspace, stored in R2 as OpenUI Lang. For steering, not for what was learned.
-_Avoid_: Memo, journal
+
+**Library**:
+A unified list view in the sidebar that aggregates all R2-stored artifacts — lessons, records, and reference docs — into a single searchable page with type filtering. Replaces the separate Lessons, Records, and Reference Docs sidebar entries.
+_Avoid_: Artifacts page, collection
 
 **Feature**:
 A self-contained domain module grouping related components, hooks, and server logic under one directory. Each feature owns its UI, data access, and business logic. Shared infrastructure (UI primitives, database, error handling) lives outside features.

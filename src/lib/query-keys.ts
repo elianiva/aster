@@ -41,4 +41,8 @@ export const queryKeys = {
     all: (workspaceId: string) => ["references", workspaceId] as const,
     list: (workspaceId: string) => [...queryKeys.references.all(workspaceId), "list"] as const,
   },
+  library: {
+    all: (workspaceId: string) => ["library", workspaceId] as const,
+    list: (workspaceId: string) => [...queryKeys.library.all(workspaceId), "list"] as const,
+  },
 } as const;

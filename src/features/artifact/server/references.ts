@@ -40,6 +40,24 @@ const getReferenceContent = createServerFn({ method: "GET" })
     );
   });
 
+const getReference = createServerFn({ method: "GET" })
+  .validator((data: unknown) =>
+    Schema.decodeUnknownSync(
+      Schema.Struct({ workspaceId: Schema.String, referenceId: Schema.String }),
+    )(data),
+  )
+  .handler(async ({ data }) => {
+    return Effect.gen(function* () {
+      return yield* ArtifactService.use((svc) =>
+        svc.getArtifact("reference", data.referenceId, data.workspaceId),
+      );
+    }).pipe(
+      Effect.withSpan("reference.getArtifact"),
+      rpcErrorPipe({ ArtifactError: "Failed to load reference." }),
+      appRuntime().runPromise,
+    );
+  });
+
 export const ReferenceRpc = {
   listReferences: (wid: string) =>
     queryOptions({
@@ -52,5 +70,11 @@ export const ReferenceRpc = {
       queryKey: [...queryKeys.references.all(wid), rid],
       queryFn: (): Promise<{ content: string } | null> =>
         getReferenceContent({ data: { workspaceId: wid, referenceId: rid } }),
+    }),
+  getReference: (wid: string, rid: string) =>
+    queryOptions({
+      queryKey: [...queryKeys.references.all(wid), rid, "detail"],
+      queryFn: (): Promise<{ title: string; content: string | null } | null> =>
+        getReference({ data: { workspaceId: wid, referenceId: rid } }),
     }),
 };

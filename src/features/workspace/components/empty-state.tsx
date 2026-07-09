@@ -20,7 +20,7 @@ import {
   EmptyTitle,
 } from "~/components/ui/empty";
 import { Suggestion, Suggestions } from "~/components/ai-elements/suggestion";
-import { PlusIcon } from "lucide-react";
+import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { useThreads } from "~/features/thread/hooks/use-threads"
 import { setPendingMessage } from "~/features/thread/lib/pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
@@ -147,7 +147,7 @@ function AttachmentButton({ disabled }: { disabled?: boolean }) {
       onClick={openFileDialog}
       disabled={disabled}
     >
-      <PlusIcon className="size-5" />
+      <HugeiconsIcon icon={PlusSignIcon} className="size-5" />
     </PromptInputButton>
   );
 }

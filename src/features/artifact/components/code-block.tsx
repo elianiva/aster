@@ -1,11 +1,10 @@
 import { useState } from "react";
 import type { ComponentProps } from "react";
-import { Streamdown } from "streamdown";
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
 import { cn } from "~/lib/utils";
-
-const plugins = { cjk, code };
+import { streamdownPlugins } from "~/lib/streamdown-plugins";
+import { Streamdown } from "streamdown";
+import { CheckIcon, CopyIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 export interface CodeBlockProps extends ComponentProps<"div"> {
   language: string;
@@ -23,30 +22,35 @@ export function CodeBlock({ language, code, filename, className, ...props }: Cod
   };
 
   return (
-    <div className={cn("rounded-lg border bg-card overflow-hidden", className)} {...props}>
-      <div className="flex items-center justify-between border-b bg-muted/50 px-4 py-2">
-        <div className="flex items-center gap-2">
-          {filename && (
-            <span className="text-xs text-muted-foreground">{filename}</span>
-          )}
-          <span className="text-xs text-muted-foreground font-mono">.{language}</span>
+    <div
+      className={cn("artifact-code group rounded-lg bg-muted overflow-hidden", className)}
+      {...props}
+    >
+      <div className="flex items-center justify-between px-3 py-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="font-mono text-xs bg-white px-1.5 py-1 rounded-md">{language}</span>
+          {filename && <span>{filename}</span>}
         </div>
         <button
           type="button"
           onClick={handleCopy}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          className="text-xs text-muted-foreground transition-opacity bg-white p-1 rounded-md"
         >
-          {copied ? "Copied!" : "Copy"}
+          {copied ? (
+            <HugeiconsIcon icon={CheckIcon} className="size-4" />
+          ) : (
+            <HugeiconsIcon icon={CopyIcon} className="size-4" />
+          )}
         </button>
       </div>
-      <div className="overflow-x-auto">
-        <Streamdown
-          className="p-4 text-sm! prose prose-sm dark:prose-invert! [&>pre]:bg-transparent! [&>pre]:p-0!"
-          plugins={plugins}
-        >
-          {`\`\`\`${language}\n${code}\n\`\`\``}
-        </Streamdown>
-      </div>
+      <Streamdown
+        className="w-full px-3 pb-3 [&>pre]:whitespace-pre! [&>pre]:bg-transparent! [&>pre]:p-0!"
+        plugins={streamdownPlugins}
+        shikiTheme={["github-light", "github-light"]}
+        lineNumbers={false}
+      >
+        {`\`\`\`${language}\n${code.replaceAll("\n", "\n\n")}\n\`\`\``}
+      </Streamdown>
     </div>
   );
 }

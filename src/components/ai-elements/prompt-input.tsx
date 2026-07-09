@@ -10,7 +10,8 @@ import {
   Attachments,
 } from "~/components/ai-elements/attachments";
 import type { ChatStatus, FileUIPart } from "ai";
-import { SendIcon, SquareIcon, XIcon } from "lucide-react";
+import { SendingOrderIcon, SquareIcon, XVariableIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type {
   ChangeEvent,
   ComponentProps,
@@ -386,14 +387,13 @@ export const PromptInputSubmit = ({
   ...props
 }: PromptInputSubmitProps) => {
   const isGenerating = status === "submitted" || status === "streaming";
-
-  let Icon = <SendIcon className="size-5" />;
+  let Icon = <HugeiconsIcon icon={SendingOrderIcon} className="size-5" />;
   if (status === "submitted") {
     Icon = <Spinner />;
   } else if (status === "streaming") {
-    Icon = <SquareIcon className="size-5" />;
+    Icon = <HugeiconsIcon icon={SquareIcon} className="size-5" />;
   } else if (status === "error") {
-    Icon = <XIcon className="size-5" />;
+    Icon = <HugeiconsIcon icon={XVariableIcon} className="size-5" />;
   }
 
   const handleClick = useCallback(

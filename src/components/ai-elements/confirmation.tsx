@@ -3,7 +3,8 @@
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import type { ToolUIPart } from "ai";
-import { CheckIcon, XIcon } from "lucide-react";
+import { CheckIcon, XVariableIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps, ReactNode } from "react";
 import { createContext, useContext, useMemo } from "react";
 
@@ -63,7 +64,7 @@ export const ConfirmationAccepted = ({ children }: { children: ReactNode }) => {
   if (!approval.approved) return null;
   return (
     <div data-slot="confirmation-accepted" className="flex items-center gap-2 text-success">
-      <CheckIcon className="size-4" />
+      <HugeiconsIcon icon={CheckIcon} className="size-4" />
       <span>{children}</span>
     </div>
   );
@@ -76,7 +77,7 @@ export const ConfirmationRejected = ({ children }: { children: ReactNode }) => {
   if (approval.approved) return null;
   return (
     <div data-slot="confirmation-rejected" className="flex items-center gap-2 text-destructive">
-      <XIcon className="size-4" />
+      <HugeiconsIcon icon={XVariableIcon} className="size-4" />
       <span>{children}</span>
     </div>
   );

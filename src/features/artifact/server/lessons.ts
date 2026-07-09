@@ -39,6 +39,23 @@ const getLessonContent = createServerFn({ method: "GET" })
       appRuntime().runPromise,
     );
   });
+const getLesson = createServerFn({ method: "GET" })
+  .validator((data: unknown) =>
+    Schema.decodeUnknownSync(
+      Schema.Struct({ workspaceId: Schema.String, lessonId: Schema.String }),
+    )(data),
+  )
+  .handler(async ({ data }) => {
+    return Effect.gen(function*() {
+      return yield* ArtifactService.use((svc) =>
+        svc.getArtifact("lesson", data.lessonId, data.workspaceId),
+      );
+    }).pipe(
+      Effect.withSpan("lesson.getArtifact"),
+      rpcErrorPipe({ ArtifactError: "Failed to load lesson." }),
+      appRuntime().runPromise,
+    );
+  });
 
 export const LessonRpc = {
   listLessons: (wid: string) =>
@@ -51,5 +68,11 @@ export const LessonRpc = {
       queryKey: [...queryKeys.lessons.all(wid), lid],
       queryFn: (): Promise<{ content: string } | null> =>
         getLessonContent({ data: { workspaceId: wid, lessonId: lid } }),
+    }),
+  getLesson: (wid: string, lid: string) =>
+    queryOptions({
+      queryKey: [...queryKeys.lessons.all(wid), lid, "detail"],
+      queryFn: (): Promise<{ title: string; content: string | null } | null> =>
+        getLesson({ data: { workspaceId: wid, lessonId: lid } }),
     }),
 };

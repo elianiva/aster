@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "~/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { cn, prettyName } from "~/lib/utils";
 import { getToolPartState } from "@cloudflare/ai-chat/react";
@@ -8,10 +7,11 @@ import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import {
   CheckIcon,
   ChevronDownIcon,
-  Loader2Icon,
-  TriangleAlertIcon,
-  XIcon,
-} from "lucide-react";
+  LoaderPinwheelIcon,
+  TriangleIcon,
+  XVariableIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { isValidElement } from "react";
 
@@ -22,7 +22,7 @@ export type ToolProps = Omit<React.ComponentProps<typeof Collapsible>, "open" | 
 export const Tool = ({ className, defaultOpen, children, ...props }: ToolProps) => (
   <Collapsible
     data-slot="tool"
-    className={cn("w-full rounded-lg border text-sm", className)}
+    className={cn("w-full rounded-lg bg-muted/30 text-sm", className)}
     defaultOpen={defaultOpen}
     {...props}
   >
@@ -47,38 +47,16 @@ const toolLabel = (type: string, toolName?: string): string => {
 function StateIcon({ state }: { state: string }) {
   switch (state) {
     case "input-streaming":
-    case "input-available":
-      return <Loader2Icon className="size-3.5 animate-spin" />;
+      return <HugeiconsIcon icon={LoaderPinwheelIcon} className="size-3.5 animate-spin" />;
     case "approval-requested":
-      return <TriangleAlertIcon className="size-3.5 text-warning" />;
+      return <HugeiconsIcon icon={TriangleIcon} className="size-3.5 text-warning" />;
     case "output-available":
-      return <CheckIcon className="size-3.5 text-success" />;
+      return <HugeiconsIcon icon={CheckIcon} className="size-3.5 text-success" />;
     case "output-error":
     case "output-denied":
-      return <XIcon className="size-3.5 text-destructive" />;
+      return <HugeiconsIcon icon={XVariableIcon} className="size-3.5 text-destructive" />;
     default:
-      return <Loader2Icon className="size-3.5" />;
-  }
-}
-
-function stateLabel(state: string): string {
-  switch (state) {
-    case "input-streaming":
-      return "Pending";
-    case "input-available":
-      return "Running";
-    case "approval-requested":
-      return "Awaiting approval";
-    case "approval-responded":
-      return "Responded";
-    case "output-available":
-      return "Completed";
-    case "output-error":
-      return "Error";
-    case "output-denied":
-      return "Denied";
-    default:
-      return state;
+      return <HugeiconsIcon icon={LoaderPinwheelIcon} className="size-3.5" />;
   }
 }
 
@@ -94,11 +72,8 @@ export const ToolHeader = ({ type, state, toolName, title, className }: ToolHead
       )}
     >
       <StateIcon state={state} />
-      <span className="flex-1 truncate font-medium text-foreground">{label}</span>
-      <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
-        {stateLabel(state)}
-      </Badge>
-      <ChevronDownIcon className="size-4 text-muted-foreground transition-transform" />
+      <span className="flex-1 truncate text-muted-foreground">{label}</span>
+      <HugeiconsIcon icon={ChevronDownIcon} className="size-3.5 text-muted-foreground/50 transition-transform" />
     </CollapsibleTrigger>
   );
 };
@@ -108,7 +83,7 @@ export type ToolContentProps = React.ComponentProps<typeof CollapsibleContent>;
 export const ToolContent = ({ className, children, ...props }: ToolContentProps) => (
   <CollapsibleContent
     data-slot="tool-content"
-    className={cn("border-t px-3 py-2 text-muted-foreground", className)}
+    className={cn("px-3 pb-3 pt-0 text-muted-foreground", className)}
     {...props}
   >
     {children}
@@ -123,9 +98,6 @@ export const ToolInput = ({ input, className, ...props }: ToolInputProps) => {
   if (!input || Object.keys(input).length === 0) return null;
   return (
     <div data-slot="tool-input" className={cn("mb-2", className)} {...props}>
-      <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Input
-      </div>
       <JsonBlock value={input} />
     </div>
   );
@@ -140,17 +112,13 @@ export const ToolOutput = ({ output, errorText, className, ...props }: ToolOutpu
   if (errorText) {
     return (
       <div data-slot="tool-output" className={cn("text-destructive", className)} {...props}>
-        <div className="mb-1 text-xs font-medium uppercase tracking-wide">Error</div>
-        <p>{errorText}</p>
+        <p className="text-xs">{errorText}</p>
       </div>
     );
   }
   if (output == null || output === false) return null;
   return (
     <div data-slot="tool-output" className={cn(className)} {...props}>
-      <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Output
-      </div>
       {isValidElement(output) ? (
         output
       ) : typeof output === "string" ? (
@@ -162,7 +130,76 @@ export const ToolOutput = ({ output, errorText, className, ...props }: ToolOutpu
   );
 };
 
+function tryParse(value: unknown): Record<string, unknown> | unknown[] | null {
+  if (typeof value === "object" && value !== null) return value as Record<string, unknown> | unknown[];
+  if (typeof value !== "string") return null;
+  try {
+    const parsed = JSON.parse(value);
+    if (typeof parsed === "object" && parsed !== null) return parsed as Record<string, unknown> | unknown[];
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+function flattenEntries(obj: Record<string, unknown>, prefix = ""): [string, unknown][] {
+  const out: [string, unknown][] = [];
+  for (const [k, v] of Object.entries(obj)) {
+    const key = prefix ? `${prefix}.${k}` : k;
+    if (isRecord(v)) {
+      out.push(...flattenEntries(v, key));
+    } else {
+      out.push([key, v]);
+    }
+  }
+  return out;
+}
+
+function formatValue(val: unknown): string {
+  if (val === null) return "null";
+  if (val === undefined) return "—";
+  if (typeof val === "string") return val;
+  if (typeof val === "boolean" || typeof val === "number") return String(val);
+  if (Array.isArray(val)) return val.join(", ");
+  try {
+    return JSON.stringify(val);
+  } catch {
+    return String(val);
+  }
+}
+
+function KvBlock({ entries }: { entries: [string, unknown][] }) {
+  return (
+    <div className="max-h-60 overflow-auto rounded-md bg-muted/50 px-2.5 py-2 text-xs leading-relaxed">
+      <dl className="grid gap-y-0.5" style={{ gridTemplateColumns: "auto 1fr" }}>
+        {entries.map(([key, val]) => (
+          <div key={key} className="contents">
+            <dt className="pr-3 text-muted-foreground whitespace-nowrap">{key}</dt>
+            <dd className="min-w-0 text-foreground truncate" title={formatValue(val)}>
+              {formatValue(val)}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 function JsonBlock({ value }: { value: unknown }) {
+  const parsed = tryParse(value);
+
+  if (isRecord(parsed)) {
+    const entries = flattenEntries(parsed);
+    if (entries.length > 0) return <KvBlock entries={entries} />;
+  }
+  if (Array.isArray(parsed) && parsed.length > 0) {
+    return <KvBlock entries={parsed.map((v, i) => [String(i + 1), v] as [string, unknown])} />;
+  }
+
   let text: string;
   try {
     text = typeof value === "string" ? value : JSON.stringify(value, null, 2);
@@ -170,7 +207,7 @@ function JsonBlock({ value }: { value: unknown }) {
     text = String(value);
   }
   return (
-    <pre className="max-h-60 overflow-auto rounded-md bg-muted/50 p-2 text-xs leading-relaxed">
+    <pre className="max-h-60 overflow-auto rounded-md bg-muted/50 p-2 text-xs leading-relaxed text-muted-foreground">
       <code>{text}</code>
     </pre>
   );

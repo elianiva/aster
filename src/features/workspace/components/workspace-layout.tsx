@@ -2,8 +2,8 @@ import { ErrorBoundary } from "~/components/error-boundary";
 import { Suspense, useState } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { WorkspaceRpc } from "~/features/workspace/server/rpc"
-import { CountRpc } from "~/features/artifact/server/counts-rpc"
+import { WorkspaceRpc } from "~/features/workspace/server/rpc";
+import { CountRpc } from "~/features/artifact/server/counts-rpc";
 import { Button } from "~/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Settings02Icon } from "@hugeicons/core-free-icons";
@@ -14,7 +14,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -25,9 +24,7 @@ import {
 
 import {
   Chat01Icon,
-  Notebook01Icon,
-  File02Icon,
-  Brain02Icon,
+  LibraryIcon,
   Book02Icon,
   Link04Icon,
   StickyNote01Icon,
@@ -35,20 +32,48 @@ import {
 
 type Icon = typeof Chat01Icon;
 
-const LEARN_TABS = [
-  { label: "Threads", path: "/workspaces/$workspaceId/threads", icon: Chat01Icon, countKey: "threads" as const },
-  { label: "Lessons", path: "/workspaces/$workspaceId/lessons", icon: Notebook01Icon, countKey: "lessons" as const },
-  { label: "Reference Docs", path: "/workspaces/$workspaceId/reference-docs", icon: File02Icon, countKey: "references" as const },
-  { label: "Records", path: "/workspaces/$workspaceId/records", icon: Brain02Icon, countKey: "records" as const },
-] satisfies { label: string; path: string; icon: Icon; countKey: CountKey }[];
+type CountKey =
+  | "threads"
+  | "lessons"
+  | "records"
+  | "references"
+  | "glossary"
+  | "resources"
+  | "notes"
+  | "library";
 
-const REFERENCE_TABS = [
-  { label: "Glossary", path: "/workspaces/$workspaceId/glossary", icon: Book02Icon, countKey: "glossary" as const },
-  { label: "Resources", path: "/workspaces/$workspaceId/resources", icon: Link04Icon, countKey: "resources" as const },
-  { label: "Notes", path: "/workspaces/$workspaceId/notes", icon: StickyNote01Icon, countKey: "notes" as const },
+const NAV_ITEMS = [
+  {
+    label: "Threads",
+    path: "/workspaces/$workspaceId/threads",
+    icon: Chat01Icon,
+    countKey: "threads" as const,
+  },
+  {
+    label: "Library",
+    path: "/workspaces/$workspaceId/library",
+    icon: LibraryIcon,
+    countKey: "library" as const,
+  },
+  {
+    label: "Glossary",
+    path: "/workspaces/$workspaceId/glossary",
+    icon: Book02Icon,
+    countKey: "glossary" as const,
+  },
+  {
+    label: "Resources",
+    path: "/workspaces/$workspaceId/resources",
+    icon: Link04Icon,
+    countKey: "resources" as const,
+  },
+  {
+    label: "Notes",
+    path: "/workspaces/$workspaceId/notes",
+    icon: StickyNote01Icon,
+    countKey: "notes" as const,
+  },
 ] satisfies { label: string; path: string; icon: Icon; countKey: CountKey }[];
-
-type CountKey = "threads" | "lessons" | "records" | "references" | "glossary" | "resources" | "notes";
 
 interface WorkspaceLayoutProps {
   workspaceId: string;
@@ -63,9 +88,11 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
 
   const countsFor = (key: CountKey): number => {
     if (!counts) return 0;
+    if (key === "library") {
+      return (counts.lessons ?? 0) + (counts.records ?? 0) + (counts.references ?? 0);
+    }
     return counts[key] ?? 0;
   };
-
 
   return (
     <SidebarProvider>
@@ -78,34 +105,9 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
 
         <SidebarContent className="p-2">
           <SidebarGroup>
-            <SidebarGroupLabel>Learn</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {LEARN_TABS.map((tab) => {
-                  const basePath = `/workspaces/${workspaceId}/${tab.path.split("/").pop()}`;
-                  const isActive = currentPath.startsWith(basePath);
-                  const n = countsFor(tab.countKey);
-                  return (
-                    <SidebarMenuItem key={tab.path}>
-                      <SidebarMenuButton
-                        isActive={isActive}
-                        render={<Link to={tab.path} params={{ workspaceId }} />}
-                      >
-                        <HugeiconsIcon icon={tab.icon} className="size-4" />
-                        {tab.label}
-                        {n > 0 ? <CountBadge>{n}</CountBadge> : null}
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarGroupLabel>Reference</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {REFERENCE_TABS.map((tab) => {
+                {NAV_ITEMS.map((tab) => {
                   const basePath = `/workspaces/${workspaceId}/${tab.path.split("/").pop()}`;
                   const isActive = currentPath.startsWith(basePath);
                   const n = countsFor(tab.countKey);

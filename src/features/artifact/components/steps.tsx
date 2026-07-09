@@ -1,10 +1,7 @@
 import type { ComponentProps } from "react";
 import { Streamdown } from "streamdown";
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
 import { cn } from "~/lib/utils";
-
-const plugins = { cjk, code };
+import { streamdownPlugins } from "~/lib/streamdown-plugins";
 
 export interface StepsProps extends ComponentProps<"ol"> {
   items: string[];
@@ -24,7 +21,7 @@ export function Steps({ items, className, ...props }: StepsProps) {
             )}
           </div>
           <div className="flex-1 pb-4 pt-0.5 text-sm">
-            <Streamdown className="prose prose-sm dark:prose-invert" plugins={plugins}>
+            <Streamdown className="prose prose-sm dark:prose-invert" plugins={streamdownPlugins}>
               {item}
             </Streamdown>
           </div>

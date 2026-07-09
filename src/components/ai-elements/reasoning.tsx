@@ -4,7 +4,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/component
 import { Spinner } from "~/components/ui/spinner";
 import { cn } from "~/lib/utils";
 import { streamdownPlugins } from "~/lib/streamdown-plugins";
-import { BrainIcon, ChevronDownIcon } from "lucide-react";
+import { BrainIcon, ChevronDownIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -106,9 +107,10 @@ export const ReasoningTrigger = ({
       onClick={() => setIsOpen(!isOpen)}
       {...props}
     >
-      {isStreaming ? <Spinner className="size-3.5" /> : <BrainIcon className="size-3.5" />}
+      {isStreaming ? <Spinner className="size-3.5" /> : <HugeiconsIcon icon={BrainIcon} className="size-3.5" />}
       <span className="flex-1 text-left">{label}</span>
-      <ChevronDownIcon
+      <HugeiconsIcon
+        icon={ChevronDownIcon}
         className={cn("size-4 transition-transform", isOpen ? "rotate-180" : "rotate-0")}
       />
     </CollapsibleTrigger>
@@ -128,7 +130,7 @@ export const ReasoningContent = ({ className, children, ...props }: ReasoningCon
     className={cn("px-3 pb-3 text-muted-foreground", className)}
     {...props}
   >
-    <Streamdown className={cn("prose-sm leading-tight mt-3", className)} plugins={streamdownPlugins}>
+    <Streamdown className="prose prose-sm dark:prose-invert leading-tight mt-3" plugins={streamdownPlugins}>
       {children}
     </Streamdown>
   </CollapsibleContent>

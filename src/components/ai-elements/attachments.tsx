@@ -4,14 +4,15 @@ import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import type { FileUIPart, SourceDocumentUIPart } from "ai";
 import {
-  FileTextIcon,
+  AttachmentIcon,
+  File01Icon,
   GlobeIcon,
-  ImageIcon,
-  Music2Icon,
-  PaperclipIcon,
-  VideoIcon,
-  XIcon,
-} from "lucide-react";
+  Image01Icon,
+  MusicNote02Icon,
+  Video01Icon,
+  XVariableIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { HTMLAttributes, ReactNode } from "react";
 import { createContext, useCallback, useContext, useMemo } from "react";
 
@@ -30,14 +31,13 @@ export type AttachmentMediaCategory =
   | "document"
   | "source"
   | "unknown";
-
-const mediaCategoryIcons: Record<AttachmentMediaCategory, typeof ImageIcon> = {
-  audio: Music2Icon,
-  document: FileTextIcon,
-  image: ImageIcon,
+const mediaCategoryIcons: Record<AttachmentMediaCategory, typeof Image01Icon> = {
+  audio: MusicNote02Icon,
+  document: File01Icon,
+  image: Image01Icon,
   source: GlobeIcon,
-  unknown: PaperclipIcon,
-  video: VideoIcon,
+  unknown: AttachmentIcon,
+  video: Video01Icon,
 };
 
 // ============================================================================
@@ -190,9 +190,8 @@ export const AttachmentPreview = ({
     if (fallbackIcon) {
       return fallbackIcon;
     }
-
     const Icon = mediaCategoryIcons[mediaCategory];
-    return <Icon className="size-4 text-muted-foreground" />;
+    return <HugeiconsIcon icon={Icon} className="size-4 text-muted-foreground" />;
   };
 
   return (
@@ -252,7 +251,7 @@ export const AttachmentRemove = ({
       variant="ghost"
       {...props}
     >
-      {children ?? <XIcon />}
+      {children ?? <HugeiconsIcon icon={XVariableIcon} />}
       <span className="sr-only">{label}</span>
     </Button>
   );

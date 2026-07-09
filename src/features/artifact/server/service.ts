@@ -79,6 +79,12 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
         if (!row) return null;
         return yield* r2.fetch(row.r2Key);
       });
+      const getArtifact = Effect.fn(function*(kind: ArtifactKind, id: string, workspaceId: string) {
+        const row = yield* getTitled(kind, id, workspaceId);
+        if (!row) return null;
+        const content = yield* r2.fetch(row.r2Key);
+        return { title: row.title, content };
+      });
 
       const createTitled = Effect.fn(function*(
         kind: ArtifactKind,
@@ -153,14 +159,63 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
         });
         return row;
       });
+      const listAllTitled = Effect.fn(function*(workspaceId: string) {
+        const results: Array<{ id: string; title: string; createdAt: string; kind: ArtifactKind }> =
+          [];
+        for (const [kind, table] of Object.entries(TITLED_TABLES)) {
+          const rows = yield* Effect.tryPromise({
+            try: () =>
+              client
+                .select({ id: table.id, title: table.title, createdAt: table.createdAt })
+                .from(table)
+                .where(eq(table.workspaceId, workspaceId)),
+            catch: fail(`list all ${kind}s`),
+          });
+          results.push(
+            ...rows.map((r) => ({
+              id: r.id,
+              title: r.title,
+              createdAt: r.createdAt.toISOString(),
+              kind: kind as ArtifactKind,
+            })),
+          );
+        }
+        return results.sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+      });
+
+      const getArtifactById = Effect.fn(function*(id: string, workspaceId: string) {
+        for (const [kind, table] of Object.entries(TITLED_TABLES)) {
+          const row = yield* Effect.tryPromise({
+            try: () =>
+              client
+                .select()
+                .from(table)
+                .where(and(eq(table.id, id), eq(table.workspaceId, workspaceId)))
+                .limit(1)
+                .then((r) => r[0]),
+            catch: fail(`get ${kind} by id`),
+          });
+          if (row) {
+            const content = yield* r2.fetch(row.r2Key);
+            return { kind: kind as ArtifactKind, title: row.title, content };
+          }
+        }
+        return null;
+      });
+
 
       return {
         listTitled,
         getTitled,
         getContent,
+        getArtifact,
         createTitled,
         deleteTitled,
         getArtifactCounts,
+        listAllTitled,
+        getArtifactById,
       } as const;
     }),
   },

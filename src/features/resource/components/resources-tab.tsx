@@ -40,7 +40,7 @@ export function ResourcesTab({ workspaceId }: ResourcesTabProps) {
 	const wisdom = resources.filter((r) => r.type === "wisdom");
 
 	return (
-		<div className="flex h-full flex-col p-4 overflow-y-auto">
+		<div className="flex h-full flex-col overflow-y-auto">
 			<h2 className="mb-4 text-lg font-semibold">Resources</h2>
 			<ResourceSection title="Knowledge" items={knowledge} />
 			{wisdom.length > 0 ? <ResourceSection title="Wisdom" items={wisdom} /> : null}

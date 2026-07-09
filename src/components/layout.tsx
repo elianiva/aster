@@ -1,4 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
+import { cn } from "~/lib/utils";
 
 export interface StackProps extends ComponentProps<"div"> {
   children: ReactNode;
@@ -6,7 +7,7 @@ export interface StackProps extends ComponentProps<"div"> {
 
 export function Stack({ children, className, ...props }: StackProps) {
   return (
-    <div className={`flex flex-col gap-4 ${className ?? ""}`} {...props}>
+    <div className={cn("flex flex-col gap-4", className)} {...props}>
       {children}
     </div>
   );
@@ -25,7 +26,7 @@ export function BentoGrid({ children, columns = 3, className, ...props }: BentoG
   }[columns];
 
   return (
-    <div className={`grid ${gridClass} gap-4 ${className ?? ""}`} {...props}>
+    <div className={cn("grid", gridClass, "gap-4", className)} {...props}>
       {children}
     </div>
   );
@@ -40,7 +41,7 @@ export function BentoCard({ children, span, className, ...props }: BentoCardProp
   const spanClass = span ? `col-span-${Math.min(Math.max(span, 1), 12)}` : "";
 
   return (
-    <div className={`rounded-lg bg-secondary/70 p-4 ${spanClass} ${className ?? ""}`} {...props}>
+    <div className={cn("rounded-lg bg-secondary/70 p-4", spanClass, className)} {...props}>
       {children}
     </div>
   );

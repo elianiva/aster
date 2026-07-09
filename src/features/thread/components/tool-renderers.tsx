@@ -1,27 +1,66 @@
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import { Link02Icon, Task01Icon } from "@hugeicons/core-free-icons";
-import { useNavigate } from "@tanstack/react-router";
+import { CheckIcon, Link02Icon, Task01Icon } from "@hugeicons/core-free-icons";
+import { Link, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { Renderer } from "@openuidev/react-lang";
+import { asterLibrary } from "~/features/artifact/components/library";
 import { prettyName } from "~/lib/utils";
 
 export interface ToolRenderContext {
   workspaceId: string;
 }
 
-type ToolOutputRenderer = (output: unknown, ctx: ToolRenderContext) => ReactNode;
+type ToolOutputRenderer = (output: unknown, input: unknown, ctx: ToolRenderContext) => ReactNode;
 
 const renderers: Record<string, ToolOutputRenderer> = {
-  createThread: (output, ctx) => {
+  createThread: (output, _input, ctx) => {
     const result = output as { threadId?: string; name?: string } | undefined;
     return <CreateThreadOutput workspaceId={ctx.workspaceId} threadId={result?.threadId} name={result?.name} />;
   },
   updateMission: () => <SimpleLine icon={Task01Icon} label="Mission updated for this workspace" />,
   updateKnowledge: () => <SimpleLine icon={Task01Icon} label="Knowledge level updated" />,
-  createLesson: (output) => {
-    const result = output as { lessonId?: string; title?: string } | undefined;
-    return <SimpleLine icon={Task01Icon} label={`Lesson "${result?.title ?? "Untitled"}" saved`} />;
+  createLesson: (_output, input, ctx) => {
+    const result = typeof _output === "string" ? JSON.parse(_output) : _output as Record<string, unknown> | undefined;
+    const id = result?.id ?? result?.lessonId;
+    const { title, content } = (input ?? {}) as { title?: string; content?: string };
+    return (
+      <ArtifactPreview
+        title={title ?? "Untitled Lesson"}
+        content={content}
+        label="Lesson saved"
+        to={id ? "/workspaces/$workspaceId/lessons/$lessonId" : undefined}
+        params={id ? { workspaceId: ctx.workspaceId, lessonId: String(id) } : undefined}
+      />
+    );
   },
-  createRecord: () => <SimpleLine icon={Task01Icon} label="Learning record saved" />,
+  createRecord: (_output, input, ctx) => {
+    const result = typeof _output === "string" ? JSON.parse(_output) : _output as Record<string, unknown> | undefined;
+    const id = result?.id ?? result?.recordId;
+    const { title, content } = (input ?? {}) as { title?: string; content?: string };
+    return (
+      <ArtifactPreview
+        title={title ?? "Untitled Record"}
+        content={content}
+        label="Record saved"
+        to={id ? "/workspaces/$workspaceId/records/$recordId" : undefined}
+        params={id ? { workspaceId: ctx.workspaceId, recordId: String(id) } : undefined}
+      />
+    );
+  },
+  createReference: (_output, input, ctx) => {
+    const result = typeof _output === "string" ? JSON.parse(_output) : _output as Record<string, unknown> | undefined;
+    const id = result?.id ?? result?.referenceId;
+    const { title, content } = (input ?? {}) as { title?: string; content?: string };
+    return (
+      <ArtifactPreview
+        title={title ?? "Untitled Reference"}
+        content={content}
+        label="Reference saved"
+        to={id ? "/workspaces/$workspaceId/reference-docs/$referenceId" : undefined}
+        params={id ? { workspaceId: ctx.workspaceId, referenceId: String(id) } : undefined}
+      />
+    );
+  },
   deleteLesson: (output) => {
     const result = output as { deleted?: boolean } | undefined;
     return <SimpleLine icon={Task01Icon} label={result?.deleted === false ? "Lesson not found" : "Lesson deleted"} />;
@@ -35,10 +74,11 @@ const renderers: Record<string, ToolOutputRenderer> = {
 export function renderToolOutput(
   toolName: string,
   output: unknown,
+  input: unknown,
   ctx: ToolRenderContext,
 ): ReactNode {
   const render = renderers[toolName];
-  if (render) return render(output, ctx);
+  if (render) return render(output, input, ctx);
   return <FallbackOutput output={output} toolName={toolName} />;
 }
 
@@ -50,8 +90,7 @@ function FallbackOutput({ output, toolName }: { output: unknown; toolName: strin
   if (typeof output === "string") {
     return <SimpleLine icon={Task01Icon} label={output} />;
   }
-  const text = safeStringify(output);
-  return <SimpleLine icon={Task01Icon} label={text} />;
+  return <SimpleLine icon={Task01Icon} label={safeStringify(output)} />;
 }
 
 function safeStringify(value: unknown): string {
@@ -67,6 +106,48 @@ function SimpleLine({ icon, label }: { icon: IconSvgElement; label: string }) {
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
       <HugeiconsIcon icon={icon} className="size-3.5" />
       <span>{label}</span>
+    </div>
+  );
+}
+
+function ArtifactPreview({
+  title,
+  content,
+  label,
+  to,
+  params,
+}: {
+  title: string;
+  content?: string;
+  label: string;
+  to?: string;
+  params?: Record<string, string>;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-1.5 text-xs text-success">
+        <HugeiconsIcon icon={CheckIcon} className="size-3.5" />
+        <span>{label}</span>
+      </div>
+      <div className="rounded-lg bg-background/60 border border-border/50 overflow-hidden">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-border/30">
+          <span className="text-xs font-medium text-foreground">{title}</span>
+          {to && params && (
+            <Link
+              to={to}
+              params={params}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              View
+            </Link>
+          )}
+        </div>
+        {content && (
+          <div className="max-h-48 overflow-y-auto px-3 py-2">
+            <Renderer library={asterLibrary} response={content} isStreaming={false} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -91,10 +172,10 @@ function CreateThreadOutput({
           params: { workspaceId, threadId },
         })
       }
-      className="inline-flex items-center gap-1.5 rounded-md border bg-card px-2 py-1 text-xs hover:bg-accent"
+      className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
     >
       <HugeiconsIcon icon={Link02Icon} className="size-3.5 text-primary" />
-      <span>Thread “{name || "Untitled"}” ready</span>
+      <span>Thread "{name || "Untitled"}" ready</span>
     </button>
   );
 }

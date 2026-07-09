@@ -1,9 +1,6 @@
 import { Streamdown } from "streamdown";
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
 import { cn } from "~/lib/utils";
-
-const plugins = { cjk, code };
+import { streamdownPlugins } from "~/lib/streamdown-plugins";
 
 export interface ListProps {
   items: string[];
@@ -19,7 +16,7 @@ export function List({ items, ordered = false, className }: ListProps) {
     <Tag className={cn(`${listStyle} pl-5 space-y-1`, className)}>
       {items.map((item, i) => (
         <li key={i} className="text-sm">
-          <Streamdown className="inline prose prose-sm dark:prose-invert" plugins={plugins}>
+          <Streamdown className="inline prose prose-sm dark:prose-invert" plugins={streamdownPlugins}>
             {item}
           </Streamdown>
         </li>

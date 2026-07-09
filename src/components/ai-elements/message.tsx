@@ -6,7 +6,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { cn } from "~/lib/utils";
 import { streamdownPlugins } from "~/lib/streamdown-plugins";
 import type { UIMessage } from "ai";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import { createContext, memo, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -225,7 +226,7 @@ export const MessageBranchPrevious = ({ children, ...props }: MessageBranchPrevi
       variant="ghost"
       {...props}
     >
-      {children ?? <ChevronLeftIcon size={14} />}
+      {children ?? <HugeiconsIcon icon={ChevronLeftIcon} size={14} />}
     </Button>
   );
 };
@@ -242,10 +243,9 @@ export const MessageBranchNext = ({ children, ...props }: MessageBranchNextProps
       onClick={goToNext}
       size="icon-sm"
       type="button"
-      variant="ghost"
       {...props}
     >
-      {children ?? <ChevronRightIcon size={14} />}
+      {children ?? <HugeiconsIcon icon={ChevronRightIcon} size={14} />}
     </Button>
   );
 };
@@ -275,6 +275,8 @@ export const MessageResponse = memo(
         className,
       )}
       plugins={streamdownPlugins}
+      shikiTheme={["github-light", "github-light"]}
+      lineNumbers={false}
       {...props}
     />
   ),

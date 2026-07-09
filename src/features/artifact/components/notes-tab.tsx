@@ -39,7 +39,7 @@ export function NotesTab({ workspaceId }: NotesTabProps) {
 	}
 
 	return (
-		<div className="flex h-full flex-col p-4">
+		<div className="flex h-full flex-col">
 			<div className="mb-4 flex items-center justify-between">
 				<h2 className="text-lg font-semibold">Notes</h2>
 				<span className="text-xs text-muted-foreground">

@@ -1,10 +1,7 @@
 import type { ComponentProps } from "react";
 import { Streamdown } from "streamdown";
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
 import { cn } from "~/lib/utils";
-
-const plugins = { cjk, code };
+import { streamdownPlugins } from "~/lib/streamdown-plugins";
 
 export interface DefinitionProps extends ComponentProps<"div"> {
   term: string;
@@ -22,7 +19,7 @@ export function Definition({ term, definition, className, ...props }: Definition
     >
       <dt className="text-sm font-semibold text-foreground">{term}</dt>
       <dd className="text-sm text-muted-foreground">
-        <Streamdown className="prose prose-sm dark:prose-invert" plugins={plugins}>
+        <Streamdown className="prose prose-sm dark:prose-invert" plugins={streamdownPlugins}>
           {definition}
         </Streamdown>
       </dd>
