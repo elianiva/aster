@@ -1,13 +1,20 @@
 {
-  "version": "7",
-  "dialect": "sqlite",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "6",
-      "when": 1783669438677,
-      "tag": "0000_hesitant_harry_osborn",
-      "breakpoints": true
-    }
-  ]
+	"version": "6",
+	"dialect": "sqlite",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "6",
+			"when": 1783669438677,
+			"tag": "0000_hesitant_harry_osborn",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "6",
+			"when": 1783706625585,
+			"tag": "0001_sweet_mojo",
+			"breakpoints": true
+		}
+	]
 }

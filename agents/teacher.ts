@@ -1,19 +1,11 @@
 import { Think, type Session, type TurnContext, type TurnConfig } from "@cloudflare/think";
-import { Effect, Layer, Option, Schema } from "effect";
-import { drizzle } from "drizzle-orm/d1";
-import { FetchHttpClient } from "effect/unstable/http";
+import { Effect, Option, Schema } from "effect";
 import { generateText } from "ai";
 import { logJson } from "../src/server/logger";
-import { Database } from "../src/server/db/client";
-import { R2 } from "../src/server/r2-service";
-import { KvLayer } from "../src/server/kv-service";
-import { ThreadService } from "../src/features/thread/server/service";
-import { WorkspaceService } from "../src/features/workspace/server/service";
-import { ArtifactService } from "../src/features/artifact/server/service";
-import { NoteService } from "../src/features/artifact/server/note-service";
-import { GlossaryService } from "../src/features/glossary/server/service";
-import { ResourceService } from "../src/features/resource/server/service";
+import { makeAppLayer } from "../src/server/app-runtime";
 import { SettingsService } from "../src/features/settings/server/service";
+import { WorkspaceService } from "../src/features/workspace/server/service";
+import { ThreadService } from "../src/features/thread/server/service";
 import {
   createModel,
   type ModelConfig,
@@ -24,7 +16,6 @@ import SYSTEM_PROMPT from "./prompts/teacher.md?raw";
 import TEACH_FORMATS from "./prompts/teach-formats.md?raw";
 import OPENUI_PROMPT from "../src/lib/openui/component-prompt.txt?raw";
 import TITLE_PROMPT from "./prompts/title-generation.md?raw";
-import * as schema from "../src/server/db/schema";
 
 type Env = Cloudflare.Env & {
   ASTER_KV: KVNamespace;
@@ -55,22 +46,8 @@ export class TeacherAgent extends Think<Env> {
   }
 
   private get layer() {
-    const base = Layer.mergeAll(
-      Layer.succeed(Database, { client: drizzle((this.env as Env).aster_db, { schema }) }),
-      R2.layer((this.env as Env).ASTER_R2),
-      KvLayer,
-      FetchHttpClient.layer,
-    );
-    return Layer.mergeAll(
-      base,
-      SettingsService.layer.pipe(Layer.provide(base)),
-      ThreadService.layer.pipe(Layer.provide(base)),
-      WorkspaceService.layer.pipe(Layer.provide(base)),
-      ArtifactService.layer.pipe(Layer.provide(base)),
-      NoteService.layer.pipe(Layer.provide(base)),
-      GlossaryService.layer.pipe(Layer.provide(base)),
-      ResourceService.layer.pipe(Layer.provide(base)),
-    );
+    const env_ = this.env as Env;
+    return makeAppLayer({ db: env_.aster_db, r2: env_.ASTER_R2, kv: env_.ASTER_KV });
   }
 
   private loadModelConfig(): Promise<ModelConfig> {
@@ -78,7 +55,7 @@ export class TeacherAgent extends Think<Env> {
     const self = this;
 
     return Effect.runPromise(
-      Effect.gen(function* () {
+      Effect.gen(function*() {
         const settings = yield* SettingsService.use((svc) => svc.get());
         if (Option.isNone(settings)) return getDefaultConfig();
         const s = settings.value;
@@ -172,12 +149,10 @@ export class TeacherAgent extends Think<Env> {
     const getMessages = () => this.getMessages();
 
     return Effect.runPromise(
-      Effect.gen(function* () {
+      Effect.gen(function*() {
         yield* ThreadService.use((svc) => svc.touch(threadId)).pipe(
           Effect.catchCause(() =>
-            Effect.sync(() =>
-              logJson("warn", "agent.chatResponse.touch", { threadId }),
-            ),
+            Effect.sync(() => logJson("warn", "agent.chatResponse.touch", { threadId })),
           ),
         );
 
@@ -212,7 +187,7 @@ export class TeacherAgent extends Think<Env> {
             const title = result.text.trim().slice(0, 80);
             if (title.length > 0) {
               await Effect.runPromise(
-                Effect.gen(function* () {
+                Effect.gen(function*() {
                   yield* ThreadService.use((svc) => svc.rename(threadId, title));
                 }).pipe(Effect.provide(self.layer)),
               );
