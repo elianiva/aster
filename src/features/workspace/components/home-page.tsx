@@ -11,7 +11,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { BookOpen01Icon, Add01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { WorkspaceRpc } from "~/features/workspace/server/rpc"
+import { WorkspaceRpc } from "~/features/workspace/server/rpc";
 import { CreateWorkspaceForm } from "./create-form";
 import { WorkspaceCard } from "./workspace-card";
 import { SettingsDialog } from "~/features/settings/components/global-settings-dialog";
@@ -21,11 +21,13 @@ export function HomePage() {
   const [showSettings, setShowSettings] = useState(false);
   const { data: workspaces } = useSuspenseQuery(WorkspaceRpc.listWorkspaces());
   const { data: recentThreads } = useSuspenseQuery(WorkspaceRpc.recentThreads());
-  const recentByWorkspace = new Map(recentThreads.map((rt) => [rt.workspaceId, { id: rt.threadId, name: rt.threadName }]));
+  const recentByWorkspace = new Map(
+    recentThreads.map((rt) => [rt.workspaceId, { id: rt.threadId, name: rt.threadName }]),
+  );
 
   return (
-    <div className="min-h-screen bg-background flex items-center">
-      <div className="mx-auto max-w-5xl p-8 bg-muted rounded-2xl inset-shadow-sm">
+    <div className="min-h-screen bg-card flex items-center">
+      <div className="mx-auto max-w-5xl p-6 bg-muted rounded-2xl inset-shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-medium text-primary tracking-tight">Aster</h1>
@@ -60,7 +62,11 @@ export function HomePage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {workspaces.map((workspace) => (
-              <WorkspaceCard key={workspace.id} workspace={workspace} recentThread={recentByWorkspace.get(workspace.id)} />
+              <WorkspaceCard
+                key={workspace.id}
+                workspace={workspace}
+                recentThread={recentByWorkspace.get(workspace.id)}
+              />
             ))}
           </div>
         )}

@@ -1,4 +1,5 @@
-import { createFileRoute, Navigate } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
+import { WorkspaceDashboard } from '~/features/workspace/components/workspace-dashboard'
 
 export const Route = createFileRoute('/workspaces/$workspaceId/')({
   component: RouteWorkspaceIndex,
@@ -6,5 +7,5 @@ export const Route = createFileRoute('/workspaces/$workspaceId/')({
 
 function RouteWorkspaceIndex() {
   const { workspaceId } = Route.useParams()
-  return <Navigate to="/workspaces/$workspaceId/threads" params={{ workspaceId }} />
+  return <WorkspaceDashboard workspaceId={workspaceId} />
 }

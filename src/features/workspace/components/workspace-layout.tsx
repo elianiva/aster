@@ -20,6 +20,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  SidebarRail,
 } from "~/components/ui/sidebar";
 
 import {
@@ -28,6 +29,7 @@ import {
   Book02Icon,
   Link04Icon,
   StickyNote01Icon,
+  LayoutGridIcon,
 } from "@hugeicons/core-free-icons";
 
 type Icon = typeof Chat01Icon;
@@ -41,8 +43,13 @@ type CountKey =
   | "resources"
   | "notes"
   | "library";
-
 const NAV_ITEMS = [
+  {
+    label: "Dashboard",
+    path: "/workspaces/$workspaceId",
+    icon: LayoutGridIcon,
+    countKey: null as CountKey | null,
+  },
   {
     label: "Threads",
     path: "/workspaces/$workspaceId/threads",
@@ -73,7 +80,7 @@ const NAV_ITEMS = [
     icon: StickyNote01Icon,
     countKey: "notes" as const,
   },
-] satisfies { label: string; path: string; icon: Icon; countKey: CountKey }[];
+] satisfies { label: string; path: string; icon: Icon; countKey: CountKey | null }[];
 
 interface WorkspaceLayoutProps {
   workspaceId: string;
@@ -86,8 +93,8 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
   const router = useRouterState();
   const currentPath = router.location.pathname;
 
-  const countsFor = (key: CountKey): number => {
-    if (!counts) return 0;
+  const countsFor = (key: CountKey | null): number => {
+    if (!counts || !key) return 0;
     if (key === "library") {
       return (counts.lessons ?? 0) + (counts.records ?? 0) + (counts.references ?? 0);
     }
@@ -96,11 +103,20 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
 
   return (
     <SidebarProvider>
-      <Sidebar side="left" className="border-none">
-        <SidebarHeader className="p-4">
-          <h1 className="mt-3 px-1 text-lg font-medium leading-tight truncate">
-            {workspace!.topic}
-          </h1>
+      <Sidebar side="left" className="border-none" collapsible="icon">
+        <SidebarHeader className="p-5 pb-3">
+          <div className="group-data-[collapsible=icon]:hidden space-y-1">
+            <Link
+              to="/"
+              className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+            >
+              <span className="text-sm leading-none">←</span>
+              All Workspaces
+            </Link>
+            <h1 className="pt-0.5 text-base font-medium leading-tight truncate">
+              {workspace!.topic}
+            </h1>
+          </div>
         </SidebarHeader>
 
         <SidebarContent className="p-2">
@@ -108,8 +124,8 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
             <SidebarGroupContent>
               <SidebarMenu>
                 {NAV_ITEMS.map((tab) => {
-                  const basePath = `/workspaces/${workspaceId}/${tab.path.split("/").pop()}`;
-                  const isActive = currentPath.startsWith(basePath);
+                  const resolvedPath = tab.path.replace("$workspaceId", workspaceId);
+                  const isActive = currentPath === resolvedPath || currentPath.startsWith(resolvedPath + "/");
                   const n = countsFor(tab.countKey);
                   return (
                     <SidebarMenuItem key={tab.path}>
@@ -139,6 +155,7 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
             Settings
           </Button>
         </SidebarFooter>
+        <SidebarRail />
       </Sidebar>
 
       <SidebarInset className="p-0 md:p-2 md:pl-0 bg-sidebar">

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
-import type { Workspace } from "~/features/workspace/server/service"
+import type { Workspace } from "~/features/workspace/server/service";
 
 export function WorkspaceCard({
   workspace,
@@ -14,8 +14,10 @@ export function WorkspaceCard({
   return (
     <button
       type="button"
-      className="group rounded-xl bg-muted p-5 transition-colors hover-fine:bg-accent/50 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring text-left w-full"
-      onClick={() => navigate({ to: "/workspaces/$workspaceId", params: { workspaceId: workspace.id } })}
+      className="group rounded-xl bg-white! p-5 transition-colors hover-fine:bg-accent/50 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring text-left w-full"
+      onClick={() =>
+        navigate({ to: "/workspaces/$workspaceId", params: { workspaceId: workspace.id } })
+      }
     >
       <h3 className="font-semibold group-hover-fine:text-accent-foreground transition-colors">
         {workspace.topic}
