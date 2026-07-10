@@ -30,7 +30,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useTeacherAgent } from "~/features/workspace/hooks/use-teacher-agent";
 import { queryKeys } from "~/lib/query-keys";
 import { MessageParts } from "./message-parts";
-import { consumePendingMessage } from "~/features/thread/lib/pending-message";
+import { peekPendingMessage, clearPendingMessage } from "~/features/thread/lib/pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
 
 // ============================================================================
@@ -70,7 +70,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
   });
 
   useEffect(() => {
-    const pending = consumePendingMessage();
+    const pending = peekPendingMessage();
     if (!pending) return;
 
     let cancelled = false;
@@ -85,6 +85,12 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
         });
       } catch (error) {
         console.error("Failed to send pending message:", error);
+      } finally {
+        // Clear only after the send attempt completes (success or failure).
+        // This ensures the message survives React Strict Mode double-mount:
+        // if the first mount's effect is cancelled by cleanup, the re-mount
+        // will read the same message from storage and try again.
+        if (!cancelled) clearPendingMessage();
       }
     };
 
