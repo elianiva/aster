@@ -38,6 +38,34 @@ export class GlossaryService extends Context.Service<GlossaryService>()(
         }));
       });
 
+      const getGlossaryById = Effect.fn("GlossaryService.getById")(function* (
+        id: string,
+        workspaceId: string,
+      ) {
+        const row = yield* Effect.tryPromise({
+          try: () =>
+            client
+              .select()
+              .from(glossary)
+              .where(
+                and(
+                  eq(glossary.id, id),
+                  eq(glossary.workspaceId, workspaceId),
+                ),
+              )
+              .limit(1)
+              .then((r) => r[0]),
+          catch: fail("getById"),
+        });
+        if (!row) return null;
+        return {
+          id: row.id,
+          term: row.term,
+          definition: row.definition,
+          avoid: row.avoid ?? undefined,
+        };
+      });
+
       const upsertGlossary = Effect.fn("GlossaryService.upsert")(function* (input: {
         workspaceId: string;
         term: string;
@@ -104,7 +132,7 @@ export class GlossaryService extends Context.Service<GlossaryService>()(
         });
       });
 
-      return { listGlossary, upsertGlossary, deleteGlossary } as const;
+      return { listGlossary, getGlossaryById, upsertGlossary, deleteGlossary } as const;
     }),
   },
 ) {

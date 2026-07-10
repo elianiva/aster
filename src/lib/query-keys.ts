@@ -20,6 +20,8 @@ export const queryKeys = {
   glossary: {
     all: (workspaceId: string) => ["glossary", workspaceId] as const,
     list: (workspaceId: string) => [...queryKeys.glossary.all(workspaceId), "list"] as const,
+    byId: (workspaceId: string, termId: string) =>
+      [...queryKeys.glossary.all(workspaceId), "byId", termId] as const,
   },
   notes: {
     all: (workspaceId: string) => ["notes", workspaceId] as const,

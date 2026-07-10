@@ -1,6 +1,6 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState, useDeferredValue } from "react";
-import { GlossaryRpc } from "~/features/glossary/server/rpc"
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { GlossaryRpc } from "~/features/glossary/server/rpc";
 import {
 	Empty,
 	EmptyDescription,
@@ -10,8 +10,7 @@ import {
 } from "~/components/ui/empty";
 import { Input } from "~/components/ui/input";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Book02Icon } from "@hugeicons/core-free-icons";
-import { Search02Icon } from "@hugeicons/core-free-icons";
+import { Book02Icon, Search02Icon } from "@hugeicons/core-free-icons";
 
 interface GlossaryTabProps {
 	workspaceId: string;
@@ -32,7 +31,6 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 		);
 	})();
 
-
 	if (terms.length === 0) {
 		return (
 			<div className="flex h-full items-center justify-center p-6">
@@ -52,40 +50,52 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 	}
 
 	return (
-		<div className="flex h-full flex-col">
-			<h2 className="mb-4 text-lg font-semibold">Glossary</h2>
-			<div className="relative mb-4">
-				<HugeiconsIcon
-					icon={Search02Icon}
-					className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-				/>
-				<Input
-					value={query}
-					onChange={(e) => setQuery(e.target.value)}
-					placeholder="Search terms..."
-					className="pl-9"
-				/>
-			</div>
-			<div className="flex flex-col gap-2 overflow-y-auto">
+		<div className="flex h-full flex-col items-center overflow-y-auto py-6">
+			<h1 className="mb-6 text-lg font-semibold">Glossary</h1>
+			<div className="w-full max-w-3xl">
+				<div className="relative mb-4">
+					<HugeiconsIcon
+						icon={Search02Icon}
+						className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+					/>
+					<Input
+						value={query}
+						onChange={(e) => setQuery(e.target.value)}
+						placeholder="Search terms..."
+						className="pl-9"
+					/>
+				</div>
 				{filtered.length === 0 ? (
-					<p className="py-8 text-center text-sm text-muted-foreground">
-						No terms match "{query}".
-					</p>
+					<Empty>
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<HugeiconsIcon icon={Book02Icon} />
+							</EmptyMedia>
+							<EmptyTitle>{query ? "No matches" : "No glossary terms yet"}</EmptyTitle>
+							<EmptyDescription>
+								{query
+									? "Try a different search term."
+									: "The agent will add terms here as you learn them. Terms appear once you understand a concept, not before."}
+							</EmptyDescription>
+						</EmptyHeader>
+					</Empty>
 				) : (
-					filtered.map((term) => (
+				<div className="flex flex-col divide-y">
+					{filtered.map((term) => (
 						<div
 							key={term.id}
-							className="rounded-lg bg-muted p-4"
+							className="px-2 py-3"
 						>
-							<h3 className="font-medium">{term.term}</h3>
-							<p className="mt-1 text-sm text-muted-foreground">{term.definition}</p>
+							<dt className="font-medium text-sm">{term.term}</dt>
+							<dd className="mt-1 text-sm text-muted-foreground">{term.definition}</dd>
 							{term.avoid ? (
-								<p className="mt-2 text-xs text-muted-foreground/70">
+								<dd className="mt-1 text-xs text-muted-foreground/70">
 									Avoid: {term.avoid}
-								</p>
+								</dd>
 							) : null}
 						</div>
-					))
+					))}
+				</div>
 				)}
 			</div>
 		</div>

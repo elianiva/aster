@@ -45,15 +45,15 @@ export function Callout({ variant = "info", title, children, className, ...props
   const styles = variantStyles[variant];
 
   return (
-    <div className={cn("flex rounded-lg p-3", styles.border, styles.bg, className)} {...props}>
-      <div className={cn("w-1.5 min-h-full rounded-full mr-2 opacity-60", styles.border)} />
-      <div>
-        <div className="flex items-center gap-2">
-          <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", styles.badge)}>
+    <div className={cn("flex rounded-lg p-1.5", styles.border, styles.bg, className)} {...props}>
+      <div className={cn("w-1.5 min-h-full rounded-full opacity-60", styles.border)} />
+      <div className="p-2 space-y-1">
+        <div className="flex items-center">
+          <span className={cn("text-sm font-medium px-2 py-0.5 rounded-full", styles.badge)}>
             {title ?? styles.label}
           </span>
         </div>
-        <div className="text-sm">
+        <div className="text-base">
           {typeof children === "string" ? (
             <Streamdown className="prose prose-sm max-w-full" plugins={streamdownPlugins}>
               {children}

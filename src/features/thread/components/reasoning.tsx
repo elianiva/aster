@@ -45,7 +45,7 @@ export const Reasoning = ({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) => {
-  const [internalOpen, setInternalOpen] = useState(defaultOpen ?? true);
+  const [internalOpen, setInternalOpen] = useState(defaultOpen ?? false);
   const isOpen = open ?? (isStreaming || internalOpen);
   const setIsOpen = (next: boolean) => {
     setInternalOpen(next);

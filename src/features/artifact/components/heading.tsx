@@ -7,12 +7,12 @@ export interface HeadingProps extends ComponentProps<"h1" | "h2" | "h3" | "h4" |
 }
 
 const sizeClasses = {
-  1: "text-3xl font-bold tracking-tight",
-  2: "text-2xl font-semibold tracking-tight",
-  3: "text-xl font-semibold",
-  4: "text-lg font-medium",
-  5: "text-base font-medium",
-  6: "text-sm font-medium",
+  1: "text-2xl font-semibold tracking-tight",
+  2: "text-xl font-semibold tracking-tight",
+  3: "text-lg font-semibold",
+  4: "text-base font-medium",
+  5: "text-sm font-medium",
+  6: "text-xs font-medium",
 };
 
 export function Heading({ text, level, className, ...props }: HeadingProps) {

@@ -9,17 +9,14 @@ export interface StepsProps extends ComponentProps<"ol"> {
 
 export function Steps({ items, className, ...props }: StepsProps) {
   return (
-    <ol className={cn("space-y-4", className)} {...props}>
+    <ol className={cn("space-y-2", className)} {...props}>
       {items.map((item, i) => (
-        <li key={i} className="flex gap-4">
-          <div className="flex flex-col items-center">
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-              {i + 1}
-            </div>
-            {i < items.length - 1 && <div className="w-px flex-1 bg-border mt-2" />}
+        <li key={i} className="flex items-center gap-2">
+          <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold">
+            {i + 1}
           </div>
           <Streamdown
-            className="flex-1 pb-4 pt-1 text-sm prose prose-sm max-w-full"
+            className="flex-1 text-sm prose prose-sm max-w-full"
             plugins={streamdownPlugins}
           >
             {item}

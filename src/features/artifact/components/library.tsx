@@ -10,7 +10,6 @@ import { Chart } from "./charts";
 import { Callout } from "./callout";
 import { CodeBlock } from "./code-block";
 import { Section } from "./section";
-import { Definition } from "./definition";
 import { Steps } from "./steps";
 import { AsterTabs } from "./tabs";
 
@@ -100,16 +99,6 @@ export const CodeBlockComponent = defineComponent({
   component: ({ props }) => (
     <CodeBlock language={props.language} code={props.code} filename={props.filename} />
   ),
-});
-
-export const DefinitionComponent = defineComponent({
-  name: "Definition",
-  description: "Term + definition pair. Use for vocabulary, glossary entries, and key terms.",
-  props: z.object({
-    term: z.string().describe("The term being defined"),
-    definition: z.string().describe("Definition text (supports markdown)"),
-  }),
-  component: ({ props }) => <Definition term={props.term} definition={props.definition} />,
 });
 
 export const StepsComponent = defineComponent({
@@ -262,7 +251,6 @@ export const asterLibrary = createLibrary({
     QuizComponent,
     CalloutComponent,
     CodeBlockComponent,
-    DefinitionComponent,
     StepsComponent,
     TabsComponent,
     StackComponent,

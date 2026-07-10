@@ -15,8 +15,8 @@ import { Route as WorkspacesWorkspaceIdIndexRouteImport } from './routes/workspa
 import { Route as WorkspacesWorkspaceIdThreadsRouteImport } from './routes/workspaces/$workspaceId/threads'
 import { Route as WorkspacesWorkspaceIdResourcesRouteImport } from './routes/workspaces/$workspaceId/resources'
 import { Route as WorkspacesWorkspaceIdNotesRouteImport } from './routes/workspaces/$workspaceId/notes'
-import { Route as WorkspacesWorkspaceIdGlossaryRouteImport } from './routes/workspaces/$workspaceId/glossary'
 import { Route as WorkspacesWorkspaceIdLibraryIndexRouteImport } from './routes/workspaces/$workspaceId/library/index'
+import { Route as WorkspacesWorkspaceIdGlossaryIndexRouteImport } from './routes/workspaces/$workspaceId/glossary/index'
 import { Route as WorkspacesWorkspaceIdThreadsThreadIdRouteImport } from './routes/workspaces/$workspaceId/threads/$threadId'
 import { Route as WorkspacesWorkspaceIdLibraryArtifactIdRouteImport } from './routes/workspaces/$workspaceId/library/$artifactId'
 
@@ -54,16 +54,16 @@ const WorkspacesWorkspaceIdNotesRoute =
     path: '/notes',
     getParentRoute: () => WorkspacesWorkspaceIdRoute,
   } as any)
-const WorkspacesWorkspaceIdGlossaryRoute =
-  WorkspacesWorkspaceIdGlossaryRouteImport.update({
-    id: '/glossary',
-    path: '/glossary',
-    getParentRoute: () => WorkspacesWorkspaceIdRoute,
-  } as any)
 const WorkspacesWorkspaceIdLibraryIndexRoute =
   WorkspacesWorkspaceIdLibraryIndexRouteImport.update({
     id: '/library/',
     path: '/library/',
+    getParentRoute: () => WorkspacesWorkspaceIdRoute,
+  } as any)
+const WorkspacesWorkspaceIdGlossaryIndexRoute =
+  WorkspacesWorkspaceIdGlossaryIndexRouteImport.update({
+    id: '/glossary/',
+    path: '/glossary/',
     getParentRoute: () => WorkspacesWorkspaceIdRoute,
   } as any)
 const WorkspacesWorkspaceIdThreadsThreadIdRoute =
@@ -82,37 +82,37 @@ const WorkspacesWorkspaceIdLibraryArtifactIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdRouteWithChildren
-  '/workspaces/$workspaceId/glossary': typeof WorkspacesWorkspaceIdGlossaryRoute
   '/workspaces/$workspaceId/notes': typeof WorkspacesWorkspaceIdNotesRoute
   '/workspaces/$workspaceId/resources': typeof WorkspacesWorkspaceIdResourcesRoute
   '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   '/workspaces/$workspaceId/': typeof WorkspacesWorkspaceIdIndexRoute
   '/workspaces/$workspaceId/library/$artifactId': typeof WorkspacesWorkspaceIdLibraryArtifactIdRoute
   '/workspaces/$workspaceId/threads/$threadId': typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
+  '/workspaces/$workspaceId/glossary/': typeof WorkspacesWorkspaceIdGlossaryIndexRoute
   '/workspaces/$workspaceId/library/': typeof WorkspacesWorkspaceIdLibraryIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/workspaces/$workspaceId/glossary': typeof WorkspacesWorkspaceIdGlossaryRoute
   '/workspaces/$workspaceId/notes': typeof WorkspacesWorkspaceIdNotesRoute
   '/workspaces/$workspaceId/resources': typeof WorkspacesWorkspaceIdResourcesRoute
   '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdIndexRoute
   '/workspaces/$workspaceId/library/$artifactId': typeof WorkspacesWorkspaceIdLibraryArtifactIdRoute
   '/workspaces/$workspaceId/threads/$threadId': typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
+  '/workspaces/$workspaceId/glossary': typeof WorkspacesWorkspaceIdGlossaryIndexRoute
   '/workspaces/$workspaceId/library': typeof WorkspacesWorkspaceIdLibraryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/workspaces/$workspaceId': typeof WorkspacesWorkspaceIdRouteWithChildren
-  '/workspaces/$workspaceId/glossary': typeof WorkspacesWorkspaceIdGlossaryRoute
   '/workspaces/$workspaceId/notes': typeof WorkspacesWorkspaceIdNotesRoute
   '/workspaces/$workspaceId/resources': typeof WorkspacesWorkspaceIdResourcesRoute
   '/workspaces/$workspaceId/threads': typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   '/workspaces/$workspaceId/': typeof WorkspacesWorkspaceIdIndexRoute
   '/workspaces/$workspaceId/library/$artifactId': typeof WorkspacesWorkspaceIdLibraryArtifactIdRoute
   '/workspaces/$workspaceId/threads/$threadId': typeof WorkspacesWorkspaceIdThreadsThreadIdRoute
+  '/workspaces/$workspaceId/glossary/': typeof WorkspacesWorkspaceIdGlossaryIndexRoute
   '/workspaces/$workspaceId/library/': typeof WorkspacesWorkspaceIdLibraryIndexRoute
 }
 export interface FileRouteTypes {
@@ -120,36 +120,36 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/workspaces/$workspaceId'
-    | '/workspaces/$workspaceId/glossary'
     | '/workspaces/$workspaceId/notes'
     | '/workspaces/$workspaceId/resources'
     | '/workspaces/$workspaceId/threads'
     | '/workspaces/$workspaceId/'
     | '/workspaces/$workspaceId/library/$artifactId'
     | '/workspaces/$workspaceId/threads/$threadId'
+    | '/workspaces/$workspaceId/glossary/'
     | '/workspaces/$workspaceId/library/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/workspaces/$workspaceId/glossary'
     | '/workspaces/$workspaceId/notes'
     | '/workspaces/$workspaceId/resources'
     | '/workspaces/$workspaceId/threads'
     | '/workspaces/$workspaceId'
     | '/workspaces/$workspaceId/library/$artifactId'
     | '/workspaces/$workspaceId/threads/$threadId'
+    | '/workspaces/$workspaceId/glossary'
     | '/workspaces/$workspaceId/library'
   id:
     | '__root__'
     | '/'
     | '/workspaces/$workspaceId'
-    | '/workspaces/$workspaceId/glossary'
     | '/workspaces/$workspaceId/notes'
     | '/workspaces/$workspaceId/resources'
     | '/workspaces/$workspaceId/threads'
     | '/workspaces/$workspaceId/'
     | '/workspaces/$workspaceId/library/$artifactId'
     | '/workspaces/$workspaceId/threads/$threadId'
+    | '/workspaces/$workspaceId/glossary/'
     | '/workspaces/$workspaceId/library/'
   fileRoutesById: FileRoutesById
 }
@@ -202,18 +202,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspacesWorkspaceIdNotesRouteImport
       parentRoute: typeof WorkspacesWorkspaceIdRoute
     }
-    '/workspaces/$workspaceId/glossary': {
-      id: '/workspaces/$workspaceId/glossary'
-      path: '/glossary'
-      fullPath: '/workspaces/$workspaceId/glossary'
-      preLoaderRoute: typeof WorkspacesWorkspaceIdGlossaryRouteImport
-      parentRoute: typeof WorkspacesWorkspaceIdRoute
-    }
     '/workspaces/$workspaceId/library/': {
       id: '/workspaces/$workspaceId/library/'
       path: '/library'
       fullPath: '/workspaces/$workspaceId/library/'
       preLoaderRoute: typeof WorkspacesWorkspaceIdLibraryIndexRouteImport
+      parentRoute: typeof WorkspacesWorkspaceIdRoute
+    }
+    '/workspaces/$workspaceId/glossary/': {
+      id: '/workspaces/$workspaceId/glossary/'
+      path: '/glossary'
+      fullPath: '/workspaces/$workspaceId/glossary/'
+      preLoaderRoute: typeof WorkspacesWorkspaceIdGlossaryIndexRouteImport
       parentRoute: typeof WorkspacesWorkspaceIdRoute
     }
     '/workspaces/$workspaceId/threads/$threadId': {
@@ -249,17 +249,16 @@ const WorkspacesWorkspaceIdThreadsRouteWithChildren =
   )
 
 interface WorkspacesWorkspaceIdRouteChildren {
-  WorkspacesWorkspaceIdGlossaryRoute: typeof WorkspacesWorkspaceIdGlossaryRoute
   WorkspacesWorkspaceIdNotesRoute: typeof WorkspacesWorkspaceIdNotesRoute
   WorkspacesWorkspaceIdResourcesRoute: typeof WorkspacesWorkspaceIdResourcesRoute
   WorkspacesWorkspaceIdThreadsRoute: typeof WorkspacesWorkspaceIdThreadsRouteWithChildren
   WorkspacesWorkspaceIdIndexRoute: typeof WorkspacesWorkspaceIdIndexRoute
   WorkspacesWorkspaceIdLibraryArtifactIdRoute: typeof WorkspacesWorkspaceIdLibraryArtifactIdRoute
+  WorkspacesWorkspaceIdGlossaryIndexRoute: typeof WorkspacesWorkspaceIdGlossaryIndexRoute
   WorkspacesWorkspaceIdLibraryIndexRoute: typeof WorkspacesWorkspaceIdLibraryIndexRoute
 }
 
 const WorkspacesWorkspaceIdRouteChildren: WorkspacesWorkspaceIdRouteChildren = {
-  WorkspacesWorkspaceIdGlossaryRoute: WorkspacesWorkspaceIdGlossaryRoute,
   WorkspacesWorkspaceIdNotesRoute: WorkspacesWorkspaceIdNotesRoute,
   WorkspacesWorkspaceIdResourcesRoute: WorkspacesWorkspaceIdResourcesRoute,
   WorkspacesWorkspaceIdThreadsRoute:
@@ -267,6 +266,8 @@ const WorkspacesWorkspaceIdRouteChildren: WorkspacesWorkspaceIdRouteChildren = {
   WorkspacesWorkspaceIdIndexRoute: WorkspacesWorkspaceIdIndexRoute,
   WorkspacesWorkspaceIdLibraryArtifactIdRoute:
     WorkspacesWorkspaceIdLibraryArtifactIdRoute,
+  WorkspacesWorkspaceIdGlossaryIndexRoute:
+    WorkspacesWorkspaceIdGlossaryIndexRoute,
   WorkspacesWorkspaceIdLibraryIndexRoute:
     WorkspacesWorkspaceIdLibraryIndexRoute,
 }

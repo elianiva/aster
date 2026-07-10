@@ -8,8 +8,8 @@ export interface SectionProps extends ComponentProps<"div"> {
 
 export function Section({ title, children, className, ...props }: SectionProps) {
   return (
-    <div className={cn("rounded-lg bg-secondary/70 p-4 space-y-3", className)} {...props}>
-      {title && <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>}
+    <div className={cn("rounded-lg bg-secondary/70 p-3 space-y-3", className)} {...props}>
+      {title && <h4 className="text-lg font-semibold mb-2 leading-tight">{title}</h4>}
       {children}
     </div>
   );

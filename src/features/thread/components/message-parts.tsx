@@ -288,6 +288,7 @@ export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: M
             <Reasoning
               key={`reasoning-${text.length}`}
               isStreaming={isReasoningStreaming}
+              defaultOpen={false}
               className="mb-2"
             >
               <ReasoningTrigger />

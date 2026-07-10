@@ -207,3 +207,7 @@ body {
 [data-streamdown="code-block"] code {
   @apply text-[0.8125rem] leading-[1.6];
 }
+
+ul[data-streamdown="unordered-list"] {
+  @apply pl-2;
+}
