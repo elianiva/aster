@@ -3,7 +3,6 @@ import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import type { ChatStatus } from "ai";
-import { useMessageScroller } from "@shadcn/react/message-scroller";
 import {
   MessageScrollerProvider,
   MessageScroller,
@@ -40,19 +39,6 @@ import { useApiKeyStatus } from "~/hooks/use-api-key";
 interface ChatViewProps {
   workspaceId: string;
   threadId: string;
-}
-function ScrollToEndOnMount() {
-  const { scrollToEnd } = useMessageScroller();
-  const scrolled = useRef(false);
-
-  useEffect(() => {
-    if (!scrolled.current) {
-      scrolled.current = true;
-      scrollToEnd({ behavior: "auto" });
-    }
-  }, [scrollToEnd]);
-
-  return null;
 }
 
 // ============================================================================
@@ -124,11 +110,10 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
 
   return (
     <PromptInputProvider>
-      <MessageScrollerProvider defaultScrollPosition="end">
+      <MessageScrollerProvider autoScroll defaultScrollPosition="end">
         <MessageScroller className="flex-1">
           <MessageScrollerViewport>
             <MessageScrollerContent className="mx-auto w-full max-w-3xl pt-4">
-              <ScrollToEndOnMount />
               {messages.map((message, index) => (
                 <MessageScrollerItem key={message.id} scrollAnchor={message.role === "user"}>
                   <Message align={message.role === "user" ? "end" : "start"} className="max-w-full">
