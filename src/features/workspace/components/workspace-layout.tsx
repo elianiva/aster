@@ -125,7 +125,10 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
               <SidebarMenu>
                 {NAV_ITEMS.map((tab) => {
                   const resolvedPath = tab.path.replace("$workspaceId", workspaceId);
-                  const isActive = currentPath === resolvedPath || currentPath.startsWith(resolvedPath + "/");
+                  const isIndex = tab === NAV_ITEMS[0];
+                  const isActive = isIndex
+                    ? currentPath === resolvedPath
+                    : currentPath === resolvedPath || currentPath.startsWith(resolvedPath + "/");
                   const n = countsFor(tab.countKey);
                   return (
                     <SidebarMenuItem key={tab.path}>
