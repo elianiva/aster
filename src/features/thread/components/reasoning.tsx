@@ -1,5 +1,3 @@
-"use client";
-
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { Spinner } from "~/components/ui/spinner";
 import { cn } from "~/lib/utils";

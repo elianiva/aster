@@ -1,5 +1,3 @@
-"use client";
-
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { cn, prettyName } from "~/lib/utils";
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
