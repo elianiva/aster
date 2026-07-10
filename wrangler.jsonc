@@ -7,7 +7,6 @@
 	],
 	"vars": {
 		"ACCESS_TEAM_DOMAIN": "elianiva.cloudflareaccess.com",
-		"ACCESS_AUD": "",
 		"ADMIN_EMAIL": "hi@elianiva.com",
 		"ENABLE_DEV_AUTH": "false"
 	},
