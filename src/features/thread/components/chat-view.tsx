@@ -1,3 +1,4 @@
+import { PromptInputProvider } from "./prompt-input";
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
@@ -110,16 +111,13 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
   const showThinking = status === "submitted" && messages.length > 0;
 
   return (
-    <>
+    <PromptInputProvider>
       <MessageScrollerProvider>
         <MessageScroller className="flex-1">
           <MessageScrollerViewport>
             <MessageScrollerContent className="mx-auto w-full max-w-3xl pt-4">
               {messages.map((message, index) => (
-                <MessageScrollerItem
-                  key={message.id}
-                  scrollAnchor={message.role === "user"}
-                >
+                <MessageScrollerItem key={message.id} scrollAnchor={message.role === "user"}>
                   <Message align={message.role === "user" ? "end" : "start"}>
                     <Bubble
                       variant={message.role === "user" ? "secondary" : "ghost"}
@@ -168,7 +166,6 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
           <MessageScrollerButton />
         </MessageScroller>
       </MessageScrollerProvider>
-
       <div className="pt-1">
         {!hasKey && <ApiKeyBanner providerName={providerName} />}
         <ChatPromptInput
@@ -182,7 +179,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
           Your teacher agent may make mistakes. Verify important information.
         </p>
       </div>
-    </>
+    </PromptInputProvider>
   );
 }
 
@@ -198,19 +195,19 @@ interface ChatPromptInputProps {
   disabled?: boolean;
 }
 
-function ChatPromptInput({
-  status,
-  isBusy,
-  onSubmit,
-  onStop,
-  disabled,
-}: ChatPromptInputProps) {
+function ChatPromptInput({ status, isBusy, onSubmit, onStop, disabled }: ChatPromptInputProps) {
   const { textInput } = usePromptInputController();
   const attachments = usePromptInputAttachments();
   const hasContent = textInput.value.trim().length > 0 || attachments.files.length > 0;
 
   return (
-    <PromptInput accept="image/*" multiple onSubmit={onSubmit} aria-disabled={disabled} className="shadow-lg/5 rounded-full">
+    <PromptInput
+      accept="image/*"
+      multiple
+      onSubmit={onSubmit}
+      aria-disabled={disabled}
+      className="shadow-lg/5 rounded-full"
+    >
       <PromptInputAttachments />
       <AttachmentButton disabled={disabled} />
       <PromptInputTextarea
@@ -229,11 +226,7 @@ function ChatPromptInput({
 function AttachmentButton({ disabled }: { disabled?: boolean }) {
   const { openFileDialog } = usePromptInputController();
   return (
-    <PromptInputButton
-      aria-label="Add attachment"
-      onClick={openFileDialog}
-      disabled={disabled}
-    >
+    <PromptInputButton aria-label="Add attachment" onClick={openFileDialog} disabled={disabled}>
       <HugeiconsIcon icon={PlusSignIcon} className="size-5" />
     </PromptInputButton>
   );

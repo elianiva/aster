@@ -7,6 +7,7 @@ import {
   type PromptInputMessage,
   PromptInputAttachments,
   PromptInputButton,
+  PromptInputProvider,
   PromptInputSubmit,
   PromptInputTextarea,
   usePromptInputController,
@@ -64,7 +65,8 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
   };
 
   return (
-    <div className="flex flex-1 flex-col">
+    <PromptInputProvider>
+      <div className="flex flex-1 flex-col">
       <div className="flex flex-1 items-center justify-center p-6">
         <Empty className="max-w-md border-0">
           <EmptyHeader>
@@ -105,7 +107,8 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
           Workspace: {workspaceId}
         </p>
       </div>
-    </div>
+      </div>
+    </PromptInputProvider>
   );
 }
 

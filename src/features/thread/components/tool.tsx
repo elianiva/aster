@@ -1,4 +1,3 @@
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { cn, prettyName } from "~/lib/utils";
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
 import {
@@ -12,19 +11,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { isValidElement } from "react";
 
-export type ToolProps = Omit<React.ComponentProps<typeof Collapsible>, "open" | "defaultOpen" | "onOpenChange"> & {
-  defaultOpen?: boolean;
-};
+export type ToolProps = React.ComponentProps<"div">;
 
-export const Tool = ({ className, defaultOpen, children, ...props }: ToolProps) => (
-  <Collapsible
-    data-slot="tool"
-    className={cn("w-full text-sm", className)}
-    defaultOpen={defaultOpen}
-    {...props}
-  >
+export const Tool = ({ className, children, ...props }: ToolProps) => (
+  <div data-slot="tool" className={cn("text-sm", className)} {...props}>
     {children}
-  </Collapsible>
+  </div>
 );
 
 export type ToolHeaderProps = {
@@ -32,6 +24,8 @@ export type ToolHeaderProps = {
   state: ToolUIPart["state"] | DynamicToolUIPart["state"];
   toolName?: string;
   title?: string;
+  isExpanded?: boolean;
+  onToggle?: () => void;
   className?: string;
 };
 
@@ -57,35 +51,43 @@ function StateIcon({ state }: { state: string }) {
   }
 }
 
-export const ToolHeader = ({ type, state, toolName, title, className }: ToolHeaderProps) => {
+export const ToolHeader = ({ type, state, toolName, title, isExpanded, onToggle, className }: ToolHeaderProps) => {
   const label = title ?? toolLabel(type, toolName);
   return (
-    <CollapsibleTrigger
+    <button
       data-slot="tool-header"
+      onClick={onToggle}
       className={cn(
-        "flex w-full items-center gap-1.5 px-0 py-0.5",
-        "[&[aria-expanded=true]>svg:last-child]:rotate-180",
+        "inline-flex items-center gap-1 bg-muted/50 px-1.5 py-0.5 rounded-md transition-colors hover:bg-muted",
+        "[&>svg:last-child]:transition-transform [&>svg:last-child]:duration-200",
+        isExpanded && "[&>svg:last-child]:rotate-180 ring-1 ring-ring",
+        "text-xs cursor-pointer",
         className,
       )}
     >
       <StateIcon state={state} />
-      <span className="flex-1 truncate text-xs text-muted-foreground">{label}</span>
+      <span className="text-muted-foreground truncate">{label}</span>
       <HugeiconsIcon icon={ChevronDownIcon} className="size-3 text-muted-foreground/50 transition-transform" />
-    </CollapsibleTrigger>
+    </button>
   );
 };
 
-export type ToolContentProps = React.ComponentProps<typeof CollapsibleContent>;
+export type ToolContentProps = React.ComponentProps<"div"> & {
+  isExpanded?: boolean;
+};
 
-export const ToolContent = ({ className, children, ...props }: ToolContentProps) => (
-  <CollapsibleContent
-    data-slot="tool-content"
-    className={cn("px-2 pb-2 pt-1 text-muted-foreground", className)}
-    {...props}
-  >
-    {children}
-  </CollapsibleContent>
-);
+export const ToolContent = ({ isExpanded, className, children, ...props }: ToolContentProps) => {
+  if (!isExpanded) return null;
+  return (
+    <div
+      data-slot="tool-content"
+      className={cn("mt-1 rounded-md bg-muted/30 px-2 py-1.5 text-xs text-muted-foreground", className)}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
 
 export type ToolInputProps = React.ComponentProps<"div"> & {
   input: ToolUIPart["input"];

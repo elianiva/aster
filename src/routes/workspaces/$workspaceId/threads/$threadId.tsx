@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PromptInputProvider } from "~/features/thread/components/prompt-input";
 import { EmptyState } from "~/features/workspace/components/empty-state";
 import { ChatView } from "~/features/thread/components/chat-view"
 
@@ -13,12 +12,12 @@ function RouteThreadId() {
   const { workspaceId, threadId } = Route.useParams();
 
   return (
-    <PromptInputProvider>
+    <>
       {threadId === "new" ? (
         <EmptyState workspaceId={workspaceId} />
       ) : (
         <ChatView workspaceId={workspaceId} threadId={threadId} />
       )}
-    </PromptInputProvider>
+    </>
   );
 }

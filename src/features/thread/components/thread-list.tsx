@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon, Message02Icon } from "@hugeicons/core-free-icons";
-import type { Thread } from "~/features/thread/server/service"
+import type { Thread } from "~/features/thread/server/service";
 import { cn } from "~/lib/utils";
 import {
   DropdownMenu,
@@ -59,7 +59,6 @@ export function ThreadList({
     <Sidebar
       side="right"
       collapsible="none"
-      className="border-l"
       style={{ "--sidebar-width": "16rem" } as React.CSSProperties}
     >
       <SidebarGroup className="h-full">
