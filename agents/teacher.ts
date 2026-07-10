@@ -1,18 +1,19 @@
 import { Think, type Session, type TurnContext, type TurnConfig } from "@cloudflare/think";
-import { Effect, Layer, Schema } from "effect";
+import { Effect, Layer, Option, Schema } from "effect";
 import { drizzle } from "drizzle-orm/d1";
-import { eq } from "drizzle-orm";
+import { FetchHttpClient } from "effect/unstable/http";
 import { generateText } from "ai";
-import * as schema from "../src/server/db/schema";
 import { logJson } from "../src/server/logger";
 import { Database } from "../src/server/db/client";
 import { R2 } from "../src/server/r2-service";
+import { KvLayer } from "../src/server/kv-service";
 import { ThreadService } from "../src/features/thread/server/service";
 import { WorkspaceService } from "../src/features/workspace/server/service";
 import { ArtifactService } from "../src/features/artifact/server/service";
 import { NoteService } from "../src/features/artifact/server/note-service";
 import { GlossaryService } from "../src/features/glossary/server/service";
 import { ResourceService } from "../src/features/resource/server/service";
+import { SettingsService } from "../src/features/settings/server/service";
 import {
   createModel,
   type ModelConfig,
@@ -23,6 +24,7 @@ import SYSTEM_PROMPT from "./prompts/teacher.md?raw";
 import TEACH_FORMATS from "./prompts/teach-formats.md?raw";
 import OPENUI_PROMPT from "../src/lib/openui/component-prompt.txt?raw";
 import TITLE_PROMPT from "./prompts/title-generation.md?raw";
+import * as schema from "../src/server/db/schema";
 
 type Env = Cloudflare.Env & {
   ASTER_KV: KVNamespace;
@@ -38,10 +40,6 @@ function parseThreadKey(name: string): { workspaceId: string; threadId: string }
   return { workspaceId: name.slice(0, sep), threadId: name.slice(sep + 2) };
 }
 
-class ContextLoadFailed extends Schema.TaggedErrorClass<ContextLoadFailed>()("ContextLoadFailed", {
-  cause: Schema.Defect(),
-}) { }
-
 class PostTurnFailed extends Schema.TaggedErrorClass<PostTurnFailed>()("PostTurnFailed", {
   step: Schema.String,
   cause: Schema.Defect(),
@@ -56,17 +54,16 @@ export class TeacherAgent extends Think<Env> {
     return this._threadKey;
   }
 
-  private db() {
-    return drizzle(this.env.aster_db, { schema });
-  }
-
   private get layer() {
     const base = Layer.mergeAll(
-      Layer.succeed(Database, { client: this.db() }),
-      R2.layer(this.env.ASTER_R2),
+      Layer.succeed(Database, { client: drizzle((this.env as Env).aster_db, { schema }) }),
+      R2.layer((this.env as Env).ASTER_R2),
+      KvLayer,
+      FetchHttpClient.layer,
     );
     return Layer.mergeAll(
       base,
+      SettingsService.layer.pipe(Layer.provide(base)),
       ThreadService.layer.pipe(Layer.provide(base)),
       WorkspaceService.layer.pipe(Layer.provide(base)),
       ArtifactService.layer.pipe(Layer.provide(base)),
@@ -75,48 +72,30 @@ export class TeacherAgent extends Think<Env> {
       ResourceService.layer.pipe(Layer.provide(base)),
     );
   }
+
   private loadModelConfig(): Promise<ModelConfig> {
     if (this._cachedConfig) return Promise.resolve(this._cachedConfig);
-    const kv = this.env.ASTER_KV;
-    const { workspaceId, threadId } = this.threadKey;
+    const self = this;
+
     return Effect.runPromise(
-      Effect.gen(function*() {
-        const stored = yield* Effect.tryPromise({
-          try: () => kv.get("app:settings"),
-          catch: (cause) => new ContextLoadFailed({ cause }),
-        });
-        if (!stored) return getDefaultConfig();
-        const settings = yield* Effect.try({
-          try: () =>
-            JSON.parse(stored) as {
-              selectedProvider: string;
-              selectedModel: string;
-              apiKeys: Record<string, string>;
-            },
-          catch: (cause) => new ContextLoadFailed({ cause }),
-        });
-        const config: ModelConfig = {
-          provider: settings.selectedProvider,
-          model: settings.selectedModel,
-          apiKeys: settings.apiKeys ?? {},
-        };
-        return config;
+      Effect.gen(function* () {
+        const settings = yield* SettingsService.use((svc) => svc.get());
+        if (Option.isNone(settings)) return getDefaultConfig();
+        const s = settings.value;
+        return {
+          provider: s.selectedProvider,
+          model: s.selectedModel,
+          apiKeys: s.apiKeys ?? {},
+        } satisfies ModelConfig;
       }).pipe(
-        Effect.catchTag("ContextLoadFailed", (err) =>
-          Effect.sync(() => {
-            logJson("warn", "agent.config.fallback", {
-              workspaceId,
-              threadId,
-              cause: String(err.cause),
-            });
-            return getDefaultConfig();
-          }),
-        ),
+        Effect.catchCause(() => Effect.succeed(getDefaultConfig())),
+        Effect.provide(self.layer),
       ),
     ).then((config) => {
+      const fallback = getDefaultConfig();
       const isFallback =
-        config.provider === getDefaultConfig().provider &&
-        config.model === getDefaultConfig().model &&
+        config.provider === fallback.provider &&
+        config.model === fallback.model &&
         Object.keys(config.apiKeys).length === 0;
       if (!isFallback) {
         this._cachedConfig = config;
@@ -133,32 +112,13 @@ export class TeacherAgent extends Think<Env> {
     const config = await this.loadModelConfig();
     this._cachedConfig = config;
     const model = createModel(config);
-
-    const db = this.db();
+    const self = this;
     const { workspaceId, threadId } = this.threadKey;
 
     const [workspace, thread] = await Effect.all(
       [
-        Effect.tryPromise({
-          try: () =>
-            db
-              .select()
-              .from(schema.workspaces)
-              .where(eq(schema.workspaces.id, workspaceId))
-              .limit(1)
-              .then((r) => r[0]),
-          catch: (cause) => new ContextLoadFailed({ cause }),
-        }),
-        Effect.tryPromise({
-          try: () =>
-            db
-              .select()
-              .from(schema.threads)
-              .where(eq(schema.threads.id, threadId))
-              .limit(1)
-              .then((r) => r[0]),
-          catch: (cause) => new ContextLoadFailed({ cause }),
-        }),
+        WorkspaceService.use((svc) => svc.get(workspaceId)),
+        ThreadService.use((svc) => svc.get(threadId)),
       ],
       { concurrency: "unbounded" },
     )
@@ -168,21 +128,22 @@ export class TeacherAgent extends Think<Env> {
             logJson("error", "agent.beforeTurn.context", {
               workspaceId,
               threadId,
-              cause: String(err.cause),
-              stack: err.cause instanceof Error ? err.cause.stack : undefined,
+              cause: String(err),
             }),
           ),
         ),
+        Effect.provide(self.layer),
         Effect.runPromise,
       )
-      .catch((err) => {
-        throw (err as { cause?: unknown })?.cause ?? err;
-      });
-    const workspaceBlock = workspace
-      ? `\n## Current Workspace\nTopic: ${workspace.topic}\nMission: ${workspace.mission}\nCurrent knowledge: ${workspace.currentKnowledge}`
+      .catch(() => [Option.none(), Option.none()] as const);
+
+    const ws = Option.getOrNull(workspace);
+    const workspaceBlock = ws
+      ? `\n## Current Workspace\nTopic: ${ws.topic}\nMission: ${ws.mission}\nCurrent knowledge: ${ws.currentKnowledge}`
       : "";
 
-    const teachingMode = thread?.teachingMode ?? true;
+    const th = Option.getOrNull(thread);
+    const teachingMode = th?.teachingMode ?? true;
     const formatsBlock = teachingMode ? `\n\n${TEACH_FORMATS}` : "";
 
     return {
@@ -207,40 +168,21 @@ export class TeacherAgent extends Think<Env> {
 
   override onChatResponse(): Promise<void> {
     const self = this;
-    const db = this.db();
     const { threadId } = this.threadKey;
-    const now = new Date();
-    const getModel = () => this.getModel();
     const getMessages = () => this.getMessages();
 
     return Effect.runPromise(
-      Effect.gen(function*() {
-        yield* Effect.tryPromise({
-          try: () =>
-            db
-              .update(schema.threads)
-              .set({ updatedAt: now })
-              .where(eq(schema.threads.id, threadId)),
-          catch: (cause) => new PostTurnFailed({ step: "touch", cause }),
-        }).pipe(
-          Effect.catchTag("PostTurnFailed", (err) =>
+      Effect.gen(function* () {
+        yield* ThreadService.use((svc) => svc.touch(threadId)).pipe(
+          Effect.catchCause(() =>
             Effect.sync(() =>
-              logJson("warn", "agent.chatResponse.touch", { threadId, cause: String(err.cause) }),
+              logJson("warn", "agent.chatResponse.touch", { threadId }),
             ),
           ),
         );
 
-        const existing = yield* Effect.tryPromise({
-          try: () =>
-            db
-              .select()
-              .from(schema.threads)
-              .where(eq(schema.threads.id, threadId))
-              .limit(1)
-              .then((r) => r[0]),
-          catch: (cause) => new PostTurnFailed({ step: "load", cause }),
-        });
-        if (!existing || existing.name.trim().length > 0) return;
+        const existing = yield* ThreadService.use((svc) => svc.get(threadId));
+        if (Option.isNone(existing) || existing.value.name.trim().length > 0) return;
 
         const messages = yield* Effect.tryPromise({
           try: () => getMessages(),
@@ -263,16 +205,15 @@ export class TeacherAgent extends Think<Env> {
         yield* Effect.tryPromise({
           try: async () => {
             const result = await generateText({
-              model: getModel(),
+              model: self.getModel(),
               system: TITLE_PROMPT,
               prompt: `User: ${userText}\nAssistant: ${assistantText}`,
             });
             const title = result.text.trim().slice(0, 80);
             if (title.length > 0) {
               await Effect.runPromise(
-                Effect.gen(function*() {
-                  const service = yield* ThreadService;
-                  yield* service.rename(threadId, title);
+                Effect.gen(function* () {
+                  yield* ThreadService.use((svc) => svc.rename(threadId, title));
                 }).pipe(Effect.provide(self.layer)),
               );
             }
@@ -285,7 +226,7 @@ export class TeacherAgent extends Think<Env> {
             ),
           ),
         );
-      }),
+      }).pipe(Effect.provide(self.layer)),
     );
   }
 }

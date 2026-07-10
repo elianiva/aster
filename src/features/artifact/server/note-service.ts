@@ -2,7 +2,7 @@ import { Context, Effect, Layer } from "effect";
 import { eq } from "drizzle-orm";
 import { Database } from "~/server/db/client"
 import { R2 } from "~/server/r2-service"
-import { NotePersistenceFailed } from "~/server/errors"
+import { PersistenceError } from "~/server/errors"
 import { notes } from "~/server/db/schema"
 
 export interface NoteContent {
@@ -13,7 +13,7 @@ export interface NoteContent {
 }
 
 const fail = (op: string) => (cause: unknown) =>
-  new NotePersistenceFailed({ message: `Note ${op}: ${cause}` });
+  new PersistenceError({ service: "note", message: `Note ${op}: ${cause}` });
 
 export class NoteService extends Context.Service<NoteService>()(
   "@aster/features/note/NoteService",

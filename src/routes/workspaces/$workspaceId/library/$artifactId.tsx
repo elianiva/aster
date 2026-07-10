@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Renderer } from "@openuidev/react-lang";
 import { asterLibrary } from "~/features/artifact/components/library";
 import { LibraryRpc } from "~/features/artifact/server/library-rpc";
-import { PageHeader } from "~/components/page-header";
+import { PageHeader } from "~/features/artifact/components/page-header";
 
 export const Route = createFileRoute(
   "/workspaces/$workspaceId/library/$artifactId",

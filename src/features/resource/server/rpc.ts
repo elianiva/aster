@@ -16,7 +16,7 @@ export const listResources = createServerFn({ method: "GET" })
     }).pipe(
       Effect.withSpan("listResources"),
       rpcErrorPipe({
-        ResourcePersistenceFailed: "Failed to load resources. Please try again.",
+        PersistenceError: "Failed to load resources. Please try again.",
       }),
       appRuntime().runPromise,
     );

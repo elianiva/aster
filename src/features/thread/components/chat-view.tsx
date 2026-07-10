@@ -20,15 +20,13 @@ import {
   PromptInput,
   type PromptInputMessage,
   PromptInputAttachments,
-  PromptInputButton,
   PromptInputSubmit,
   PromptInputTextarea,
   usePromptInputAttachments,
   usePromptInputController,
 } from "./prompt-input";
 import { Spinner } from "~/components/ui/spinner";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { AttachmentButton } from "./attachment-button";
 import { useTeacherAgent } from "~/features/workspace/hooks/use-teacher-agent";
 import { queryKeys } from "~/lib/query-keys";
 import { MessageParts } from "./message-parts";
@@ -239,14 +237,5 @@ function ChatPromptInput({ status, isBusy, onSubmit, onStop, disabled }: ChatPro
         onStop={onStop}
       />
     </PromptInput>
-  );
-}
-
-function AttachmentButton({ disabled }: { disabled?: boolean }) {
-  const { openFileDialog } = usePromptInputController();
-  return (
-    <PromptInputButton aria-label="Add attachment" onClick={openFileDialog} disabled={disabled}>
-      <HugeiconsIcon icon={PlusSignIcon} className="size-5" />
-    </PromptInputButton>
   );
 }

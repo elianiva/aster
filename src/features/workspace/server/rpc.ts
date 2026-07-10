@@ -17,7 +17,7 @@ export const listWorkspaces = createServerFn({ method: "GET" }).handler(async ()
     Effect.withSpan("listWorkspaces"),
     rpcErrorPipe({
       WorkspaceNotFound: "Workspace not found. It may have been deleted.",
-      WorkspacePersistenceFailed: "Failed to complete operation. Please try again.",
+      PersistenceError: "Failed to complete operation. Please try again.",
     }),
     appRuntime().runPromise,
   );
@@ -34,7 +34,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
       Effect.annotateLogs({ id: data.id }),
       rpcErrorPipe({
         WorkspaceNotFound: "Workspace not found. It may have been deleted.",
-        WorkspacePersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -50,7 +50,7 @@ export const createWorkspace = createServerFn({ method: "POST" })
       Effect.annotateLogs({ topic: data.topic }),
       rpcErrorPipe({
         WorkspaceNotFound: "Workspace not found. It may have been deleted.",
-        WorkspacePersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -70,7 +70,7 @@ export const updateWorkspace = createServerFn({ method: "POST" })
       Effect.annotateLogs({ id: data.id }),
       rpcErrorPipe({
         WorkspaceNotFound: "Workspace not found. It may have been deleted.",
-        WorkspacePersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -108,7 +108,7 @@ export const deleteWorkspace = createServerFn({ method: "POST" })
       Effect.annotateLogs({ id: data.id }),
       rpcErrorPipe({
         WorkspaceNotFound: "Workspace not found. It may have been deleted.",
-        WorkspacePersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -121,7 +121,7 @@ export const getRecentThreads = createServerFn({ method: "GET" }).handler(async 
     Effect.withSpan("getRecentThreads"),
     rpcErrorPipe({
       WorkspaceNotFound: "Workspace not found. It may have been deleted.",
-      WorkspacePersistenceFailed: "Failed to complete operation. Please try again.",
+      PersistenceError: "Failed to complete operation. Please try again.",
     }),
     appRuntime().runPromise,
   );

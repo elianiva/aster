@@ -13,25 +13,11 @@ export class WorkspaceNotFound extends Schema.TaggedErrorClass<WorkspaceNotFound
   message: Schema.String,
 }) {}
 
-export class WorkspacePersistenceFailed extends Schema.TaggedErrorClass<WorkspacePersistenceFailed>()("WorkspacePersistenceFailed", {
-  message: Schema.String,
-}) {}
-
 export class ThreadNotFound extends Schema.TaggedErrorClass<ThreadNotFound>()("ThreadNotFound", {
   message: Schema.String,
 }) {}
 
-export class ThreadPersistenceFailed extends Schema.TaggedErrorClass<ThreadPersistenceFailed>()("ThreadPersistenceFailed", {
-  message: Schema.String,
-}) {}
-export class GlossaryPersistenceFailed extends Schema.TaggedErrorClass<GlossaryPersistenceFailed>()("GlossaryPersistenceFailed", {
-  message: Schema.String,
-}) {}
-
-export class ResourcePersistenceFailed extends Schema.TaggedErrorClass<ResourcePersistenceFailed>()("ResourcePersistenceFailed", {
-  message: Schema.String,
-}) {}
-
-export class NotePersistenceFailed extends Schema.TaggedErrorClass<NotePersistenceFailed>()("NotePersistenceFailed", {
+export class PersistenceError extends Schema.TaggedErrorClass<PersistenceError>()("PersistenceError", {
+  service: Schema.String,
   message: Schema.String,
 }) {}

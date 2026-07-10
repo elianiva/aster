@@ -9,6 +9,51 @@ import {
 export type { ToolRenderContext } from "./tool-renderer-types";
 import type { ToolRenderContext } from "./tool-renderer-types";
 type ToolOutputRenderer = (output: unknown, input: unknown, ctx: ToolRenderContext) => ReactNode;
+function makeCreateArtifactRenderer(
+  defaultTitle: string,
+  label: string,
+  routeBase: string,
+  idField: string,
+): Record<string, ToolOutputRenderer> {
+  const name = `create${defaultTitle}`;
+  return {
+    [name]: (_output, input, ctx) => {
+      const result =
+        typeof _output === "string"
+          ? JSON.parse(_output)
+          : (_output as Record<string, unknown> | undefined);
+      const id = result?.id ?? result?.[idField];
+      const { title, content } = (input ?? {}) as { title?: string; content?: string };
+      return (
+        <ArtifactPreview
+          title={title ?? `Untitled ${defaultTitle}`}
+          content={content}
+          label={label}
+          to={id ? `${routeBase}/$${idField}` : undefined}
+          params={id ? { workspaceId: ctx.workspaceId, [idField]: String(id) } : undefined}
+        />
+      );
+    },
+  };
+}
+
+function makeDeleteArtifactRenderer(
+  toolName: string,
+  deletedLabel: string,
+  notFoundLabel: string,
+): Record<string, ToolOutputRenderer> {
+  return {
+    [toolName]: (output) => {
+      const result = output as { deleted?: boolean } | undefined;
+      return (
+        <SimpleLine
+          icon={Task01Icon}
+          label={result?.deleted === false ? notFoundLabel : deletedLabel}
+        />
+      );
+    },
+  };
+}
 
 const renderers: Record<string, ToolOutputRenderer> = {
   createThread: (output, _input, ctx) => {
@@ -17,56 +62,11 @@ const renderers: Record<string, ToolOutputRenderer> = {
   },
   updateMission: () => <SimpleLine icon={Task01Icon} label="Mission updated for this workspace" />,
   updateKnowledge: () => <SimpleLine icon={Task01Icon} label="Knowledge level updated" />,
-  createLesson: (_output, input, ctx) => {
-    const result = typeof _output === "string" ? JSON.parse(_output) : _output as Record<string, unknown> | undefined;
-    const id = result?.id ?? result?.lessonId;
-    const { title, content } = (input ?? {}) as { title?: string; content?: string };
-    return (
-      <ArtifactPreview
-        title={title ?? "Untitled Lesson"}
-        content={content}
-        label="Lesson saved"
-        to={id ? "/workspaces/$workspaceId/lessons/$lessonId" : undefined}
-        params={id ? { workspaceId: ctx.workspaceId, lessonId: String(id) } : undefined}
-      />
-    );
-  },
-  createRecord: (_output, input, ctx) => {
-    const result = typeof _output === "string" ? JSON.parse(_output) : _output as Record<string, unknown> | undefined;
-    const id = result?.id ?? result?.recordId;
-    const { title, content } = (input ?? {}) as { title?: string; content?: string };
-    return (
-      <ArtifactPreview
-        title={title ?? "Untitled Record"}
-        content={content}
-        label="Record saved"
-        to={id ? "/workspaces/$workspaceId/records/$recordId" : undefined}
-        params={id ? { workspaceId: ctx.workspaceId, recordId: String(id) } : undefined}
-      />
-    );
-  },
-  createReference: (_output, input, ctx) => {
-    const result = typeof _output === "string" ? JSON.parse(_output) : _output as Record<string, unknown> | undefined;
-    const id = result?.id ?? result?.referenceId;
-    const { title, content } = (input ?? {}) as { title?: string; content?: string };
-    return (
-      <ArtifactPreview
-        title={title ?? "Untitled Reference"}
-        content={content}
-        label="Reference saved"
-        to={id ? "/workspaces/$workspaceId/reference-docs/$referenceId" : undefined}
-        params={id ? { workspaceId: ctx.workspaceId, referenceId: String(id) } : undefined}
-      />
-    );
-  },
-  deleteLesson: (output) => {
-    const result = output as { deleted?: boolean } | undefined;
-    return <SimpleLine icon={Task01Icon} label={result?.deleted === false ? "Lesson not found" : "Lesson deleted"} />;
-  },
-  deleteRecord: (output) => {
-    const result = output as { deleted?: boolean } | undefined;
-    return <SimpleLine icon={Task01Icon} label={result?.deleted === false ? "Learning record not found" : "Learning record deleted"} />;
-  },
+  ...makeCreateArtifactRenderer("Lesson", "Lesson saved", "/workspaces/$workspaceId/lessons", "lessonId"),
+  ...makeCreateArtifactRenderer("Record", "Record saved", "/workspaces/$workspaceId/records", "recordId"),
+  ...makeCreateArtifactRenderer("Reference", "Reference saved", "/workspaces/$workspaceId/reference-docs", "referenceId"),
+  ...makeDeleteArtifactRenderer("deleteLesson", "Lesson deleted", "Lesson not found"),
+  ...makeDeleteArtifactRenderer("deleteRecord", "Learning record deleted", "Learning record not found"),
 };
 
 export function renderToolOutput(

@@ -1,7 +1,7 @@
 import { Context, Effect, Layer, Option, Schema } from "effect";
 import { eq } from "drizzle-orm";
 import { Database } from "~/server/db/client"
-import { WorkspaceNotFound, WorkspacePersistenceFailed } from "~/server/errors"
+import { WorkspaceNotFound, PersistenceError } from "~/server/errors"
 import { workspaces, threads, lessons, records, references, glossary, resources, notes } from "~/server/db/schema"
 export interface Workspace {
   id: string;
@@ -39,22 +39,12 @@ function toWorkspace(row: { id: string; topic: string; mission: string; currentK
 }
 
 const fail = (op: string) => (cause: unknown) =>
-  new WorkspacePersistenceFailed({ message: `${op}: ${cause}` });
+  new PersistenceError({ service: "workspace", message: `${op}: ${cause}` });
 
-export class WorkspaceService extends Context.Service<WorkspaceService, {
-  readonly list: () => Effect.Effect<Workspace[], WorkspacePersistenceFailed>;
-  readonly get: (id: string) => Effect.Effect<Option.Option<Workspace>, WorkspacePersistenceFailed>;
-  readonly create: (input: CreateWorkspaceInput) => Effect.Effect<Workspace, WorkspacePersistenceFailed>;
-  readonly update: (id: string, input: UpdateWorkspaceInput) => Effect.Effect<Workspace, WorkspaceNotFound | WorkspacePersistenceFailed>;
-  readonly delete: (id: string) => Effect.Effect<void, WorkspacePersistenceFailed>;
-  readonly cascadeDelete: (id: string) => Effect.Effect<
-    { threadIds: string[]; r2Keys: string[] },
-    WorkspacePersistenceFailed
-  >;
-}>()("@aster/features/workspace/WorkspaceService") {
-  static readonly layer = Layer.effect(
-    this,
-    Effect.gen(function* () {
+export class WorkspaceService extends Context.Service<WorkspaceService>()(
+  "@aster/features/workspace/WorkspaceService",
+  {
+    make: Effect.gen(function* () {
       const db = yield* Database;
       const client = db.client;
 
@@ -183,7 +173,9 @@ export class WorkspaceService extends Context.Service<WorkspaceService, {
         return { threadIds, r2Keys };
       });
 
-      return WorkspaceService.of({ list, get, create, update, delete: delete_, cascadeDelete });
+      return { list, get, create, update, delete: delete_, cascadeDelete };
     }),
-  );
+  },
+) {
+  static readonly layer = Layer.effect(this, this.make);
 }

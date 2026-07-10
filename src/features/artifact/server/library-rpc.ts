@@ -54,7 +54,7 @@ export const LibraryRpc = {
 		}),
 	getArtifactById: (wid: string, aid: string) =>
 		queryOptions({
-			queryKey: [...queryKeys.library.all(wid), aid],
+			queryKey: queryKeys.library.detail(wid, aid),
 			queryFn: (): Promise<{ kind: ArtifactKind; title: string; content: string | null } | null> =>
 				getArtifactById({ data: { workspaceId: wid, artifactId: aid } }),
 		}),

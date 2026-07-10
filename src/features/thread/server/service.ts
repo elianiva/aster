@@ -1,7 +1,7 @@
 import { Context, Effect, Layer, Option, Schema } from "effect";
 import { desc, eq, sql } from "drizzle-orm";
 import { Database } from "~/server/db/client"
-import { ThreadNotFound, ThreadPersistenceFailed } from "~/server/errors"
+import { ThreadNotFound, PersistenceError } from "~/server/errors"
 import { threads } from "~/server/db/schema"
 
 export interface Thread {
@@ -50,20 +50,12 @@ function toThread(row: typeof threads.$inferSelect): Thread {
 }
 
 const fail = (op: string) => (cause: unknown) =>
-  new ThreadPersistenceFailed({ message: `${op}: ${cause}` });
+  new PersistenceError({ service: "thread", message: `${op}: ${cause}` });
 
-export class ThreadService extends Context.Service<ThreadService, {
-  readonly list: (workspaceId: string) => Effect.Effect<Thread[], ThreadPersistenceFailed>;
-  readonly get: (id: string) => Effect.Effect<Option.Option<Thread>, ThreadPersistenceFailed>;
-  readonly create: (input: CreateThreadInput) => Effect.Effect<Thread, ThreadPersistenceFailed>;
-  readonly rename: (id: string, name: string) => Effect.Effect<Thread, ThreadNotFound | ThreadPersistenceFailed>;
-  readonly delete: (id: string) => Effect.Effect<void, ThreadPersistenceFailed>;
-  readonly setTeachingMode: (id: string, enabled: boolean) => Effect.Effect<Thread, ThreadNotFound | ThreadPersistenceFailed>;
-  readonly getRecent: () => Effect.Effect<RecentThread[], ThreadPersistenceFailed>;
-}>()("@aster/features/thread/ThreadService") {
-  static readonly layer = Layer.effect(
-    this,
-    Effect.gen(function* () {
+export class ThreadService extends Context.Service<ThreadService>()(
+  "@aster/features/thread/ThreadService",
+  {
+    make: Effect.gen(function* () {
       const db = yield* Database;
       const client = db.client;
 
@@ -133,6 +125,14 @@ export class ThreadService extends Context.Service<ThreadService, {
           catch: fail("delete thread"),
         }).pipe(Effect.withSpan("db.deleteThread"));
       });
+      const touch = Effect.fn("ThreadService.touch")(function* (id: string) {
+        const now = new Date();
+        yield* Effect.tryPromise({
+          try: () => client.update(threads).set({ updatedAt: now }).where(eq(threads.id, id)),
+          catch: fail("touch thread"),
+        }).pipe(Effect.withSpan("db.touchThread"));
+      });
+
 
       const setTeachingMode = Effect.fn("ThreadService.setTeachingMode")(function* (id: string, enabled: boolean) {
         const existing = yield* get(id);
@@ -172,17 +172,9 @@ export class ThreadService extends Context.Service<ThreadService, {
           threadName: row.thread_name,
         }));
       });
-
-
-      return ThreadService.of({
-        list,
-        get,
-        create,
-        rename,
-        delete: delete_,
-        setTeachingMode,
-        getRecent,
-      });
+      return { list, get, create, rename, delete: delete_, touch, setTeachingMode, getRecent };
     }),
-  );
+  },
+) {
+  static readonly layer = Layer.effect(this, this.make);
 }

@@ -16,7 +16,7 @@ export const listGlossary = createServerFn({ method: "GET" })
     }).pipe(
       Effect.withSpan("listGlossary"),
       rpcErrorPipe({
-        GlossaryPersistenceFailed: "Failed to load glossary. Please try again.",
+        PersistenceError: "Failed to load glossary. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -36,7 +36,7 @@ export const getGlossaryById = createServerFn({ method: "GET" })
     }).pipe(
       Effect.withSpan("getGlossaryById"),
       rpcErrorPipe({
-        GlossaryPersistenceFailed: "Failed to load glossary term. Please try again.",
+        PersistenceError: "Failed to load glossary term. Please try again.",
       }),
       appRuntime().runPromise,
     );

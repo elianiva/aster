@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useToolExpand } from "~/features/thread/hooks/use-tool-expand";
 import {
   getToolName,
   isToolUIPart,
@@ -258,25 +258,7 @@ const isToolStreamActive = (part: ToolUIPart | DynamicToolUIPart): boolean =>
 
 export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessagePartsProps) {
   const entries = buildInterleavedParts(message);
-  const [expandedTool, setExpandedTool] = useState<string | null>(null);
-  const prevStreaming = useRef(isStreaming);
-  const userToggled = useRef(false);
-
-  if (isStreaming && !prevStreaming.current) userToggled.current = false;
-  prevStreaming.current = isStreaming;
-
-  const toggleTool = useCallback(
-    (toolId: string) => {
-      userToggled.current = true;
-      setExpandedTool((prev) => (prev === toolId ? null : toolId));
-    },
-    [],
-  );
-
-
-  if (!isStreaming && prevStreaming.current !== isStreaming && !userToggled.current) {
-    if (expandedTool !== null) setExpandedTool(null);
-  }
+  const { expandedTool, toggleTool, userToggled } = useToolExpand(isStreaming);
 
   return (
     <>

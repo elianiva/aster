@@ -21,7 +21,7 @@ export const setTeachingMode = createServerFn({ method: "POST" })
       Effect.withSpan("setTeachingMode"),
       rpcErrorPipe({
         ThreadNotFound: "Thread not found. It may have been deleted.",
-        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -36,7 +36,7 @@ export const listThreads = createServerFn({ method: "GET" })
       Effect.withSpan("listThreads"),
       rpcErrorPipe({
         ThreadNotFound: "Thread not found. It may have been deleted.",
-        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -58,7 +58,7 @@ export const createThread = createServerFn({ method: "POST" })
       Effect.withSpan("createThread"),
       rpcErrorPipe({
         ThreadNotFound: "Thread not found. It may have been deleted.",
-        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -77,7 +77,7 @@ export const renameThread = createServerFn({ method: "POST" })
       Effect.withSpan("renameThread"),
       rpcErrorPipe({
         ThreadNotFound: "Thread not found. It may have been deleted.",
-        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -101,7 +101,7 @@ export const deleteThread = createServerFn({ method: "POST" })
       Effect.withSpan("deleteThread"),
       rpcErrorPipe({
         ThreadNotFound: "Thread not found. It may have been deleted.",
-        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -117,7 +117,7 @@ export const getThread = createServerFn({ method: "GET" })
       Effect.withSpan("getThread"),
       rpcErrorPipe({
         ThreadNotFound: "Thread not found. It may have been deleted.",
-        ThreadPersistenceFailed: "Failed to complete operation. Please try again.",
+        PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
     );

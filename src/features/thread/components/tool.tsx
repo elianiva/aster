@@ -10,6 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { isValidElement } from "react";
+import { safeStringify } from "./tool-renderer-helpers";
 
 export type ToolProps = React.ComponentProps<"div">;
 
@@ -199,12 +200,7 @@ function JsonBlock({ value }: { value: unknown }) {
     return <KvBlock entries={parsed.map((v, i) => [String(i + 1), v] as [string, unknown])} />;
   }
 
-  let text: string;
-  try {
-    text = typeof value === "string" ? value : JSON.stringify(value, null, 2);
-  } catch {
-    text = String(value);
-  }
+  const text = typeof value === "string" ? value : safeStringify(value);
   return (
     <pre className="max-h-60 overflow-auto rounded-md bg-muted/50 p-2 text-xs leading-relaxed text-muted-foreground">
       <code>{text}</code>

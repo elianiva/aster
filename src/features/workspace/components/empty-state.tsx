@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Message02Icon } from "@hugeicons/core-free-icons";
+import { AttachmentButton } from "~/features/thread/components/attachment-button";
 import {
   PromptInput,
   type PromptInputMessage,
   PromptInputAttachments,
-  PromptInputButton,
   PromptInputProvider,
   PromptInputSubmit,
   PromptInputTextarea,
@@ -21,7 +21,6 @@ import {
   EmptyTitle,
 } from "~/components/ui/empty";
 import { Suggestion, Suggestions } from "~/features/thread/components/suggestion";
-import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { useThreads } from "~/features/thread/hooks/use-threads"
 import { setPendingMessage } from "~/features/thread/lib/pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
@@ -136,18 +135,5 @@ function EmptyStateInput({
       <PromptInputTextarea placeholder={disabled ? "Set an API key in Settings to start…" : "Ask your teacher…"} disabled={disabled} />
       <PromptInputSubmit status="ready" disabled={!hasContent || disabled} />
     </PromptInput>
-  );
-}
-
-function AttachmentButton({ disabled }: { disabled?: boolean }) {
-  const { openFileDialog } = usePromptInputController();
-  return (
-    <PromptInputButton
-      aria-label="Add attachment"
-      onClick={openFileDialog}
-      disabled={disabled}
-    >
-      <HugeiconsIcon icon={PlusSignIcon} className="size-5" />
-    </PromptInputButton>
   );
 }

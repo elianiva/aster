@@ -16,7 +16,7 @@ export const getNote = createServerFn({ method: "GET" })
     }).pipe(
       Effect.withSpan("getNote"),
       rpcErrorPipe({
-        NotePersistenceFailed: "Failed to load notes. Please try again.",
+        PersistenceError: "Failed to load notes. Please try again.",
       }),
       appRuntime().runPromise,
     );

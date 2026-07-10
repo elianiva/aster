@@ -5,7 +5,7 @@ import { Heading } from "./heading";
 import { List } from "./list";
 import { Quiz } from "./quiz";
 import { StatCard } from "./stat-card";
-import { Stack, BentoGrid, BentoCard } from "~/components/layout";
+import { Stack, BentoGrid, BentoCard } from "./layout-components";
 import { Chart } from "./charts";
 import { Callout } from "./callout";
 import { CodeBlock } from "./code-block";

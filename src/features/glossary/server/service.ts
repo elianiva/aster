@@ -1,7 +1,7 @@
 import { Context, Effect, Layer } from "effect";
 import { and, eq } from "drizzle-orm";
 import { Database } from "~/server/db/client"
-import { GlossaryPersistenceFailed } from "~/server/errors"
+import { PersistenceError } from "~/server/errors"
 import { glossary } from "~/server/db/schema"
 
 export interface GlossaryEntry {
@@ -12,7 +12,7 @@ export interface GlossaryEntry {
 }
 
 const fail = (op: string) => (cause: unknown) =>
-  new GlossaryPersistenceFailed({ message: `Glossary ${op}: ${cause}` });
+  new PersistenceError({ service: "glossary", message: `${op}: ${cause}` });
 
 export class GlossaryService extends Context.Service<GlossaryService>()(
   "@aster/features/glossary/GlossaryService",

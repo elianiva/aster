@@ -1,7 +1,7 @@
 import { Context, Effect, Layer } from "effect";
 import { and, eq } from "drizzle-orm";
 import { Database } from "~/server/db/client"
-import { ResourcePersistenceFailed } from "~/server/errors"
+import { PersistenceError } from "~/server/errors"
 import { resources } from "~/server/db/schema"
 
 export interface ResourceEntry {
@@ -13,7 +13,7 @@ export interface ResourceEntry {
 }
 
 const fail = (op: string) => (cause: unknown) =>
-  new ResourcePersistenceFailed({ message: `Resource ${op}: ${cause}` });
+  new PersistenceError({ service: "resource", message: `${op}: ${cause}` });
 
 export class ResourceService extends Context.Service<ResourceService>()(
   "@aster/features/resource/ResourceService",

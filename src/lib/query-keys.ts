@@ -34,17 +34,21 @@ export const queryKeys = {
   lessons: {
     all: (workspaceId: string) => ["lessons", workspaceId] as const,
     list: (workspaceId: string) => [...queryKeys.lessons.all(workspaceId), "list"] as const,
+    detail: (workspaceId: string, lessonId: string) => [...queryKeys.lessons.all(workspaceId), lessonId] as const,
   },
   records: {
     all: (workspaceId: string) => ["records", workspaceId] as const,
     list: (workspaceId: string) => [...queryKeys.records.all(workspaceId), "list"] as const,
+    detail: (workspaceId: string, recordId: string) => [...queryKeys.records.all(workspaceId), recordId] as const,
   },
   references: {
     all: (workspaceId: string) => ["references", workspaceId] as const,
     list: (workspaceId: string) => [...queryKeys.references.all(workspaceId), "list"] as const,
+    detail: (workspaceId: string, refId: string) => [...queryKeys.references.all(workspaceId), refId] as const,
   },
   library: {
     all: (workspaceId: string) => ["library", workspaceId] as const,
     list: (workspaceId: string) => [...queryKeys.library.all(workspaceId), "list"] as const,
+    detail: (workspaceId: string, artifactId: string) => [...queryKeys.library.all(workspaceId), artifactId] as const,
   },
 } as const;

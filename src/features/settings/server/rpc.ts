@@ -20,7 +20,6 @@ export const getSettings = createServerFn({ method: "GET" }).handler(async () =>
     rpcErrorPipe({
       ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
       KeyValueStoreError: "Failed to save settings. Please try again.",
-      ArtifactError: "Failed to load. Please try again.",
     }),
     appRuntime().runPromise,
   );
@@ -36,7 +35,6 @@ export const updateSettings = createServerFn({ method: "POST" })
       rpcErrorPipe({
         ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
         KeyValueStoreError: "Failed to save settings. Please try again.",
-        ArtifactError: "Failed to load. Please try again.",
       }),
       appRuntime().runPromise,
     );
@@ -50,7 +48,6 @@ export const fetchProviders = createServerFn({ method: "GET" }).handler(async ()
     rpcErrorPipe({
       ProvidersFetchError: "Failed to load AI providers. Please check your connection.",
       KeyValueStoreError: "Failed to save settings. Please try again.",
-      ArtifactError: "Failed to load. Please try again.",
     }),
     appRuntime().runPromise,
   );
