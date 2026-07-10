@@ -13,5 +13,11 @@ minimumReleaseAgeExclude:
   - miniflare@4.20260617.0
   - wrangler@4.102.0
   - react-doctor@0.7.2
+  - '@shadcn/react@0.2.1'
+  - effect@4.0.0-beta.94
+  - shadcn@4.13.0
 minimumReleaseAge: 10080
-trustPolicy: "off"
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - effect@4.0.0-beta.94
+  - semver@6.3.1
