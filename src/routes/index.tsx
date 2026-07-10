@@ -13,8 +13,8 @@ function RouteHome() {
 
 function HomeSkeleton() {
   return (
-    <div className="min-h-screen bg-background flex items-center">
-      <div className="mx-auto max-w-5xl p-8 bg-card rounded-2xl border border-border inset-shadow-sm">
+    <div className="min-h-screen bg-card flex items-center">
+      <div className="mx-auto max-w-5xl p-6 bg-muted rounded-2xl inset-shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div>
             <Skeleton className="h-9 w-24" />
@@ -27,13 +27,11 @@ function HomeSkeleton() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-xl border bg-card p-5 space-y-2">
+            <div key={i} className="rounded-xl bg-white p-5">
               <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
-              <div className="flex items-center gap-4 mt-4 pt-3 border-t">
-                <Skeleton className="h-3 w-16" />
-                <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-4 w-full mt-2" />
+              <Skeleton className="h-4 w-2/3 mt-2" />
+              <div className="flex items-center mt-4 pt-3 border-t">
                 <Skeleton className="h-3 w-20 ml-auto" />
               </div>
             </div>

@@ -14,12 +14,20 @@ function RouteGlossary() {
 
 function GlossarySkeleton() {
   return (
-    <div className="flex h-full flex-col p-4">
-      <Skeleton className="h-6 w-24 mb-4" />
-      <Skeleton className="h-9 w-full mb-4" />
-      <div className="flex flex-col gap-2">
+    <div className="flex h-full flex-col">
+      <Skeleton className="h-6 w-28 mb-4" />
+      <div className="relative mb-4">
+        <Skeleton className="absolute left-3 top-1/2 size-4 -translate-y-1/2" />
+        <Skeleton className="h-9 w-full pl-9" />
+      </div>
+      <div className="flex flex-col gap-2 overflow-y-auto">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-lg" />
+          <div key={i} className="rounded-lg bg-muted p-4">
+            <Skeleton className="h-5 w-1/3" />
+            <Skeleton className="h-4 w-full mt-2" />
+            <Skeleton className="h-4 w-2/3 mt-1" />
+            <Skeleton className="h-3 w-1/2 mt-2" />
+          </div>
         ))}
       </div>
     </div>

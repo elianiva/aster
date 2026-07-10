@@ -31,42 +31,6 @@ interface MessagePartsProps {
   onApprove: (id: string, approved: boolean) => void;
 }
 
-function ReasoningBlock({
-  parts,
-  isStreaming,
-  isLast,
-}: {
-  parts: { text?: string }[];
-  isStreaming: boolean;
-  isLast: boolean;
-}) {
-  const text = parts.map((p) => p.text ?? "").join("\n\n");
-  const lastPart = parts.at(-1);
-  const isReasoningStreaming = isLast && isStreaming && lastPart != null;
-
-  return (
-    <Reasoning isStreaming={isReasoningStreaming} className="mb-2">
-      <ReasoningTrigger />
-      <ReasoningContent>{text}</ReasoningContent>
-    </Reasoning>
-  );
-}
-
-function SourcesBlock({ parts }: { parts: { url?: string; title?: string }[] }) {
-  return (
-    <Sources className="mb-2">
-      <SourcesTrigger count={parts.length} />
-      <SourcesContent>
-        {parts.map((p, i) => (
-          <Source key={p.url ?? `source-${i}`} href={p.url ?? "#"} title={p.title}>
-            {p.title ?? p.url}
-          </Source>
-        ))}
-      </SourcesContent>
-    </Sources>
-  );
-}
-
 function TextPart({
   text,
   role,
@@ -196,39 +160,96 @@ function ToolPart({
   );
 }
 
-export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessagePartsProps) {
-  const reasoningParts: { text?: string }[] = [];
-  const sourceParts: { url?: string; title?: string }[] = [];
-  const contentParts: typeof message.parts = [];
+type PartEntry =
+  | { kind: "reasoning"; blocks: { text: string }[]; isLastReasoning: boolean }
+  | { kind: "source"; sources: { url?: string; title?: string }[] }
+  | { kind: "content"; part: UIMessage["parts"][number]; partIndex: number };
 
-  for (const part of message.parts) {
+function buildInterleavedParts(message: UIMessage): PartEntry[] {
+  const entries: PartEntry[] = [];
+  let reasoningBuf: { text: string }[] = [];
+  let lastReasoningEntryIdx = -1;
+  const sourceBuf: { url?: string; title?: string }[] = [];
+
+  function flushReasoning() {
+    if (reasoningBuf.length === 0) return;
+    lastReasoningEntryIdx = entries.length;
+    entries.push({ kind: "reasoning", blocks: [...reasoningBuf], isLastReasoning: false });
+    reasoningBuf = [];
+  }
+
+  for (let i = 0; i < message.parts.length; i++) {
+    const part = message.parts[i];
     if (part.type === "reasoning") {
-      reasoningParts.push({ text: part.text });
+      reasoningBuf.push({ text: part.text });
     } else if (part.type === "source-url" || part.type === "source-document") {
-      sourceParts.push({ url: "url" in part ? part.url : undefined, title: part.title });
+      flushReasoning();
+      sourceBuf.push({ url: "url" in part ? part.url : undefined, title: part.title });
     } else {
-      contentParts.push(part);
+      flushReasoning();
+      if (sourceBuf.length > 0) {
+        entries.push({ kind: "source", sources: [...sourceBuf] });
+        sourceBuf.length = 0;
+      }
+      entries.push({ kind: "content", part, partIndex: i });
     }
   }
 
+  flushReasoning();
+  if (sourceBuf.length > 0) {
+    entries.push({ kind: "source", sources: [...sourceBuf] });
+  }
+
+  if (lastReasoningEntryIdx >= 0) {
+    (entries[lastReasoningEntryIdx] as Extract<PartEntry, { kind: "reasoning" }>).isLastReasoning = true;
+  }
+
+  return entries;
+}
+
+export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: MessagePartsProps) {
+  const entries = buildInterleavedParts(message);
+
   return (
     <>
-      {reasoningParts.length > 0 && (
-        <ReasoningBlock parts={reasoningParts} isStreaming={isStreaming} isLast={isLast} />
-      )}
+      {entries.map((entry) => {
+        if (entry.kind === "reasoning") {
+          const text = entry.blocks.map((b) => b.text).join("\n\n");
+          const isReasoningStreaming = entry.isLastReasoning && isLast && isStreaming;
+          return (
+            <Reasoning key={`reasoning-${text.length}`} isStreaming={isReasoningStreaming} className="mb-2">
+              <ReasoningTrigger />
+              <ReasoningContent>{text}</ReasoningContent>
+            </Reasoning>
+          );
+        }
 
-      {sourceParts.length > 0 && <SourcesBlock parts={sourceParts} />}
+        if (entry.kind === "source") {
+          return (
+            <Sources key="sources" className="mb-2">
+              <SourcesTrigger count={entry.sources.length} />
+              <SourcesContent>
+                {entry.sources.map((s, i) => (
+                  <Source key={s.url ?? `source-${i}`} href={s.url ?? "#"} title={s.title}>
+                    {s.title ?? s.url}
+                  </Source>
+                ))}
+              </SourcesContent>
+            </Sources>
+          );
+        }
 
-      {contentParts.map((part, i) => {
+        const { part, partIndex } = entry;
+
         if (part.type === "text") {
           return (
             <TextPart
-              key={`${message.id}-txt-${i}`}
+              key={`${message.id}-txt-${partIndex}`}
               text={part.text}
               role={message.role}
               isStreaming={isStreaming}
               messageId={message.id}
-              index={i}
+              index={partIndex}
             />
           );
         }
@@ -236,10 +257,10 @@ export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: M
         if (part.type === "file") {
           return (
             <FilePart
-              key={`${message.id}-file-${i}`}
+              key={`${message.id}-file-${partIndex}`}
               file={part}
               messageId={message.id}
-              index={i}
+              index={partIndex}
             />
           );
         }
@@ -247,10 +268,10 @@ export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: M
         if (isToolUIPart(part)) {
           return (
             <ToolPart
-              key={`${message.id}-tool-${i}`}
+              key={`${message.id}-tool-${partIndex}`}
               part={part}
               messageId={message.id}
-              index={i}
+              index={partIndex}
               ctx={ctx}
               onApprove={onApprove}
             />

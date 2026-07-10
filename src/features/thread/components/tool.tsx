@@ -21,7 +21,7 @@ export type ToolProps = Omit<React.ComponentProps<typeof Collapsible>, "open" | 
 export const Tool = ({ className, defaultOpen, children, ...props }: ToolProps) => (
   <Collapsible
     data-slot="tool"
-    className={cn("w-full rounded-lg bg-muted/30 text-sm", className)}
+    className={cn("w-full text-sm", className)}
     defaultOpen={defaultOpen}
     {...props}
   >
@@ -46,16 +46,16 @@ const toolLabel = (type: string, toolName?: string): string => {
 function StateIcon({ state }: { state: string }) {
   switch (state) {
     case "input-streaming":
-      return <HugeiconsIcon icon={LoaderPinwheelIcon} className="size-3.5 animate-spin" />;
+      return <HugeiconsIcon icon={LoaderPinwheelIcon} className="size-3 animate-spin" />;
     case "approval-requested":
-      return <HugeiconsIcon icon={TriangleIcon} className="size-3.5 text-warning" />;
+      return <HugeiconsIcon icon={TriangleIcon} className="size-3 text-warning" />;
     case "output-available":
-      return <HugeiconsIcon icon={CheckIcon} className="size-3.5 text-success" />;
+      return <HugeiconsIcon icon={CheckIcon} className="size-3 text-success" />;
     case "output-error":
     case "output-denied":
-      return <HugeiconsIcon icon={XVariableIcon} className="size-3.5 text-destructive" />;
+      return <HugeiconsIcon icon={XVariableIcon} className="size-3 text-destructive" />;
     default:
-      return <HugeiconsIcon icon={LoaderPinwheelIcon} className="size-3.5" />;
+      return <HugeiconsIcon icon={LoaderPinwheelIcon} className="size-3" />;
   }
 }
 
@@ -65,14 +65,14 @@ export const ToolHeader = ({ type, state, toolName, title, className }: ToolHead
     <CollapsibleTrigger
       data-slot="tool-header"
       className={cn(
-        "flex w-full items-center gap-2 px-3 py-2",
+        "flex w-full items-center gap-1.5 px-0 py-0.5",
         "[&[aria-expanded=true]>svg:last-child]:rotate-180",
         className,
       )}
     >
       <StateIcon state={state} />
-      <span className="flex-1 truncate text-muted-foreground">{label}</span>
-      <HugeiconsIcon icon={ChevronDownIcon} className="size-3.5 text-muted-foreground/50 transition-transform" />
+      <span className="flex-1 truncate text-xs text-muted-foreground">{label}</span>
+      <HugeiconsIcon icon={ChevronDownIcon} className="size-3 text-muted-foreground/50 transition-transform" />
     </CollapsibleTrigger>
   );
 };
@@ -82,7 +82,7 @@ export type ToolContentProps = React.ComponentProps<typeof CollapsibleContent>;
 export const ToolContent = ({ className, children, ...props }: ToolContentProps) => (
   <CollapsibleContent
     data-slot="tool-content"
-    className={cn("px-3 pb-3 pt-0 text-muted-foreground", className)}
+    className={cn("px-2 pb-2 pt-1 text-muted-foreground", className)}
     {...props}
   >
     {children}
@@ -96,7 +96,7 @@ export type ToolInputProps = React.ComponentProps<"div"> & {
 export const ToolInput = ({ input, className, ...props }: ToolInputProps) => {
   if (!input || Object.keys(input).length === 0) return null;
   return (
-    <div data-slot="tool-input" className={cn("mb-2", className)} {...props}>
+    <div data-slot="tool-input" className={cn("mb-1", className)} {...props}>
       <JsonBlock value={input} />
     </div>
   );
