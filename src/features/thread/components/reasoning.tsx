@@ -128,7 +128,7 @@ export const ReasoningContent = ({ className, children, ...props }: ReasoningCon
     {...props}
   >
     <Streamdown
-      className="prose prose-sm leading-tight mt-3 max-w-full opacity-90"
+      className="prose prose-sm leading-tight mt-3 max-w-full opacity-80"
       plugins={streamdownPlugins}
     >
       {children}

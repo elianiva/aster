@@ -169,7 +169,7 @@ body {
 }
 
 [data-streamdown="code-block-header"] {
-  @apply h-auto py-1.5 px-3 text-[0.6875rem] tracking-[0.05em] uppercase opacity-50;
+  @apply hidden;
 }
 
 [data-streamdown="code-block-actions"] {

@@ -114,7 +114,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
       <MessageScrollerProvider>
         <MessageScroller className="flex-1">
           <MessageScrollerViewport>
-            <MessageScrollerContent className="mx-auto w-full max-w-3xl">
+            <MessageScrollerContent className="mx-auto w-full max-w-3xl pt-4">
               {messages.map((message, index) => (
                 <MessageScrollerItem
                   key={message.id}
