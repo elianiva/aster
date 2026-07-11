@@ -29,6 +29,7 @@ import { AttachmentButton } from "./attachment-button";
 import { useTeacherAgent } from "~/features/workspace/hooks/use-teacher-agent";
 import { queryKeys } from "~/lib/query-keys";
 import { MessageParts } from "./message-parts";
+import { MessageActions } from "./message-actions";
 import { peekPendingMessage, clearPendingMessage } from "~/features/thread/lib/pending-message";
 import { useApiKeyStatus } from "~/hooks/use-api-key";
 
@@ -50,7 +51,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
   const agent = useTeacherAgent(`${workspaceId}::${threadId}`);
   const { hasKey, providerName } = useApiKeyStatus();
 
-  const { messages, sendMessage, status, stop, isRecovering, addToolApprovalResponse } =
+  const { messages, sendMessage, status, stop, isRecovering, addToolApprovalResponse, regenerate } =
     useAgentChat({ agent, id: threadId });
 
   const prevStatus = useRef<ChatStatus>(status);
@@ -113,7 +114,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
       <MessageScrollerProvider autoScroll defaultScrollPosition="end">
         <MessageScroller className="flex-1">
           <MessageScrollerViewport>
-            <MessageScrollerContent className="mx-auto w-full max-w-3xl pt-4">
+            <MessageScrollerContent className="mx-auto w-full max-w-3xl pt-8 pb-12">
               {messages.map((message, index) => (
                 <MessageScrollerItem key={message.id} scrollAnchor={message.role === "user"}>
                   <Message align={message.role === "user" ? "end" : "start"} className="max-w-full">
@@ -123,7 +124,9 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
                     >
                       <BubbleContent
                         className={
-                          message.role === "user" ? "w-fit bg-primary text-primary-foreground" : "w-full"
+                          message.role === "user"
+                            ? "w-fit bg-primary text-primary-foreground"
+                            : "w-full"
                         }
                       >
                         <MessageParts
@@ -133,6 +136,14 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
                           ctx={ctx}
                           onApprove={(id, approved) => addToolApprovalResponse({ id, approved })}
                         />
+                        {message.role === "assistant" && (
+                          <MessageActions
+                            message={message}
+                            isStreaming={status === "streaming"}
+                            isLast={index === messages.length - 1}
+                            onRegenerate={(id) => regenerate({ messageId: id })}
+                          />
+                        )}
                       </BubbleContent>
                     </Bubble>
                   </Message>
