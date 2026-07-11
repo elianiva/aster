@@ -8,8 +8,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "~/components/ui/empty";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { BookOpen01Icon, Add01Icon, Settings02Icon } from "@hugeicons/core-free-icons";
+import { BookOpen, Plus, Settings } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/features/workspace/server/rpc";
 import { CreateWorkspaceForm } from "./create-form";
@@ -35,10 +34,10 @@ export function HomePage() {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => setShowSettings(true)}>
-              <HugeiconsIcon icon={Settings02Icon} className="h-4 w-4" />
+              <Settings className="h-4 w-4" />
             </Button>
             <Button onClick={() => setShowCreateForm(true)}>
-              <HugeiconsIcon icon={Add01Icon} className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4" />
               New Workspace
             </Button>
           </div>
@@ -48,7 +47,7 @@ export function HomePage() {
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <HugeiconsIcon icon={BookOpen01Icon} />
+                <BookOpen />
               </EmptyMedia>
               <EmptyTitle>No workspaces yet</EmptyTitle>
               <EmptyDescription>

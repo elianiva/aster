@@ -8,8 +8,7 @@ import {
 	BreadcrumbPage,
 	BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft02Icon } from "@hugeicons/core-free-icons";
+import { ArrowLeft } from "lucide-react";
 import { cn } from "~/lib/utils";
 
 interface BreadcrumbEntry {
@@ -41,7 +40,7 @@ export function PageHeader({ backUrl, breadcrumbs, actions, className }: PageHea
 					aria-label="Go back"
 					className="justify-start w-fit"
 				>
-					<HugeiconsIcon icon={ArrowLeft02Icon} className="size-4" />
+					<ArrowLeft className="size-4" />
 				</Button>
 			) : null}
 

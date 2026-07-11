@@ -12,8 +12,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "~/components/ui/empty";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { LibraryIcon } from "@hugeicons/core-free-icons";
+import { Library } from "lucide-react";
 import { cn } from "~/lib/utils";
 
 const KIND_LABELS: Record<ArtifactKind, string> = {
@@ -75,7 +74,7 @@ export function LibraryList({ workspaceId }: LibraryListProps) {
           <Empty>
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <HugeiconsIcon icon={LibraryIcon} />
+                <Library />
               </EmptyMedia>
               <EmptyTitle>{search ? "No matches" : "Library is empty"}</EmptyTitle>
               <EmptyDescription>

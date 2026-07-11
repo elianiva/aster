@@ -1,4 +1,4 @@
-import { Task01Icon } from "@hugeicons/core-free-icons";
+import { ListTodo } from "lucide-react";
 import type { ReactNode } from "react";
 import {
   FallbackOutput,
@@ -54,7 +54,7 @@ function makeDeleteArtifactRenderer(
       const result = output as { deleted?: boolean } | undefined;
       return (
         <SimpleLine
-          icon={Task01Icon}
+          icon={ListTodo}
           label={result?.deleted === false ? notFoundLabel : deletedLabel}
         />
       );
@@ -67,8 +67,8 @@ const renderers: Record<string, ToolOutputRenderer> = {
     const result = output as { threadId?: string; name?: string } | undefined;
     return <CreateThreadOutput workspaceId={ctx.workspaceId} threadId={result?.threadId} name={result?.name} />;
   },
-  updateMission: () => <SimpleLine icon={Task01Icon} label="Mission updated for this workspace" />,
-  updateKnowledge: () => <SimpleLine icon={Task01Icon} label="Knowledge level updated" />,
+  updateMission: () => <SimpleLine icon={ListTodo} label="Mission updated for this workspace" />,
+  updateKnowledge: () => <SimpleLine icon={ListTodo} label="Knowledge level updated" />,
   ...makeCreateArtifactRenderer("Lesson", "Lesson saved", "/workspaces/$workspaceId/lessons", "lessonId"),
   ...makeCreateArtifactRenderer("Record", "Record saved", "/workspaces/$workspaceId/records", "recordId"),
   ...makeCreateArtifactRenderer("Reference", "Reference saved", "/workspaces/$workspaceId/reference-docs", "referenceId"),

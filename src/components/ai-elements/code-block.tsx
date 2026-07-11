@@ -3,8 +3,7 @@ import type { ComponentProps } from "react";
 import { cn } from "~/lib/utils";
 import { streamdownPlugins } from "~/lib/streamdown-plugins";
 import { Streamdown } from "streamdown";
-import { CheckIcon, CopyIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Check, Copy } from "lucide-react";
 
 export interface CodeBlockProps extends ComponentProps<"div"> {
   language: string;
@@ -38,9 +37,9 @@ export function CodeBlock({ language, code, filename, className, ...props }: Cod
           className="text-xs text-muted-foreground transition-opacity bg-white p-1 rounded-md"
         >
           {copied ? (
-            <HugeiconsIcon icon={CheckIcon} className="size-4" />
+            <Check className="size-4" />
           ) : (
-            <HugeiconsIcon icon={CopyIcon} className="size-4" />
+            <Copy className="size-4" />
           )}
         </button>
       </div>

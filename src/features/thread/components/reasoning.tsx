@@ -2,8 +2,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/component
 import { Spinner } from "~/components/ui/spinner";
 import { cn } from "~/lib/utils";
 import { streamdownPlugins } from "~/lib/streamdown-plugins";
-import { BrainIcon, ChevronDownIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Brain, ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { createContext, use, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -101,11 +100,10 @@ export const ReasoningTrigger = ({
       {isStreaming ? (
         <Spinner className="size-3.5" />
       ) : (
-        <HugeiconsIcon icon={BrainIcon} className="size-3.5" />
+        <Brain className="size-3.5" />
       )}
       <span className="flex-1 text-left">{label}</span>
-      <HugeiconsIcon
-        icon={ChevronDownIcon}
+      <ChevronDown
         className={cn("size-4 transition-transform", isOpen ? "rotate-180" : "rotate-0")}
       />
     </CollapsibleTrigger>

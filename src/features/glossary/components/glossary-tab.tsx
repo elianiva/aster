@@ -9,8 +9,7 @@ import {
 	EmptyTitle,
 } from "~/components/ui/empty";
 import { Input } from "~/components/ui/input";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Book02Icon, Search02Icon } from "@hugeicons/core-free-icons";
+import { Book, Search } from "lucide-react";
 
 interface GlossaryTabProps {
 	workspaceId: string;
@@ -37,7 +36,7 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 				<Empty>
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<HugeiconsIcon icon={Book02Icon} />
+							<Book />
 						</EmptyMedia>
 						<EmptyTitle>No glossary terms yet</EmptyTitle>
 						<EmptyDescription>
@@ -54,10 +53,7 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 			<h1 className="mb-6 text-lg font-semibold">Glossary</h1>
 			<div className="w-full max-w-3xl">
 				<div className="relative mb-4">
-					<HugeiconsIcon
-						icon={Search02Icon}
-						className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-					/>
+					<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
@@ -69,7 +65,7 @@ export function GlossaryTab({ workspaceId }: GlossaryTabProps) {
 					<Empty>
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
-								<HugeiconsIcon icon={Book02Icon} />
+								<Book />
 							</EmptyMedia>
 							<EmptyTitle>{query ? "No matches" : "No glossary terms yet"}</EmptyTitle>
 							<EmptyDescription>

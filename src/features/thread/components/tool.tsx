@@ -1,13 +1,6 @@
 import { cn, prettyName } from "~/lib/utils";
 import type { DynamicToolUIPart, ToolUIPart } from "ai";
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  LoaderPinwheelIcon,
-  TriangleIcon,
-  XVariableIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Check, ChevronDown, Loader2, TriangleAlert, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { isValidElement } from "react";
 import { safeStringify } from "./tool-renderer-helpers";
@@ -39,16 +32,16 @@ const toolLabel = (type: string, toolName?: string): string => {
 function StateIcon({ state }: { state: string }) {
   switch (state) {
     case "input-streaming":
-      return <HugeiconsIcon icon={LoaderPinwheelIcon} className="size-3 animate-spin" />;
+      return <Loader2 className="size-3 animate-spin" />;
     case "approval-requested":
-      return <HugeiconsIcon icon={TriangleIcon} className="size-3 text-warning" />;
+      return <TriangleAlert className="size-3 text-warning" />;
     case "output-available":
-      return <HugeiconsIcon icon={CheckIcon} className="size-3 text-success" />;
+      return <Check className="size-3 text-success" />;
     case "output-error":
     case "output-denied":
-      return <HugeiconsIcon icon={XVariableIcon} className="size-3 text-destructive" />;
+      return <X className="size-3 text-destructive" />;
     default:
-      return <HugeiconsIcon icon={LoaderPinwheelIcon} className="size-3" />;
+      return <Loader2 className="size-3" />;
   }
 }
 
@@ -68,7 +61,7 @@ export const ToolHeader = ({ type, state, toolName, title, isExpanded, onToggle,
     >
       <StateIcon state={state} />
       <span className="text-muted-foreground truncate">{label}</span>
-      <HugeiconsIcon icon={ChevronDownIcon} className="size-3 text-muted-foreground/50 transition-transform" />
+      <ChevronDown className="size-3 text-muted-foreground/50 transition-transform" />
     </button>
   );
 };

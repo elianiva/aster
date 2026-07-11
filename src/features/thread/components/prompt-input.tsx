@@ -12,8 +12,7 @@ import {
 import { Spinner } from "~/components/ui/spinner";
 import { cn } from "~/lib/utils";
 import type { ChatStatus, FileUIPart } from "ai";
-import { SendingOrderIcon, SquareIcon, XVariableIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Send, Square, X } from "lucide-react";
 import type {
   ChangeEvent,
   ComponentProps,
@@ -239,7 +238,7 @@ export const PromptInputAttachments = ({ className, ...props }: PromptInputAttac
             </AttachmentMedia>
             <AttachmentActions>
               <AttachmentAction onClick={() => remove(file.id)} aria-label="Remove">
-                <HugeiconsIcon icon={XVariableIcon} className="size-3" />
+                <X className="size-3" />
               </AttachmentAction>
             </AttachmentActions>
           </Attachment>
@@ -385,13 +384,13 @@ export const PromptInputSubmit = ({
   ...props
 }: PromptInputSubmitProps) => {
   const isGenerating = status === "submitted" || status === "streaming";
-  let Icon = <HugeiconsIcon icon={SendingOrderIcon} className="size-5" />;
+  let Icon = <Send className="size-5" />;
   if (status === "submitted") {
     Icon = <Spinner />;
   } else if (status === "streaming") {
-    Icon = <HugeiconsIcon icon={SquareIcon} className="size-5" />;
+    Icon = <Square className="size-5" />;
   } else if (status === "error") {
-    Icon = <HugeiconsIcon icon={XVariableIcon} className="size-5" />;
+    Icon = <X className="size-5" />;
   }
 
   const handleClick =

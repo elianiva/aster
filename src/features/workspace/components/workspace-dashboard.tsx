@@ -5,16 +5,7 @@ import { ThreadRpc } from "~/features/thread/server/rpc";
 import { ResourceRpc } from "~/features/resource/server/rpc";
 import { CountRpc } from "~/features/workspace/server/counts-rpc";
 import { Button } from "~/components/ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Chat01Icon,
-  Add01Icon,
-  BookOpen01Icon,
-  Book02Icon,
-  StickyNote01Icon,
-  Link04Icon,
-  LibraryIcon,
-} from "@hugeicons/core-free-icons";
+import { MessageCircle, Plus, BookOpen, Book, StickyNote, Link2, Library } from "lucide-react";
 
 interface DashboardProps {
   workspaceId: string;
@@ -27,10 +18,10 @@ const THREAD_COLORS = [
   "bg-emerald-100 text-emerald-700",
 ] as const;
 const STATS = [
-  { icon: LibraryIcon, label: "Lessons", key: "lessons" as const },
-  { icon: Book02Icon, label: "Glossary", key: "glossary" as const },
-  { icon: StickyNote01Icon, label: "Notes", key: "notes" as const },
-  { icon: BookOpen01Icon, label: "Records", key: "records" as const },
+  { icon: Library, label: "Lessons", key: "lessons" as const },
+  { icon: Book, label: "Glossary", key: "glossary" as const },
+  { icon: StickyNote, label: "Notes", key: "notes" as const },
+  { icon: BookOpen, label: "Records", key: "records" as const },
 ];
 
 export function WorkspaceDashboard({ workspaceId }: DashboardProps) {
@@ -65,7 +56,7 @@ export function WorkspaceDashboard({ workspaceId }: DashboardProps) {
             }
             className="shrink-0"
           >
-            <HugeiconsIcon icon={Add01Icon} className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 h-4 w-4" />
             New Thread
           </Button>
         </div>
@@ -76,7 +67,7 @@ export function WorkspaceDashboard({ workspaceId }: DashboardProps) {
           <div className="rounded-2xl border bg-card p-4 md:col-span-2">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                <HugeiconsIcon icon={Chat01Icon} className="h-3.5 w-3.5" />
+                <MessageCircle className="h-3.5 w-3.5" />
                 Recent Threads
               </h2>
               {threads.length > 4 && (
@@ -130,7 +121,7 @@ export function WorkspaceDashboard({ workspaceId }: DashboardProps) {
                   key={s.key}
                   className="flex flex-col items-center gap-0.5 rounded-xl bg-muted/50 p-3"
                 >
-                  <HugeiconsIcon icon={s.icon} className="size-4 text-muted-foreground" />
+                  <s.icon className="size-4 text-muted-foreground" />
                   <span className="text-lg font-semibold tabular-nums leading-none">
                     {counts?.[s.key] ?? 0}
                   </span>
@@ -145,7 +136,7 @@ export function WorkspaceDashboard({ workspaceId }: DashboardProps) {
         <div className="rounded-2xl border bg-card p-4">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              <HugeiconsIcon icon={Link04Icon} className="h-3.5 w-3.5" />
+              <Link2 className="h-3.5 w-3.5" />
               Resources
             </h2>
             {resources.length > 3 && (

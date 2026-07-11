@@ -9,8 +9,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "~/components/ui/empty";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { StickyNote01Icon } from "@hugeicons/core-free-icons";
+import { StickyNote } from "lucide-react";
 
 interface NotesTabProps {
 	workspaceId: string;
@@ -26,7 +25,7 @@ export function NotesTab({ workspaceId }: NotesTabProps) {
 				<Empty>
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<HugeiconsIcon icon={StickyNote01Icon} />
+							<StickyNote />
 						</EmptyMedia>
 						<EmptyTitle>No notes yet</EmptyTitle>
 						<EmptyDescription>

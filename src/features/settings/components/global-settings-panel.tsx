@@ -13,14 +13,7 @@ import {
   ComboboxLabel,
 } from "~/components/ui/combobox";
 import { Separator } from "~/components/ui/separator";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  AiBrainIcon,
-  RotateLeft01Icon,
-  EyeIcon,
-  EyeOffIcon,
-  Key02Icon,
-} from "@hugeicons/core-free-icons";
+import { Brain, RotateCcw, Eye, EyeOff, KeyRound } from "lucide-react";
 import { SettingsRpc } from "~/features/settings/server/rpc"
 import { queryKeys } from "~/lib/query-keys"
 
@@ -171,7 +164,7 @@ export function GlobalSettingsPanel() {
       {/* Model */}
       <div className="space-y-3">
         <div className="flex items-center gap-1 text-sm font-medium text-foreground">
-          <HugeiconsIcon icon={AiBrainIcon} className="size-4" />
+          <Brain className="size-4" />
           <span>Model</span>
         </div>
         <Combobox
@@ -207,7 +200,7 @@ export function GlobalSettingsPanel() {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1 text-sm font-medium text-foreground">
-              <HugeiconsIcon icon={Key02Icon} className="size-4" />
+              <KeyRound className="size-4" />
               <span>API Key</span>
             </div>
             <Button
@@ -216,7 +209,7 @@ export function GlobalSettingsPanel() {
               size="xs"
               onClick={() => setShowApiKey(!showApiKey)}
             >
-              <HugeiconsIcon icon={showApiKey ? EyeOffIcon : EyeIcon} className="size-3.5" />
+              {showApiKey ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
               {showApiKey ? "Hide" : "Show"}
             </Button>
           </div>
@@ -240,7 +233,7 @@ export function GlobalSettingsPanel() {
           onClick={handleResetDefaults}
           disabled={mutation.isPending}
         >
-          <HugeiconsIcon icon={RotateLeft01Icon} className="size-3.5" />
+          <RotateCcw className="size-3.5" />
           Reset to Defaults
         </Button>
 

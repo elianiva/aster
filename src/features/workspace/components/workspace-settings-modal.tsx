@@ -14,8 +14,7 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Settings02Icon, SlidersHorizontalIcon } from "@hugeicons/core-free-icons";
+import { Settings, SlidersHorizontal } from "lucide-react";
 
 import { WorkspaceRpc } from "~/features/workspace/server/rpc"
 import { GlobalSettingsPanel } from "~/features/settings/components/global-settings-panel";
@@ -87,11 +86,11 @@ export function WorkspaceSettingsModal({
           <Tabs defaultValue={defaultTab}>
             <TabsList className="w-full">
               <TabsTrigger value="workspace" className="flex-1">
-                <HugeiconsIcon icon={SlidersHorizontalIcon} className="mr-1.5 size-4" />
+                <SlidersHorizontal className="mr-1.5 size-4" />
                 Workspace
               </TabsTrigger>
               <TabsTrigger value="global" className="flex-1">
-                <HugeiconsIcon icon={Settings02Icon} className="mr-1.5 size-4" />
+                <Settings className="mr-1.5 size-4" />
                 Global
               </TabsTrigger>
             </TabsList>

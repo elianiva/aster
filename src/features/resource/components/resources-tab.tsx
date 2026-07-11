@@ -8,8 +8,7 @@ import {
 	EmptyMedia,
 	EmptyTitle,
 } from "~/components/ui/empty";
-import { Link04Icon, ArrowUpRight02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Link2, ExternalLink } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { cn } from "~/lib/utils";
 
@@ -43,7 +42,7 @@ export function ResourcesTab({ workspaceId }: ResourcesTabProps) {
 				<Empty>
 					<EmptyHeader>
 						<EmptyMedia variant="icon">
-							<HugeiconsIcon icon={Link04Icon} />
+							<Link2  />
 						</EmptyMedia>
 						<EmptyTitle>No resources yet</EmptyTitle>
 						<EmptyDescription>
@@ -86,7 +85,7 @@ export function ResourcesTab({ workspaceId }: ResourcesTabProps) {
 					<Empty>
 						<EmptyHeader>
 							<EmptyMedia variant="icon">
-								<HugeiconsIcon icon={Link04Icon} />
+								<Link2  />
 							</EmptyMedia>
 							<EmptyTitle>{search ? "No matches" : "No resources yet"}</EmptyTitle>
 							<EmptyDescription>
@@ -107,10 +106,7 @@ export function ResourcesTab({ workspaceId }: ResourcesTabProps) {
 								className="flex items-center justify-between border-b px-2 py-3 text-sm hover:bg-accent"
 							>
 								<div className="flex min-w-0 items-center gap-2">
-									<HugeiconsIcon
-										icon={Link04Icon}
-										className="size-4 shrink-0 text-muted-foreground"
-									/>
+									<Link2 className="size-4 shrink-0 text-muted-foreground" />
 									<div className="min-w-0">
 										<p className="font-medium truncate">{resource.title}</p>
 										<p className="mt-0.5 text-xs text-muted-foreground truncate">
@@ -118,10 +114,7 @@ export function ResourcesTab({ workspaceId }: ResourcesTabProps) {
 										</p>
 									</div>
 								</div>
-								<HugeiconsIcon
-									icon={ArrowUpRight02Icon}
-									className="ml-2 size-4 shrink-0 text-muted-foreground"
-								/>
+								<ExternalLink className="ml-2 size-4 shrink-0 text-muted-foreground" />
 							</a>
 						))}
 					</div>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Message02Icon } from "@hugeicons/core-free-icons";
+import { MessageSquare } from "lucide-react";
 import { AttachmentButton } from "~/features/thread/components/attachment-button";
 import {
   PromptInput,
@@ -70,7 +69,7 @@ export function EmptyState({ workspaceId }: EmptyStateProps) {
         <Empty className="max-w-md border-0">
           <EmptyHeader>
             <EmptyMedia variant="icon">
-              <HugeiconsIcon icon={Message02Icon} />
+              <MessageSquare />
             </EmptyMedia>
             <EmptyTitle>Start a conversation</EmptyTitle>
             <EmptyDescription>

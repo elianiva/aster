@@ -5,8 +5,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/features/workspace/server/rpc";
 import { CountRpc } from "~/features/workspace/server/counts-rpc";
 import { Button } from "~/components/ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Settings02Icon } from "@hugeicons/core-free-icons";
+import type { LucideIcon } from "lucide-react";
 import { WorkspaceSettingsModal } from "./workspace-settings-modal";
 import {
   Sidebar,
@@ -24,16 +23,9 @@ import {
   SidebarTrigger,
 } from "~/components/ui/sidebar";
 
-import {
-  Chat01Icon,
-  LibraryIcon,
-  Book02Icon,
-  Link04Icon,
-  StickyNote01Icon,
-  LayoutGridIcon,
-} from "@hugeicons/core-free-icons";
+import { Settings, MessageCircle, Library, Book, Link2, StickyNote, LayoutGrid } from "lucide-react";
 
-type Icon = typeof Chat01Icon;
+type Icon = LucideIcon;
 
 type CountKey =
   | "threads"
@@ -48,37 +40,37 @@ const NAV_ITEMS = [
   {
     label: "Dashboard",
     path: "/workspaces/$workspaceId",
-    icon: LayoutGridIcon,
+    icon: LayoutGrid,
     countKey: null as CountKey | null,
   },
   {
     label: "Threads",
     path: "/workspaces/$workspaceId/threads",
-    icon: Chat01Icon,
+    icon: MessageCircle,
     countKey: "threads" as const,
   },
   {
     label: "Library",
     path: "/workspaces/$workspaceId/library",
-    icon: LibraryIcon,
+    icon: Library,
     countKey: "library" as const,
   },
   {
     label: "Glossary",
     path: "/workspaces/$workspaceId/glossary",
-    icon: Book02Icon,
+    icon: Book,
     countKey: "glossary" as const,
   },
   {
     label: "Resources",
     path: "/workspaces/$workspaceId/resources",
-    icon: Link04Icon,
+    icon: Link2,
     countKey: "resources" as const,
   },
   {
     label: "Notes",
     path: "/workspaces/$workspaceId/notes",
-    icon: StickyNote01Icon,
+    icon: StickyNote,
     countKey: "notes" as const,
   },
 ] satisfies { label: string; path: string; icon: Icon; countKey: CountKey | null }[];
@@ -137,7 +129,7 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
                         isActive={isActive}
                         render={<Link to={tab.path} params={{ workspaceId }} />}
                       >
-                        <HugeiconsIcon icon={tab.icon} className="size-4" />
+                        <tab.icon className="size-4" />
                         {tab.label}
                         {n > 0 ? <CountBadge>{n}</CountBadge> : null}
                       </SidebarMenuButton>
@@ -155,7 +147,7 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
             className="w-full justify-start gap-2 text-sm font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground"
             onClick={() => setSettingsOpen(true)}
           >
-            <HugeiconsIcon icon={Settings02Icon} className="h-4 w-4" />
+            <Settings className="h-4 w-4" />
             Settings
           </Button>
         </SidebarFooter>

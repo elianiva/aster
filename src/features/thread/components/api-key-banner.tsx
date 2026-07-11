@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Key02Icon } from "@hugeicons/core-free-icons";
+import { KeyRound } from "lucide-react";
 import { SettingsDialog } from "~/features/settings/components/global-settings-dialog";
 
 export function ApiKeyBanner({ providerName }: { providerName: string }) {
@@ -9,7 +8,7 @@ export function ApiKeyBanner({ providerName }: { providerName: string }) {
   return (
     <div className="mx-auto mb-3 max-w-3xl rounded-xl border border-dashed border-muted-foreground/30 bg-muted/40 px-4 py-3 text-center text-sm text-muted-foreground">
       <div className="flex items-center justify-center gap-2">
-        <HugeiconsIcon icon={Key02Icon} className="size-4" />
+        <KeyRound className="size-4" />
         <span>
           No API key configured for <strong>{providerName}</strong>.
         </span>

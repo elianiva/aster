@@ -9,15 +9,14 @@ import {
 } from "~/components/ui/empty";
 import { buttonVariants } from "~/components/ui/button-variants";
 import { cn } from "~/lib/utils";
-import { FileNotFoundIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { FileX } from "lucide-react";
 
 export function NotFound() {
   return (
     <Empty className="h-dvh">
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <HugeiconsIcon icon={FileNotFoundIcon} />
+          <FileX />
         </EmptyMedia>
         <EmptyTitle>Page Not Found</EmptyTitle>
         <EmptyDescription>

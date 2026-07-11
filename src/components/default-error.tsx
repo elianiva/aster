@@ -9,8 +9,7 @@ import {
 } from "~/components/ui/empty";
 import { buttonVariants } from "~/components/ui/button-variants";
 import { cn } from "~/lib/utils";
-import { Cancel01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { X } from "lucide-react";
 
 export function DefaultErrorComponent() {
   // Errors that escape route loaders/components land here. The thrown message
@@ -19,7 +18,7 @@ export function DefaultErrorComponent() {
     <Empty className="h-dvh">
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <HugeiconsIcon icon={Cancel01Icon} />
+          <X  />
         </EmptyMedia>
         <EmptyTitle>Something went wrong</EmptyTitle>
         <EmptyDescription>

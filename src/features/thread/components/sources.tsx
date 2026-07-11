@@ -1,7 +1,6 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "~/components/ui/collapsible";
 import { cn } from "~/lib/utils";
-import { Book01Icon, ChevronDownIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { BookOpen, ChevronDown } from "lucide-react";
 
 export type SourcesProps = React.ComponentProps<typeof Collapsible>;
 
@@ -30,9 +29,9 @@ export const SourcesTrigger = ({ count, className, children, ...props }: Sources
     )}
     {...props}
   >
-    <HugeiconsIcon icon={Book01Icon} className="size-3.5" />
+    <BookOpen className="size-3.5" />
     <span>{children ?? `${count} source${count === 1 ? "" : "s"}`}</span>
-    <HugeiconsIcon icon={ChevronDownIcon} className="size-3.5 transition-transform" />
+    <ChevronDown className="size-3.5 transition-transform" />
   </CollapsibleTrigger>
 );
 
@@ -62,7 +61,7 @@ export const Source = ({ className, children, href, ...props }: SourceProps) => 
     )}
     {...props}
   >
-    <HugeiconsIcon icon={Book01Icon} className="size-3 shrink-0 text-muted-foreground" />
+    <BookOpen className="size-3 shrink-0 text-muted-foreground" />
     <span className="truncate">{children ?? href}</span>
   </a>
 );

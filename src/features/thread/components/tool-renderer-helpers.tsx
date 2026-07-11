@@ -1,5 +1,5 @@
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
-import { CheckIcon, Link02Icon, Task01Icon } from "@hugeicons/core-free-icons";
+import type { LucideIcon } from "lucide-react";
+import { Check, Link as LinkIcon, ListTodo } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Renderer } from "@openuidev/react-lang";
 import { asterLibrary } from "~/components/ai-elements/library";
@@ -13,10 +13,10 @@ export function safeStringify(value: unknown): string {
   }
 }
 
-export function SimpleLine({ icon, label }: { icon: IconSvgElement; label: string }) {
+export function SimpleLine({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
   return (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <HugeiconsIcon icon={icon} className="size-3.5" />
+      <Icon className="size-3.5" />
       <span>{label}</span>
     </div>
   );
@@ -25,12 +25,12 @@ export function SimpleLine({ icon, label }: { icon: IconSvgElement; label: strin
 export function FallbackOutput({ output, toolName }: { output: unknown; toolName: string }) {
   const label = prettyName(toolName);
   if (output == null || output === false) {
-    return <SimpleLine icon={Task01Icon} label={`${label} complete`} />;
+    return <SimpleLine icon={ListTodo} label={`${label} complete`} />;
   }
   if (typeof output === "string") {
-    return <SimpleLine icon={Task01Icon} label={output} />;
+    return <SimpleLine icon={ListTodo} label={output} />;
   }
-  return <SimpleLine icon={Task01Icon} label={safeStringify(output)} />;
+  return <SimpleLine icon={ListTodo} label={safeStringify(output)} />;
 }
 
 export function ArtifactPreview({
@@ -49,7 +49,7 @@ export function ArtifactPreview({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5 text-xs text-success">
-        <HugeiconsIcon icon={CheckIcon} className="size-3.5" />
+        <Check className="size-3.5" />
         <span>{label}</span>
       </div>
       <div className="rounded-lg bg-muted overflow-hidden">
@@ -85,7 +85,7 @@ export function CreateThreadOutput({
   name?: string;
 }) {
   const navigate = useNavigate();
-  if (!threadId) return <SimpleLine icon={Task01Icon} label="Thread created" />;
+  if (!threadId) return <SimpleLine icon={ListTodo} label="Thread created" />;
   return (
     <button
       type="button"
@@ -97,7 +97,7 @@ export function CreateThreadOutput({
       }
       className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
     >
-      <HugeiconsIcon icon={Link02Icon} className="size-3.5 text-primary" />
+      <LinkIcon className="size-3.5 text-primary" />
       <span>Thread "{name || "Untitled"}" ready</span>
     </button>
   );

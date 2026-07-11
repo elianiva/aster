@@ -1,5 +1,4 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Menu02Icon, Message02Icon } from "@hugeicons/core-free-icons";
+import { Menu, MessageSquare, Plus } from "lucide-react";
 import type { Thread } from "~/features/thread/server/service";
 import { cn } from "~/lib/utils";
 import {
@@ -70,7 +69,7 @@ export function ThreadList({
       <SidebarGroup className="h-full">
         <SidebarGroupLabel>Threads</SidebarGroupLabel>
         <SidebarGroupAction onClick={onNewThread} aria-label="New thread">
-          <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5" />
+          <Plus className="h-3.5 w-3.5" />
         </SidebarGroupAction>
 
         <SidebarContent className="px-0">
@@ -99,8 +98,7 @@ export function ThreadList({
                       isActive={selectedThreadId === thread.id}
                       onClick={() => onSelectThread(thread.id)}
                     >
-                      <HugeiconsIcon
-                        icon={Message02Icon}
+                      <MessageSquare
                         className={cn(
                           "h-4 w-4 shrink-0",
                           selectedThreadId === thread.id
@@ -195,7 +193,7 @@ function ThreadListContent({
           onClick={handleNewThread}
           aria-label="New thread"
         >
-          <HugeiconsIcon icon={Add01Icon} className="h-3.5 w-3.5" />
+          <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto px-2 pb-2">
@@ -229,8 +227,7 @@ function ThreadListContent({
                       : "text-sidebar-foreground/80",
                   )}
                 >
-                  <HugeiconsIcon
-                    icon={Message02Icon}
+                  <MessageSquare
                     className={cn(
                       "h-4 w-4 shrink-0",
                       selectedThreadId === thread.id
@@ -293,7 +290,7 @@ export function ThreadListTrigger({
           <Button variant="ghost" size="icon-sm" aria-label="Open thread list" />
         }
       >
-        <HugeiconsIcon icon={Menu02Icon} className="h-4 w-4" />
+        <Menu className="h-4 w-4" />
       </SheetTrigger>
       <SheetContent side="right" className="w-[18rem] p-0" showCloseButton>
         <ThreadListContent
