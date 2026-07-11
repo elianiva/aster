@@ -262,13 +262,13 @@ export function MessageParts({ message, isLast, isStreaming, ctx, onApprove }: M
 
   return (
     <>
-      {entries.map((entry) => {
+      {entries.map((entry, entryIdx) => {
         if (entry.kind === "reasoning") {
           const text = entry.blocks.map((b) => b.text).join("\n\n");
           const isReasoningStreaming = entry.isLastReasoning && isLast && isStreaming;
           return (
             <Reasoning
-              key={`reasoning-${text.length}`}
+              key={`reasoning-${entryIdx}`}
               isStreaming={isReasoningStreaming}
               defaultOpen={false}
               className="mb-2"

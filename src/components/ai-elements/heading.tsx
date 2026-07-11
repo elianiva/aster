@@ -16,9 +16,9 @@ const sizeClasses = {
 };
 
 export function Heading({ text, level, className, ...props }: HeadingProps) {
-  const Tag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  const Tag = `h${level || "1"}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   return (
-    <Tag className={cn(sizeClasses[level], className)} {...props}>
+    <Tag className={cn(sizeClasses[level || "1"], className)} {...props}>
       {text}
     </Tag>
   );
