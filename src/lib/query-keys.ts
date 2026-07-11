@@ -8,7 +8,7 @@ export const queryKeys = {
   threads: {
     all: (workspaceId: string) => ["threads", workspaceId] as const,
     list: (workspaceId: string) => [...queryKeys.threads.all(workspaceId), "list"] as const,
-    detail: (threadId: string) => ["thread", threadId] as const,
+    detail: (threadId: string) => ["threads", "detail", threadId] as const,
   },
   settings: {
     all: ["settings"] as const,

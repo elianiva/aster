@@ -18,10 +18,17 @@ function makeCreateArtifactRenderer(
   const name = `create${defaultTitle}`;
   return {
     [name]: (_output, input, ctx) => {
-      const result =
-        typeof _output === "string"
-          ? JSON.parse(_output)
-          : (_output as Record<string, unknown> | undefined);
+      let result: Record<string, unknown> | undefined;
+      if (_output && typeof _output === "object") {
+        result = _output as Record<string, unknown>;
+      } else if (typeof _output === "string") {
+        try {
+          const parsed = JSON.parse(_output);
+          if (parsed && typeof parsed === "object") result = parsed;
+        } catch {
+          result = undefined;
+        }
+      }
       const id = result?.id ?? result?.[idField];
       const { title, content } = (input ?? {}) as { title?: string; content?: string };
       return (

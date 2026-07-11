@@ -23,8 +23,9 @@ function RouteThreads() {
   const { threads, rename, remove } = useThreads(workspaceId);
   const [threadError, setThreadError] = useState<string | null>(null);
 
+  // Crossing route boundaries: threadId exists on child routes, not this layout route.
   const match = useMatch({ strict: false });
-  const threadId = (match?.params as { threadId?: string })?.threadId ?? null;
+  const threadId = (match?.params as Record<string, string | undefined>)?.threadId ?? null;
 
   const handleRename = (id: string, name: string) => {
     setThreadError(null);

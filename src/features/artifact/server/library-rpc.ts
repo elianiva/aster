@@ -22,7 +22,7 @@ const listAllArtifacts = createServerFn({ method: "GET" })
 			return yield* ArtifactService.use((svc) => svc.listAllTitled(data.workspaceId));
 		}).pipe(
 			Effect.withSpan("library.listAll"),
-			rpcErrorPipe({ ArtifactError: "Failed to load library." }),
+		rpcErrorPipe({ ArtifactError: "Failed to load library.", PersistenceError: "Failed to load library." }),
 			appRuntime().runPromise,
 		);
 	});
@@ -40,7 +40,7 @@ const getArtifactById = createServerFn({ method: "GET" })
 			);
 		}).pipe(
 			Effect.withSpan("library.getById"),
-			rpcErrorPipe({ ArtifactError: "Failed to load artifact." }),
+		rpcErrorPipe({ ArtifactError: "Failed to load artifact.", PersistenceError: "Failed to load artifact." }),
 			appRuntime().runPromise,
 		);
 	});

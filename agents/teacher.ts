@@ -2,7 +2,7 @@ import { Think, type Session, type TurnContext, type TurnConfig } from "@cloudfl
 import { Effect, Option, Schema } from "effect";
 import { generateText } from "ai";
 import { logJson } from "../src/server/logger";
-import { makeAppLayer } from "../src/server/app-runtime";
+import { makeAppLayer, type AppLayer } from "../src/server/app-runtime";
 import { SettingsService } from "../src/features/settings/server/service";
 import { WorkspaceService } from "../src/features/workspace/server/service";
 import { ThreadService } from "../src/features/thread/server/service";
@@ -39,6 +39,7 @@ class PostTurnFailed extends Schema.TaggedErrorClass<PostTurnFailed>()("PostTurn
 export class TeacherAgent extends Think<Env> {
   private _cachedConfig: ModelConfig | null = null;
   private _threadKey: { workspaceId: string; threadId: string } | null = null;
+  private _cachedLayer: AppLayer | null = null;
 
   private get threadKey() {
     if (!this._threadKey) this._threadKey = parseThreadKey(this.name);
@@ -46,8 +47,11 @@ export class TeacherAgent extends Think<Env> {
   }
 
   private get layer() {
-    const env_ = this.env as Env;
-    return makeAppLayer({ db: env_.aster_db, r2: env_.ASTER_R2, kv: env_.ASTER_KV });
+    if (!this._cachedLayer) {
+      const env_ = this.env as Env;
+      this._cachedLayer = makeAppLayer({ db: env_.aster_db, r2: env_.ASTER_R2, kv: env_.ASTER_KV });
+    }
+    return this._cachedLayer;
   }
 
   private loadModelConfig(): Promise<ModelConfig> {
@@ -201,7 +205,17 @@ export class TeacherAgent extends Think<Env> {
             ),
           ),
         );
-      }).pipe(Effect.provide(self.layer)),
+      }).pipe(
+        Effect.catchCause((cause) =>
+          Effect.sync(() =>
+            logJson("warn", "agent.onChatResponse.unhandled", {
+              threadId,
+              cause: String(cause),
+            }),
+          ),
+        ),
+        Effect.provide(self.layer),
+      ),
     );
   }
 }

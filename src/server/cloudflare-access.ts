@@ -33,7 +33,7 @@ export const verifyAccess = (
   request: Request,
   config: AccessConfig,
 ): Promise<AccessIdentity | null> => {
-  if (config.enableDevAuth) {
+  if (import.meta.env.DEV && config.enableDevAuth) {
     return Promise.resolve({ sub: "dev", email: config.adminEmail || "dev@local" });
   }
 

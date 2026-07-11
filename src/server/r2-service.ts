@@ -1,13 +1,13 @@
 import { Context, Effect, Layer } from "effect";
-import { ArtifactError } from "./errors";
+import { PersistenceError } from "./errors";
 
 const fail = (op: string) => (cause: unknown) =>
-  new ArtifactError({ message: `R2 ${op}: ${cause}` });
+  new PersistenceError({ service: "r2", message: `${op}: ${cause}` });
 
 export class R2 extends Context.Service<R2>()("R2", {
   make: (bucket: R2Bucket) =>
     Effect.sync(() => ({
-      fetch: (r2Key: string): Effect.Effect<string | null, ArtifactError> =>
+      fetch: (r2Key: string): Effect.Effect<string | null, PersistenceError> =>
         Effect.gen(function* () {
           const obj = yield* Effect.tryPromise({
             try: () => bucket.get(r2Key),
@@ -20,13 +20,13 @@ export class R2 extends Context.Service<R2>()("R2", {
           });
         }),
 
-      put: (r2Key: string, content: string): Effect.Effect<void, ArtifactError> =>
+      put: (r2Key: string, content: string): Effect.Effect<void, PersistenceError> =>
         Effect.tryPromise({
           try: () => bucket.put(r2Key, content),
           catch: fail("put"),
         }),
 
-      delete: (r2Key: string): Effect.Effect<void, ArtifactError> =>
+      delete: (r2Key: string): Effect.Effect<void, PersistenceError> =>
         Effect.tryPromise({
           try: () => bucket.delete(r2Key),
           catch: fail("delete"),

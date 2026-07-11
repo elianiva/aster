@@ -16,7 +16,6 @@ export const listWorkspaces = createServerFn({ method: "GET" }).handler(async ()
   }).pipe(
     Effect.withSpan("listWorkspaces"),
     rpcErrorPipe({
-      WorkspaceNotFound: "Workspace not found. It may have been deleted.",
       PersistenceError: "Failed to complete operation. Please try again.",
     }),
     appRuntime().runPromise,
@@ -49,7 +48,6 @@ export const createWorkspace = createServerFn({ method: "POST" })
       Effect.withSpan("createWorkspace"),
       Effect.annotateLogs({ topic: data.topic }),
       rpcErrorPipe({
-        WorkspaceNotFound: "Workspace not found. It may have been deleted.",
         PersistenceError: "Failed to complete operation. Please try again.",
       }),
       appRuntime().runPromise,
@@ -120,7 +118,6 @@ export const getRecentThreads = createServerFn({ method: "GET" }).handler(async 
   }).pipe(
     Effect.withSpan("getRecentThreads"),
     rpcErrorPipe({
-      WorkspaceNotFound: "Workspace not found. It may have been deleted.",
       PersistenceError: "Failed to complete operation. Please try again.",
     }),
     appRuntime().runPromise,

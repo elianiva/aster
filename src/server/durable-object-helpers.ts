@@ -11,6 +11,8 @@ export function deleteDOStorage(
   return Effect.tryPromise({
     try: async () => {
       const stub = env.Teacher.get(env.Teacher.idFromName(name));
+      // deleteStorage() is defined on TeacherAgent but not on the Think stub type.
+      // This cast is safe as long as TeacherAgent extends Think and implements deleteStorage().
       await (stub as unknown as { deleteStorage(): Promise<void> }).deleteStorage();
     },
     catch: (cause) => new Error(`DO cleanup failed for ${name}: ${cause}`),

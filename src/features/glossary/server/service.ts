@@ -94,7 +94,7 @@ export class GlossaryService extends Context.Service<GlossaryService>()(
             try: () =>
               client
                 .update(glossary)
-                .set({ definition: input.definition, avoid: input.avoid })
+                .set({ definition: input.definition, avoid: input.avoid, updatedAt: now })
                 .where(eq(glossary.id, existing.id)),
             catch: fail("update"),
           });
@@ -111,6 +111,7 @@ export class GlossaryService extends Context.Service<GlossaryService>()(
               definition: input.definition,
               avoid: input.avoid,
               createdAt: now,
+              updatedAt: now,
             }),
           catch: fail("insert"),
         });

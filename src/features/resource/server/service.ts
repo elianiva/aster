@@ -69,7 +69,7 @@ export class ResourceService extends Context.Service<ResourceService>()(
             try: () =>
               client
                 .update(resources)
-                .set({ type: input.type, title: input.title, annotation: input.annotation })
+                .set({ type: input.type, title: input.title, annotation: input.annotation, updatedAt: now })
                 .where(eq(resources.id, existing.id)),
             catch: fail("update"),
           });
@@ -87,6 +87,7 @@ export class ResourceService extends Context.Service<ResourceService>()(
               url: input.url,
               annotation: input.annotation,
               createdAt: now,
+              updatedAt: now,
             }),
           catch: fail("insert"),
         });

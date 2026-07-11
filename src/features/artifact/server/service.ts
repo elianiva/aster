@@ -109,6 +109,7 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
               title: input.title,
               r2Key,
               createdAt: now,
+              updatedAt: now,
             }),
           catch: fail(`insert ${kind}`),
         });
@@ -185,6 +186,9 @@ export class ArtifactService extends Context.Service<ArtifactService>()(
         );
       });
 
+      // Intentional sequential PK lookup across 3 small tables.
+      // A UNION query would be harder to maintain with Drizzle and unnecessary
+      // for a single-user app where each table has very few rows.
       const getArtifactById = Effect.fn(function*(id: string, workspaceId: string) {
         for (const [kind, table] of Object.entries(TITLED_TABLES)) {
           const row = yield* Effect.tryPromise({

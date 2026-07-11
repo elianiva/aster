@@ -16,7 +16,7 @@ export function createArtifactRpc(kind: ArtifactKind, fieldId: string) {
         return yield* ArtifactService.use((svc) => svc.listTitled(kind, data.workspaceId));
       }).pipe(
         Effect.withSpan(`${kind}.list`),
-        rpcErrorPipe({ ArtifactError: `Failed to load ${kind}s.` }),
+        rpcErrorPipe({ ArtifactError: `Failed to load ${kind}s.`, PersistenceError: `Failed to load ${kind}s.` }),
         appRuntime().runPromise,
       );
     });
@@ -37,7 +37,7 @@ export function createArtifactRpc(kind: ArtifactKind, fieldId: string) {
         return { content };
       }).pipe(
         Effect.withSpan(`${kind}.getContent`),
-        rpcErrorPipe({ ArtifactError: `Failed to load ${kind}s.` }),
+        rpcErrorPipe({ ArtifactError: `Failed to load ${kind}s.`, PersistenceError: `Failed to load ${kind}s.` }),
         appRuntime().runPromise,
       );
     });
@@ -56,7 +56,7 @@ export function createArtifactRpc(kind: ArtifactKind, fieldId: string) {
         );
       }).pipe(
         Effect.withSpan(`${kind}.getArtifact`),
-        rpcErrorPipe({ ArtifactError: `Failed to load ${kind}.` }),
+        rpcErrorPipe({ ArtifactError: `Failed to load ${kind}.`, PersistenceError: `Failed to load ${kind}.` }),
         appRuntime().runPromise,
       );
     });

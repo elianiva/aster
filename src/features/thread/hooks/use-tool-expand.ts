@@ -1,18 +1,22 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 export function useToolExpand(isStreaming: boolean) {
   const [expandedTool, setExpandedTool] = useState<string | null>(null);
   const prevStreaming = useRef(isStreaming);
   const userToggled = useRef(false);
 
-  // Sync streaming state (runs during render, matching original behavior)
-  if (isStreaming && !prevStreaming.current) userToggled.current = false;
-  prevStreaming.current = isStreaming;
+  useEffect(() => {
+    if (isStreaming && !prevStreaming.current) {
+      userToggled.current = false;
+    }
+    prevStreaming.current = isStreaming;
+  }, [isStreaming]);
 
-  // Collapse when streaming ends (if user hasn't manually toggled)
-  if (!isStreaming && !userToggled.current && expandedTool !== null) {
-    setExpandedTool(null);
-  }
+  useEffect(() => {
+    if (!isStreaming && !userToggled.current && expandedTool !== null) {
+      setExpandedTool(null);
+    }
+  }, [isStreaming, expandedTool]);
 
   const toggleTool = useCallback((toolId: string) => {
     userToggled.current = true;
