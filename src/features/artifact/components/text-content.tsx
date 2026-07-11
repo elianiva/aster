@@ -10,7 +10,7 @@ export interface TextContentProps extends ComponentProps<"div"> {
 export function TextContent({ content, className, ...props }: TextContentProps) {
   return (
     <div className={cn("w-full", className)} {...props}>
-      <Streamdown className={cn("min-w-full! prose")} plugins={streamdownPlugins}>
+      <Streamdown className={cn("prose")} plugins={streamdownPlugins}>
         {content}
       </Streamdown>
     </div>

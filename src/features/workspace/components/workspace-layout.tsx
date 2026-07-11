@@ -21,6 +21,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
+  SidebarTrigger,
 } from "~/components/ui/sidebar";
 
 import {
@@ -163,6 +164,10 @@ export function WorkspaceLayout({ workspaceId }: WorkspaceLayoutProps) {
 
       <SidebarInset className="p-0 md:p-2 md:pl-0 bg-sidebar">
         <main className="flex h-dvh md:h-full md:max-h-[calc(100svh-16px)] flex-col overflow-hidden rounded-2xl bg-card inset-shadow-sm">
+          <div className="flex items-center gap-2 border-b px-3 py-2 md:hidden">
+            <SidebarTrigger />
+            <span className="text-sm font-medium truncate">{workspace!.topic}</span>
+          </div>
           <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             <ErrorBoundary>
               <Suspense fallback={<div className="flex-1" />}>

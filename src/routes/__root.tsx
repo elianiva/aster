@@ -20,7 +20,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         name: "viewport",
-        content: "width=device-width, initial-scale=1",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       {
         title: "Aster",
@@ -42,7 +42,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="h-full">
+      <body className="h-full" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {children}
         {import.meta.env.DEV && (
           <TanStackDevtools

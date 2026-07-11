@@ -16,6 +16,10 @@
 
 @custom-variant dark (&:is(.dark *));
 @custom-variant hover-fine (@media (hover: hover) and (pointer: fine));
+/* Touch gesture management */
+[data-slot="message-scroller-viewport"] {
+  touch-action: pan-y;
+}
 
 :root {
   --background: oklch(1 0 0);
@@ -184,6 +188,13 @@ body {
   @apply opacity-100;
 }
 
+/* Code block actions: always visible on touch devices */
+@media (hover: none) {
+  [data-streamdown="code-block-actions"] {
+    @apply opacity-100;
+  }
+}
+
 .artifact-code [data-streamdown="code-block-header"] {
   @apply hidden;
 }
@@ -201,7 +212,7 @@ body {
 }
 
 [data-streamdown="code-block"] pre {
-  @apply m-0 py-2 px-3 bg-transparent rounded-none;
+  @apply m-0 py-2 px-3 bg-transparent rounded-none overflow-x-auto;
 }
 
 [data-streamdown="code-block"] code {
@@ -210,4 +221,11 @@ body {
 
 ul[data-streamdown="unordered-list"] {
   @apply pl-2;
+}
+
+/* Touch feedback: active states for elements that only have hover states */
+@media (hover: none) {
+  [data-slot="sidebar-menu-button"]:active {
+    @apply opacity-80;
+  }
 }

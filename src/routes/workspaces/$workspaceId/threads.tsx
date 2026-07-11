@@ -2,7 +2,8 @@ import { useState } from "react";
 import { createFileRoute, Outlet, redirect, useMatch, useNavigate } from "@tanstack/react-router";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useThreads } from "~/features/thread/hooks/use-threads";
-import { ThreadList } from "~/features/thread/components/thread-list";
+import { ThreadList, ThreadListTrigger } from "~/features/thread/components/thread-list";
+import { useIsMobile } from "~/hooks/use-mobile";
 
 export const Route = createFileRoute("/workspaces/$workspaceId/threads")({
   component: RouteThreads,
@@ -22,6 +23,7 @@ function RouteThreads() {
   const navigate = useNavigate();
   const { threads, rename, remove } = useThreads(workspaceId);
   const [threadError, setThreadError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   // Crossing route boundaries: threadId exists on child routes, not this layout route.
   const match = useMatch({ strict: false });
@@ -65,16 +67,31 @@ function RouteThreads() {
             {threadError}
           </div>
         )}
+        <div className="flex items-center justify-between border-b px-3 py-1.5 md:hidden">
+          <span className="text-xs text-muted-foreground">
+            {threads.length} thread{threads.length !== 1 ? "s" : ""}
+          </span>
+          <ThreadListTrigger
+            threads={threads}
+            selectedThreadId={threadId === "new" ? null : threadId}
+            onSelectThread={(id) => navigate({ to: `/workspaces/${workspaceId}/threads/${id}` })}
+            onNewThread={() => navigate({ to: `/workspaces/${workspaceId}/threads/new` })}
+            onRenameThread={handleRename}
+            onDeleteThread={handleDelete}
+          />
+        </div>
         <Outlet />
       </div>
-      <ThreadList
-        threads={threads}
-        selectedThreadId={threadId === "new" ? null : threadId}
-        onSelectThread={(id) => navigate({ to: `/workspaces/${workspaceId}/threads/${id}` })}
-        onNewThread={() => navigate({ to: `/workspaces/${workspaceId}/threads/new` })}
-        onRenameThread={handleRename}
-        onDeleteThread={handleDelete}
-      />
+      {!isMobile && (
+        <ThreadList
+          threads={threads}
+          selectedThreadId={threadId === "new" ? null : threadId}
+          onSelectThread={(id) => navigate({ to: `/workspaces/${workspaceId}/threads/${id}` })}
+          onNewThread={() => navigate({ to: `/workspaces/${workspaceId}/threads/new` })}
+          onRenameThread={handleRename}
+          onDeleteThread={handleDelete}
+        />
+      )}
     </div>
   );
 }
@@ -93,7 +110,7 @@ function ThreadsSkeleton() {
           <Skeleton className="h-12 w-full rounded-xl" />
         </div>
       </div>
-      <div className="w-64 shrink-0 p-3">
+      <div className="hidden md:block w-64 shrink-0 p-3">
         <div className="flex items-center justify-between px-2 py-1">
           <Skeleton className="h-4 w-16" />
           <Skeleton className="h-4 w-4 rounded-full" />
