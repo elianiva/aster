@@ -123,7 +123,7 @@ export function ChatView({ workspaceId, threadId }: ChatViewProps) {
                     >
                       <BubbleContent
                         className={
-                          message.role === "user" ? "w-fit bg-primary/80! text-white!" : "w-full"
+                          message.role === "user" ? "w-fit bg-primary text-primary-foreground" : "w-full"
                         }
                       >
                         <MessageParts

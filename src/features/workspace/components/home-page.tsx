@@ -25,8 +25,8 @@ export function HomePage() {
   );
 
   return (
-    <div className="min-h-screen bg-card flex items-center">
-      <div className="mx-auto max-w-5xl p-6 bg-muted rounded-2xl inset-shadow-sm">
+    <div className="min-h-screen flex items-center">
+      <div className="mx-auto max-w-5xl p-6 bg-card rounded-2xl border border-border">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-medium text-primary tracking-tight">Aster</h1>

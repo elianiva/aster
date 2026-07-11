@@ -13,9 +13,11 @@ import {
   ComboboxLabel,
 } from "~/components/ui/combobox";
 import { Separator } from "~/components/ui/separator";
-import { Brain, RotateCcw, Eye, EyeOff, KeyRound } from "lucide-react";
+import { Brain, RotateCcw, Eye, EyeOff, KeyRound, Palette } from "lucide-react";
 import { SettingsRpc } from "~/features/settings/server/rpc"
 import { queryKeys } from "~/lib/query-keys"
+import { cn } from "~/lib/utils";
+import { THEMES, type ThemeId, getTheme, setTheme } from "~/lib/theme";
 
 interface ModelItem {
   id: string;
@@ -33,6 +35,7 @@ const DEFAULT_MODEL = "kimi-k2.7-code";
 export function GlobalSettingsPanel() {
   const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   const [showApiKey, setShowApiKey] = useState(false);
+  const [themeState, setThemeState] = useState<ThemeId>(getTheme());
   const { data: settings } = useSuspenseQuery(SettingsRpc.getSettings());
   const { data: providers = [] } = useSuspenseQuery(SettingsRpc.providers());
   const queryClient = useQueryClient();
@@ -161,6 +164,32 @@ export function GlobalSettingsPanel() {
 
   return (
     <div className="space-y-4">
+      {/* Theme */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-1 text-sm font-medium text-foreground">
+          <Palette className="size-4" />
+          <span>Color</span>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {THEMES.map((theme) => (
+            <button
+              key={theme.id}
+              type="button"
+              onClick={() => { setTheme(theme.id); setThemeState(theme.id); }}
+              className={cn(
+                "size-8 rounded-full border-2 transition-all cursor-pointer shrink-0",
+                themeState === theme.id
+                  ? "border-foreground ring-2 ring-foreground/20 scale-110"
+                  : "border-border hover:scale-105"
+              )}
+              style={{ backgroundColor: theme.color }}
+              title={theme.label}
+              aria-label={`${theme.label} theme`}
+            />
+          ))}
+        </div>
+      </div>
+      
       {/* Model */}
       <div className="space-y-3">
         <div className="flex items-center gap-1 text-sm font-medium text-foreground">

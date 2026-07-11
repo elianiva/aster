@@ -9,7 +9,7 @@ export interface StatCardProps extends ComponentProps<"div"> {
 
 export function StatCard({ label, value, subtitle, className, ...props }: StatCardProps) {
   return (
-    <div className={cn("rounded-lg bg-secondary/70 p-4", className)} {...props}>
+    <div className={cn("rounded-lg border border-border bg-card p-4", className)} {...props}>
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="text-lg mt-1 font-semibold">{value}</p>
       {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}

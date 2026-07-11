@@ -40,7 +40,7 @@ export function WorkspaceDashboard({ workspaceId }: DashboardProps) {
     <div className="flex min-h-0 flex-1 items-start justify-center overflow-y-auto">
       <div className="mx-auto w-full max-w-4xl space-y-5 p-8 pt-10">
         {/* — Mission banner — */}
-        <div className="flex items-start justify-between gap-4 rounded-2xl border bg-card p-5">
+        <div className="flex items-start justify-between gap-4 rounded-2xl border bg-card p-5 bg-gradient-to-r from-primary/[0.03] to-transparent">
           <div className="min-w-0">
             <h1 className="text-xl font-semibold tracking-tight">{workspace.topic}</h1>
             <p className="mt-1 text-sm text-muted-foreground leading-relaxed max-w-prose line-clamp-2">

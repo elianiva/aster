@@ -27,14 +27,14 @@ export function CodeBlock({ language, code, filename, className, ...props }: Cod
     >
       <div className="flex items-center justify-between px-3 py-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="font-mono text-xs bg-white px-1.5 py-1 rounded-md">{language}</span>
+          <span className="font-mono text-xs bg-card px-1.5 py-1 rounded-md">{language}</span>
           {filename && <span>{filename}</span>}
         </div>
         <button
           type="button"
           aria-label="Copy code"
           onClick={handleCopy}
-          className="text-xs text-muted-foreground transition-opacity bg-white p-1 rounded-md"
+          className="text-xs text-muted-foreground transition-opacity bg-card p-1 rounded-md"
         >
           {copied ? (
             <Check className="size-4" />

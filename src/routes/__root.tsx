@@ -40,9 +40,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <script
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('aster-theme');if(s&&['slate','sky','blue','violet','pink','red','orange','emerald'].indexOf(s)!==-1){document.documentElement.dataset.theme=s}}catch(e){}})()`,
+          }}
+        />
         <HeadContent />
       </head>
-      <body className="h-full" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <body className="h-full bg-gradient-to-b from-primary/[0.03] to-background" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {children}
         {import.meta.env.DEV && (
           <TanStackDevtools
