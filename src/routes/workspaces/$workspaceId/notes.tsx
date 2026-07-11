@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { NotesTab } from '~/features/artifact/components/notes-tab'
+import { NotesTab } from '~/features/notes/components/notes-tab'
 import { Skeleton } from '~/components/ui/skeleton'
 
 export const Route = createFileRoute('/workspaces/$workspaceId/notes')({

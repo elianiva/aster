@@ -5,7 +5,7 @@ import { SettingsService } from "~/features/settings/server/service";
 import { WorkspaceService } from "~/features/workspace/server/service";
 import { ThreadService } from "~/features/thread/server/service";
 import { ArtifactService } from "~/features/artifact/server/service";
-import { NoteService } from "~/features/artifact/server/note-service";
+import { NoteService } from "~/features/notes/server/service";
 import { GlossaryService } from "~/features/glossary/server/service";
 import { ResourceService } from "~/features/resource/server/service";
 import { makeKvLayer } from "./kv-service";

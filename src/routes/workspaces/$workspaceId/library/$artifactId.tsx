@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Renderer } from "@openuidev/react-lang";
-import { asterLibrary } from "~/features/artifact/components/library";
+import { asterLibrary } from "~/components/ai-elements/library";
 import { LibraryRpc } from "~/features/artifact/server/library-rpc";
 import { PageHeader } from "~/features/artifact/components/page-header";
 

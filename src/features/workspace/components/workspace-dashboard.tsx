@@ -3,7 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/features/workspace/server/rpc";
 import { ThreadRpc } from "~/features/thread/server/rpc";
 import { ResourceRpc } from "~/features/resource/server/rpc";
-import { CountRpc } from "~/features/artifact/server/counts-rpc";
+import { CountRpc } from "~/features/workspace/server/counts-rpc";
 import { Button } from "~/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {

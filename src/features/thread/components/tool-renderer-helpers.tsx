@@ -2,7 +2,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { CheckIcon, Link02Icon, Task01Icon } from "@hugeicons/core-free-icons";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Renderer } from "@openuidev/react-lang";
-import { asterLibrary } from "~/features/artifact/components/library";
+import { asterLibrary } from "~/components/ai-elements/library";
 import { prettyName } from "~/lib/utils";
 
 export function safeStringify(value: unknown): string {

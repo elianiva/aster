@@ -5,7 +5,7 @@ import { ThreadService } from "~/features/thread/server/service";
 import { WorkspaceService } from "~/features/workspace/server/service";
 import { appRuntime } from "~/server/app-runtime";
 import { artifactTools } from "~/features/artifact/server/tools";
-import { noteTools } from "~/features/artifact/server/note-tools";
+import { noteTools } from "~/features/notes/server/tools";
 import { glossaryTools } from "~/features/glossary/server/tools";
 import { resourceTools } from "~/features/resource/server/tools";
 

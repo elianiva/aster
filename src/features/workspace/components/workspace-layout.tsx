@@ -3,7 +3,7 @@ import { Suspense, useState } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { WorkspaceRpc } from "~/features/workspace/server/rpc";
-import { CountRpc } from "~/features/artifact/server/counts-rpc";
+import { CountRpc } from "~/features/workspace/server/counts-rpc";
 import { Button } from "~/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Settings02Icon } from "@hugeicons/core-free-icons";

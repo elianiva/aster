@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Renderer } from "@openuidev/react-lang";
-import { asterLibrary } from "~/features/artifact/components/library"
-import { NoteRpc } from "~/features/artifact/server/notes-rpc"
+import { asterLibrary } from "~/components/ai-elements/library"
+import { NoteRpc } from "~/features/notes/server/rpc"
 import {
 	Empty,
 	EmptyDescription,

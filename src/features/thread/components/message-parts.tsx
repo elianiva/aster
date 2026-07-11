@@ -8,7 +8,7 @@ import {
   type UIMessage,
 } from "ai";
 import { Renderer } from "@openuidev/react-lang";
-import { asterLibrary } from "~/features/artifact/components/library";
+import { asterLibrary } from "~/components/ai-elements/library";
 import {
   Confirmation,
   ConfirmationAccepted,

@@ -2,7 +2,7 @@ import { appRuntime } from "~/server/app-runtime"
 import { createServerFn } from "@tanstack/react-start";
 import { Effect, Schema } from "effect";
 import { queryOptions } from "@tanstack/react-query";
-import { NoteService, type NoteContent } from "./note-service"
+import { NoteService, type NoteContent } from "./service"
 import { rpcErrorPipe } from "~/server/error-handler"
 import { queryKeys } from "~/lib/query-keys"
 

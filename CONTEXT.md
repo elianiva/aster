@@ -85,9 +85,10 @@ Each feature is a self-contained module at `src/features/{name}/` with `componen
 |---|---|
 | **workspace** | Creation, onboarding, settings modal, mission, workspace list |
 | **thread** | Chat, messages, streaming, teaching mode toggle |
-| **artifact** | Lessons, records, reference docs, notes — all R2-stored OpenUI Lang outputs |
+| **artifact** | Lessons, records, reference docs — titled R2-stored OpenUI Lang outputs |
+| **notes** | Workspace scratchpad — user preferences, working notes (R2-stored, one per workspace) |
 | **resource** | Curated knowledge/wisdom sources |
 | **glossary** | Workspace terminology entries |
 | **settings** | Global app settings (provider, model, API keys) |
 
-Shared infrastructure outside features: `components/ui/`, `components/ai-elements/`, `server/db/`, `server/errors.ts`, `server/logger.ts`, `hooks/`, `lib/`.
+Shared infrastructure outside features: `components/ui/`, `components/ai-elements/` (OpenUI component library), `server/db/`, `server/errors.ts`, `server/logger.ts`, `hooks/`, `lib/`.

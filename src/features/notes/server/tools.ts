@@ -1,7 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { Effect } from "effect";
-import { NoteService } from "~/features/artifact/server/note-service"
+import { NoteService } from "./service"
 import { appRuntime } from "~/server/app-runtime";
 
 const createNoteSchema = z.object({
